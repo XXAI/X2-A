@@ -15,8 +15,7 @@ class Usuario extends BaseModel implements Authenticatable{
     public function roles(){
 		  return $this->belongsToMany('App\Models\Rol', 'rol_usuario', 'usuario_id', 'rol_id');
 	}
-
-
+    
     /**
      * @return string
      */

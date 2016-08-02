@@ -22,10 +22,10 @@ Route::resource('usuarios', 'UsuarioController',    ['only' => ['index', 'show',
 
 Route::group(['middleware' => 'jwt'], function () {
 
-    Route::resource('permisos', 'PermisoController',    ['only' => ['index', 'show', 'store','update','destroy']]);
-    
-    Route::resource('tabla-a',  'TablaAController',     ['only' => ['index', 'show', 'store','update','destroy']]);
+    Route::resource('permisos', 'PermisoController', ['only' => ['index', 'show', 'store','update','destroy']]);
 
+    Route::resource('solicitud-requisicion', 'SolicitudRequisicionController',
+    													['only' => ['index', 'show', 'store','update','destroy']]);
     
     Route::group(['prefix' => 'sync','namespace' => 'Sync'], function () {
         Route::get('manual',    'SincronizacionController@manual');        

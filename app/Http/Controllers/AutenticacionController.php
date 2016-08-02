@@ -31,10 +31,10 @@ class AutenticacionController extends Controller
                     "sub" => 1,
                     "id" => $usuario->id
                 ];
-
+                
                 $payload = JWTFactory::make($claims);
                 $token = JWTAuth::encode($payload);
-                return response()->json(['token' => $token->get()], 200);
+                return response()->json(['token' => $token->get(), 'usuario'=>$usuario], 200);
             } else {
                 return response()->json(['error' => 'invalid_credentials'], 401); 
             }
