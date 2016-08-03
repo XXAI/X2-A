@@ -11,7 +11,7 @@ use App\Models\Requisicion;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB;
 
-class SolicitudRequisicionController extends Controller
+class ActaController extends Controller
 {
     /**
      * Display a listing of the resource.

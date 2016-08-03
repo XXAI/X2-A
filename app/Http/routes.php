@@ -26,8 +26,7 @@ Route::group(['middleware' => 'jwt'], function () {
 
     Route::resource('permisos', 'PermisoController', ['only' => ['index', 'show', 'store','update','destroy']]);
 
-    Route::resource('solicitud-requisicion', 'SolicitudRequisicionController',
-    													['only' => ['index', 'show', 'store','update','destroy']]);
+    Route::resource('actas', 'ActaController', ['only' => ['index', 'show', 'store','update','destroy']]);
     
     Route::group(['prefix' => 'sync','namespace' => 'Sync'], function () {
         Route::get('manual',    'SincronizacionController@manual');        
