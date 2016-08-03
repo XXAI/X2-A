@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 use App\Models\Rol as Rol;
 use App\Models\Usuario as Usuario;
-use \Hash;
+use \Hash as Hash;
 
 class UsuariosSeeder extends Seeder
 {

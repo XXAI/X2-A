@@ -63,29 +63,32 @@ class ActaController extends Controller
     public function store(Request $request){
         $mensajes = [
             'required'      => "required",
+            'array'         => "array",
+            'min'           => "min",
             'unique'        => "unique",
             'date'          => "date"
         ];
 
         $reglas_acta = [
-            'ciudad'        =>'required',
-            'fecha'         =>'required',
-            'hora_inicio'   =>'required',
-            'hora_termino'  =>'required',
-            'lugar_reunion' =>'required',
-            'empresa'       =>'required'
+            'ciudad'            =>'required',
+            'fecha'             =>'required',
+            'hora_inicio'       =>'required',
+            'hora_termino'      =>'required',
+            'lugar_reunion'     =>'required',
+            'firma_solicita'    =>'required',
+            'firma_director'    =>'required',
+            'requisiciones'     =>'required|array|min:1'
         ];
 
         $reglas_requisicion = [
             'acta_id'           =>'required',
             'pedido'            =>'required',
             'lotes'             =>'required',
-            'empresa'           =>'required',
             'tipo_requisicion'  =>'required',
             'dias_surtimiento'  =>'required',
             'sub_total'         =>'required',
             'gran_total'        =>'required',
-            'iva'               =>'required',
+            'iva'               =>'sometimes_required',
             'firma_solicita'    =>'required',
             'firma_director'    =>'required'
         ];
@@ -107,6 +110,7 @@ class ActaController extends Controller
 
             $inputs['folio'] = env('CLUES') . '/' . ($max_acta+1) . '/' . date('Y');
             $inputs['estatus'] = 1;
+            $inputs['empresa'] = env('EMPRESA');
             $acta = Acta::create($inputs);
 
             if(isset($inputs['requisiciones'])){
@@ -127,10 +131,19 @@ class ActaController extends Controller
                         $max_requisicion = 0;
                     }
                     $inputs_requisicion['numero'] = $max_requisicion+1;
+                    $inputs_requisicion['empresa'] = env('EMPRESA');
                     $requisicion = Requisicion::create($inputs_requisicion);
 
                     if(isset($inputs_requisicion['insumos'])){
-                        $requisicion->insumos()->sync($inputs_requisicion['insumos']);
+                        $insumos = [];
+                        foreach ($inputs_requisicion['insumos'] as $req_insumo) {
+                            $insumos[] = [
+                                'insumo_id' => $req_insumo['insumo_id'],
+                                'cantidad' => $req_insumo['cantidad'],
+                                'total' => $req_insumo['total']
+                            ];
+                        }
+                        $requisicion->insumos()->sync($insumos);
                     }
                 }
             }
@@ -170,23 +183,25 @@ class ActaController extends Controller
         ];
 
         $reglas_acta = [
-            'ciudad'        =>'required',
-            'fecha'         =>'required',
-            'hora_inicio'   =>'required',
-            'hora_termino'  =>'required',
-            'lugar_reunion' =>'required',
-            'empresa'       =>'required'
+            'ciudad'            =>'required',
+            'fecha'             =>'required',
+            'hora_inicio'       =>'required',
+            'hora_termino'      =>'required',
+            'lugar_reunion'     =>'required',
+            'empresa'           =>'required',
+            'firma_solicita'    =>'required',
+            'firma_director'    =>'required',
+            'requisiciones'     =>'required|array|min:1'
         ];
 
         $reglas_requisicion = [
             'pedido'            =>'required',
             'lotes'             =>'required',
-            'empresa'           =>'required',
             'tipo_requisicion'  =>'required',
             'dias_surtimiento'  =>'required',
             'sub_total'         =>'required',
             'gran_total'        =>'required',
-            'iva'               =>'required',
+            'iva'               =>'sometimes_required',
             'firma_solicita'    =>'required',
             'firma_director'    =>'required'
         ];
@@ -237,11 +252,20 @@ class ActaController extends Controller
                         }
                         $inputs_requisicion['numero'] = $max_requisicion+1;
                         $inputs_requisicion['acta_id'] = $acta->id;
+                        $inputs_requisicion['empresa'] = env('EMPRESA');
                         $requisicion = Requisicion::create($inputs_requisicion);
                     }
 
                     if(isset($inputs_requisicion['insumos'])){
-                        $requisicion->insumos()->sync($inputs_requisicion['insumos']);
+                        $insumos = [];
+                        foreach ($inputs_requisicion['insumos'] as $req_insumo) {
+                            $insumos[] = [
+                                'insumo_id' => $req_insumo['insumo_id'],
+                                'cantidad' => $req_insumo['cantidad'],
+                                'total' => $req_insumo['total']
+                            ];
+                        }
+                        $requisicion->insumos()->sync($insumos);
                     }else{
                         $requisicion->insumos()->sync([]);
                     }

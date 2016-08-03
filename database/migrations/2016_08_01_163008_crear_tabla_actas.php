@@ -15,7 +15,7 @@ class CrearTablaActas extends Migration
         Schema::create('actas', function (Blueprint $table) {
             $table->increments('id');
             $table->string('folio',100);
-            $table->string('cuidad',255);
+            $table->string('ciudad',255);
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_termino');
