@@ -16,10 +16,12 @@ class CrearTablaActas extends Migration
             $table->increments('id');
             $table->string('folio',100);
             $table->string('cuidad',255);
-            $table->date('fecha_inicio');
+            $table->date('fecha');
+            $table->time('hora_inicio');
             $table->time('hora_termino');
             $table->string('lugar_reunion',255);
             $table->string('empresa',45);
+            $table->int('estatus')->lenght(1);
             $table->timestamps();
             
             $table->primary('id');

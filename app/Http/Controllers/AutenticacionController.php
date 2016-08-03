@@ -8,6 +8,8 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Http\Request;
 use \Hash;
 use App\Models\Usuario;
+use App\Models\Rol;
+use App\Models\Permiso;
 
 class AutenticacionController extends Controller
 {
@@ -18,7 +20,6 @@ class AutenticacionController extends Controller
         $credentials = $request->only('id', 'password');
 
         try {
-           
             $usuario = Usuario::where('id',$credentials['id'])->first();
 
             if(!$usuario) {                
@@ -32,9 +33,19 @@ class AutenticacionController extends Controller
                     "id" => $usuario->id
                 ];
                 
+                $roles = $usuario->roles()->lists('id');
+                $roles = Rol::whereIn('id',$roles)->with('permisos')->get();
+
+                $permisos = [];
+                foreach ($roles as $rol) {
+                    foreach ($rol->permisos as $permiso) {
+                        $permisos[] = $permiso->id;
+                    }
+                }
+
                 $payload = JWTFactory::make($claims);
                 $token = JWTAuth::encode($payload);
-                return response()->json(['token' => $token->get(), 'usuario'=>$usuario], 200);
+                return response()->json(['token' => $token->get(), 'usuario'=>$usuario, 'permisos'=>$permisos], 200);
             } else {
                 return response()->json(['error' => 'invalid_credentials'], 401); 
             }

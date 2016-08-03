@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CrearTablaDetallesRequisicion extends Migration
+class CrearTablaPivoteRequisicionInsumo extends Migration
 {
     /**
      * Run the migrations.
@@ -12,16 +12,12 @@ class CrearTablaDetallesRequisicion extends Migration
      */
     public function up()
     {
-        Schema::create('detalles_requisicion', function (Blueprint $table) {
-            $table->increments('id');
+        Schema::create('requisicion_insumo', function (Blueprint $table) {
             $table->int('requisicion_id')->lenght(10)->unsigned();
             $table->int('insumo_id')->lenght(10)->unsigned();
-            $table->int('lote')->lenght(10)->unsigned();
+            
             $table->int('cantidad')->lenght(10);
             $table->decimal('total',15,2);
-            $table->timestamps();
-            
-            $table->primary('id');
         });
     }
 
@@ -32,6 +28,6 @@ class CrearTablaDetallesRequisicion extends Migration
      */
     public function down()
     {
-        Schema::drop('detalles_requisicion');
+        Schema::drop('requisicion_insumo');
     }
 }

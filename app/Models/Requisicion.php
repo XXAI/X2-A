@@ -12,4 +12,9 @@ class Requisicion extends Model {
 	public function detalles(){
         return $this->hasMany('App\Models\DetalleRequisicion','requisicion_id');
     }
+
+    public function insumos(){
+    	return $this->belongsToMany('\App\Models\Insumo', 'requisicion_insumo', 'requisicion_id', 'insumo_id')
+    				->withPivot('cantidad','total');
+    }
 }

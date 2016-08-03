@@ -8,7 +8,6 @@ use Illuminate\Http\Response as HttpResponse;
 use App\Http\Requests;
 use App\Models\Acta;
 use App\Models\Requisicion;
-use App\Models\DetalleRequisicion;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB;
 
@@ -19,8 +18,7 @@ class SolicitudRequisicionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
-    {
+    public function index(Request $request){
         try{
             //DB::enableQueryLog();
             $elementos_por_pagina = 50;
@@ -62,8 +60,7 @@ class SolicitudRequisicionController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $mensajes = [
             'required'      => "required",
             'unique'        => "unique",
@@ -72,7 +69,8 @@ class SolicitudRequisicionController extends Controller
 
         $reglas_acta = [
             'ciudad'        =>'required',
-            'fecha_inicio'  =>'required',
+            'fecha'         =>'required',
+            'hora_inicio'   =>'required',
             'hora_termino'  =>'required',
             'lugar_reunion' =>'required',
             'empresa'       =>'required'
@@ -92,14 +90,6 @@ class SolicitudRequisicionController extends Controller
             'firma_director'    =>'required'
         ];
 
-        $reglas_detalles = [
-            'requisicion_id'    =>'required',
-            'insumo_id'         =>'required',
-            'lote'              =>'required',
-            'cantidad'          =>'required',
-            'total'             =>'required'
-        ];
-
         $inputs = Input::all();
         //$inputs = Input::only('id','servidor_id','password','nombre', 'apellidos');
         //var_dump(json_encode($inputs));die;
@@ -116,9 +106,14 @@ class SolicitudRequisicionController extends Controller
             $max_acta = Acta::max('id');
 
             $inputs['folio'] = env('CLUES') . '/' . ($max_acta+1) . '/' . date('Y');
+            $inputs['estatus'] = 1;
             $acta = Acta::create($inputs);
 
             if(isset($inputs['requisiciones'])){
+                if(count($inputs['requisiciones']) > 3){
+                    throw new \Exception("No pueden haber mas de tres requesiciones por acta");
+                }
+
                 foreach ($inputs['requisiciones'] as $inputs_requisicion) {
                     $inputs_requisicion['acta_id'] = $acta->id;
                     $v = Validator::make($inputs_requisicion, $reglas_requisicion, $mensajes);
@@ -134,16 +129,8 @@ class SolicitudRequisicionController extends Controller
                     $inputs_requisicion['numero'] = $max_requisicion+1;
                     $requisicion = Requisicion::create($inputs_requisicion);
 
-                    if(isset($inputs_requisicion['detalles'])){
-                        foreach ($inputs_requisicion['detalles'] as $inputs_detalle) {
-                            $inputs_detalle['requisicion_id'] = $requisicion->id;
-                            $v = Validator::make($inputs_detalle, $reglas_detalles, $mensajes);
-                            if ($v->fails()) {
-                                DB::rollBack();
-                                return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
-                            }
-                            $detalle = DetalleRequisicion::create($inputs_detalle);
-                        }
+                    if(isset($inputs_requisicion['insumos'])){
+                        $requisicion->insumos()->sync($inputs_requisicion['insumos']);
                     }
                 }
             }
@@ -155,7 +142,7 @@ class SolicitudRequisicionController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
-        } 
+        }
     }
 
     /**
@@ -164,9 +151,8 @@ class SolicitudRequisicionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        return Response::json([ 'data' => Acta::with('requisiciones.detalles')->find($id) ],200);
+    public function show($id){
+        return Response::json([ 'data' => Acta::with('requisiciones.insumos')->find($id) ],200);
     }
 
     /**
@@ -176,9 +162,110 @@ class SolicitudRequisicionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
-        //
+    public function update(Request $request, $id){
+        $mensajes = [
+            'required'      => "required",
+            'unique'        => "unique",
+            'date'          => "date"
+        ];
+
+        $reglas_acta = [
+            'ciudad'        =>'required',
+            'fecha'         =>'required',
+            'hora_inicio'   =>'required',
+            'hora_termino'  =>'required',
+            'lugar_reunion' =>'required',
+            'empresa'       =>'required'
+        ];
+
+        $reglas_requisicion = [
+            'pedido'            =>'required',
+            'lotes'             =>'required',
+            'empresa'           =>'required',
+            'tipo_requisicion'  =>'required',
+            'dias_surtimiento'  =>'required',
+            'sub_total'         =>'required',
+            'gran_total'        =>'required',
+            'iva'               =>'required',
+            'firma_solicita'    =>'required',
+            'firma_director'    =>'required'
+        ];
+
+        $inputs = Input::all();
+        //$inputs = Input::only('id','servidor_id','password','nombre', 'apellidos');
+        //var_dump(json_encode($inputs));die;
+
+        $v = Validator::make($inputs, $reglas_acta, $mensajes);
+        if ($v->fails()) {
+            return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
+        }
+
+        try {
+
+            DB::beginTransaction();
+
+            $acta = Acta::find($id);
+
+            if($acta->estatus == 2){
+                throw new \Exception("El Acta no se puede editar ya que se encuentra con estatus de finalizada");
+            }
+
+            $acta->update($inputs);
+
+            if(isset($inputs['requisiciones'])){
+                if(count($inputs['requisiciones']) > 3){
+                    throw new \Exception("No pueden haber mas de tres requesiciones por acta");
+                }
+
+                $acta->load('requisiciones');
+                $requisiciones_guardadas = [];
+                foreach ($inputs['requisiciones'] as $inputs_requisicion) {
+                    $v = Validator::make($inputs_requisicion, $reglas_requisicion, $mensajes);
+                    if ($v->fails()) {
+                        DB::rollBack();
+                        return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
+                    }
+
+                    if(isset($inputs_requisicion['id'])){
+                        $requisicion = Requisicion::find($inputs_requisicion['id']);
+                        $requisicion->update($inputs_requisicion);
+                        $requisiciones_guardadas[$requisicion->id] = true;
+                    }else{
+                        $max_requisicion = Requisicion::where('tipo_requisicion',$inputs_requisicion['tipo_requisicion'])->max('numero');
+                        if(!$max_requisicion){
+                            $max_requisicion = 0;
+                        }
+                        $inputs_requisicion['numero'] = $max_requisicion+1;
+                        $inputs_requisicion['acta_id'] = $acta->id;
+                        $requisicion = Requisicion::create($inputs_requisicion);
+                    }
+
+                    if(isset($inputs_requisicion['insumos'])){
+                        $requisicion->insumos()->sync($inputs_requisicion['insumos']);
+                    }else{
+                        $requisicion->insumos()->sync([]);
+                    }
+                }
+                $eliminar_requisiciones = [];
+                foreach ($acta->requisiciones as $requisicion) {
+                    if(!isset($requisiciones_guardadas[$requisicion->id])){
+                        $eliminar_requisiciones[] = $requisicion->id;
+                        $requisicion->insumos()->sync([]);
+                    }
+                }
+                if(count($eliminar_requisiciones)){
+                    Requisicion::whereIn('id',$eliminar_requisiciones)->delete();
+                }
+            }
+
+            DB::commit();
+
+            return Response::json([ 'data' => $acta ],200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
+        }
     }
 
     /**
@@ -187,8 +274,17 @@ class SolicitudRequisicionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        //
+    public function destroy($id){
+        try {
+            $acta = Acta::with('requisiciones')->find($id);
+            foreach ($acta->requisiciones as $requisicion) {
+                $requisicion->insumos()->sync([]);
+            }
+            Requisicion::where('acta_id',$id)->delete();
+            Acta::destroy($id);
+            return Response::json(['data'=>'Elemento eliminado con exito'],200);
+        } catch (Exception $e) {
+           return Response::json(['error' => $e->getMessage()], HttpResponse::HTTP_CONFLICT);
+        }
     }
 }

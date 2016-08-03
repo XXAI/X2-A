@@ -11,14 +11,14 @@ class Rol extends BaseModel{
     protected $generarID = false;
     protected $guardarIDServidor = false;
     protected $guardarIDUsuario = false;
-    public $incrementing = true;
+    public $incrementing = false;
     
     protected $table = 'roles';  
     protected $fillable = ["nombre"];
     
     
     public function permisos(){
-		return $this->belongsToMany('App\Models\Rol', 'permiso_rol', 'rol_id', 'permiso_id');
+		return $this->belongsToMany('App\Models\Permiso', 'permiso_rol', 'rol_id', 'permiso_id');
 	}
 
     public function usuarios(){

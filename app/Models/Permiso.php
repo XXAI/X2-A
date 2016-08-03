@@ -11,6 +11,7 @@ class Permiso extends BaseModel{
     protected $guardarIDServidor = false;
     protected $guardarIDUsuario = false;
     protected $fillable = ["id","descripcion","grupo","created_at","updated_at"];
+    public $incrementing = false;
     
     public function roles(){
 		return $this->belongsToMany('App\Models\Rol', 'permiso_rol', 'permiso_id', 'rol_id');
