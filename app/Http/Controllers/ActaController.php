@@ -168,12 +168,28 @@ class ActaController extends Controller
         return Response::json([ 'data' => Acta::with('requisiciones.insumos')->find($id) ],200);
     }
 
-    public function generarPDF($id){
+    public function generarActaPDF($id){
         $data = [];
-        $data['acta'] = Acta::with('requisiciones.insumos')->find($id);
+        $data['acta'] = Acta::find($id);
+        $data['unidad'] = env('CLUES_DESCRIPCION');
+        $data['empresa'] = env('EMPRESA');
         
         $pdf = PDF::loadView('pdf.acta', $data);
         return $pdf->stream('acta.pdf');
+    }
+
+    public function generarRequisicionPDF($id){
+        $data = [];
+        $data['acta'] = Acta::with('requisiciones.insumos')->find($id);
+        $data['unidad'] = env('CLUES_DESCRIPCION');
+        $data['empresa'] = env('EMPRESA');
+
+        $pdf = PDF::loadView('pdf.requisiciones', $data);
+        return $pdf->stream('requisiciones.pdf');
+    }
+
+    public function generarJSON($id){
+        $acta = Acta::with('requisiciones.insumos')->find($id);
     }
 
     /**

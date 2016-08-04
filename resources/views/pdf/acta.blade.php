@@ -29,12 +29,12 @@
 		.titulo2{
 			font-weight: bold;
 			font-family: arial, sans-serif;
-			font-size: 13;
+			font-size: 7pt;
 		}
 		.titulo3{
 			font-weight: bold;
 			font-family: arial, sans-serif;
-			font-size: 12;
+			font-size: 8pt;
 		}
 		.titulo4{
 			font-weight: bold;
@@ -43,7 +43,7 @@
 		}
 		.texto{
 			font-family: arial, sans-serif;
-			font-size: 10;
+			font-size: 10pt;
 		}
 		.negrita{
 			font-weight: bold;
@@ -58,26 +58,23 @@
 			text-align: center;
 		}
 		.texto-derecha{
-			text-align: right;
+			text-align: right !important;
 		}
 		.texto-izquierda{
 			text-align: left;
 		}
 		.encabezado-tabla{
 			font-family: arial, sans-serif;
-			font-size: 8;
-			font-weight: normal;
+			font-size: 5pt;
 			text-align: center;
 			vertical-align: middle;
-			color: #FFFFFF;
-			background-color: #0070C0;
 		}
 		.tabla-datos{
 			width: 100%;
 		}
 		.tabla-datos td,
 		.tabla-datos th{
-			border: 1 solid #000000;
+			border: thin solid #000000;
 			border-collapse: collapse;
 			padding:1;
 		}
@@ -105,9 +102,11 @@
 		.imagen.izquierda{
 			text-align: left;
 		}
-
 		.imagen.derecha{
 			text-align: right;
+		}
+		.imagen.centro{
+			text-align: center;
 		}
 		.sin-bordes{
 			border: none;
@@ -127,112 +126,90 @@
 		.pagenum:before {
 		    content: counter(page);
 		}
+		.naranja{
+			color:rgb(237,125,49);
+		}
 	</style>
 </head>
 <body class="cuerpo">
-	<div class="header">
+	<diV class="header">
 		<table>
 			<tr>
-				<td rowspan="5" class="imagen izquierda"><img src="{{ public_path().'/img/LogoFederal.png' }}" width="125"></td>
-				<td></td>
-				<td rowspan="5" class="imagen derecha"><img src="{{ public_path().'/img/LogoInstitucional.png' }}" width="125"></td>
+				<td class="imagen izquierda"><img src="{{ public_path().'/img/LogoFederal.png' }}" width="125"></td>
+				<td class="imagen centro"><img src="{{ public_path().'/img/Marca.png' }}" width="125"></td>
+				<td class="imagen centro"><img src="{{ public_path().'/img/EscudoGobiernoChiapas.png' }}" width="125"></td>
+				<td class="imagen derecha"><img src="{{ public_path().'/img/LogoInstitucional.png' }}" width="125"></td>
 			</tr>
-			<tr><td class="titulo2" align="center">INSTITUTO DE SALUD</td></tr>
-			<tr><td class="titulo2" align="center">nombre de clues</td></tr>
-			<tr><td class="titulo3" align="center">REQUISICICIÓN DE INSUMOS DE MEDICAMENTOS</td></tr>
-			<tr><td class="titulo3" align="center">ANEXO DEL ACTA No. {{$acta->folio}} DE FECHA {{$acta->fecha}}</td></tr>
-			<tr><td class="titulo3" align="center">REQUISICION DE MEDICAMENTOS CAUSES </td></tr>
-		</table>
+		</table>	
 	</diV>
-	<table width="100%">
-		<thead>
-			<tr class="tabla-datos" height="50">
-				<td class="encabezado-tabla">NIVEL</td>
-				<td class="encabezado-tabla">INDICADOR</td>
-				<td class="encabezado-tabla">META<br>PROGRAMADA</td>
-				<td class="encabezado-tabla">META<br>MODIFICADA</td>
-				<td class="encabezado-tabla">AVANCES DEL MES</td>
-				<td class="encabezado-tabla">AVANCE ACUMULADO</td>
-				<td class="encabezado-tabla">% DE AVANCE ACUMULADO</td>
-				<td class="encabezado-tabla">% DE AVANCE MODIFICADO</td>
-				<td class="encabezado-tabla">ANALISIS DE RESULTADOS 	ACUMULADO</td>
-				<td class="encabezado-tabla">JUSTIFICACIÓN ACUMULADA</td>
-			</tr>
-		</thead>
-	</table>
-	<table width="100%">
-		<thead>
-		<tr class="tabla-datos" height="50">
-			<td class="encabezado-tabla">NIVEL</td>
-			<td class="encabezado-tabla">INDICADOR</td>
-			<td class="encabezado-tabla">META<br>PROGRAMADA</td>
-			<td class="encabezado-tabla">META<br>MODIFICADA</td>
-			<td class="encabezado-tabla">AVANCES DEL MES</td>
-			<td class="encabezado-tabla">AVANCE ACUMULADO</td>
-			<td class="encabezado-tabla">% DE AVANCE ACUMULADO</td>
-			<td class="encabezado-tabla">% DE AVANCE MODIFICADO</td>
-			<td class="encabezado-tabla">ANALISIS DE RESULTADOS 	ACUMULADO</td>
-			<td class="encabezado-tabla">JUSTIFICACIÓN ACUMULADA</td>
-		</tr>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
-	<table style="page-break-inside:avoid;">
-		<tr class="negrita" height="20">
-			<td width="10%"></td>
-			<td align="center">RESPONSABLE DE LA INFORMACIÓN</td>
-			<td width="10%"></td>
-			<td align="center">LIDER DEL PROYECTO</td>
-			<td width="10%"></td>
-		</tr>
-		<tr>
-			<td></td>
-			<td height="40" class="linea-firma"></td>
-			<td>&nbsp;</td>
-			<td class="linea-firma"></td>
-			<td></td>
-		</tr>
-		<tr class="negrita" height="20">
-			<td></td>
-			<td align="center"></td>
-			<td></td>
-			<td align="center"></td>
-			<td></td>
-		</tr>
-		<tr class="negrita" height="20">
-			<td></td>
-			<td align="center"></td>
-			<td></td>
-			<td align="center"></td>
-			<td></td>
-		</tr>
-	</table>
-
-	<div style="page-break-after:always;"></div>
-
-	<table>
-		<tr height="20" class="texto">
-			<td width="100" class="texto-derecha">Información: </td>
-			<td class="negrita">Jurisdiccional</td>
-			<td colspan="6"></td>
-		</tr>
-		<tr height="15"><td colspan="8">&nbsp;</td></tr>
-	</table>
-
-	<table>
-		<thead>
-		<tr class="tabla-datos" height="40">
-			<td width="60" class="encabezado-tabla">NIVEL</td>
-			<td width="150" class="encabezado-tabla">INDICADOR</td>
-			<td width="90" class="encabezado-tabla">META PROGRAMADA</td>
-			<td width="90" class="encabezado-tabla">META MODIFICADA</td>
-			<td width="90" class="encabezado-tabla">AVANCES DEL MES</td>
-			<td width="90" class="encabezado-tabla">AVANCE ACUMULADO</td>
-			<td width="80" class="encabezado-tabla">% DE AVANCE ACUMULADO</td>
-			<td width="80" class="encabezado-tabla">% DE AVANCE MODIFICADO</td>
-		</tr>
-		</thead>
-	</table>
+	
+	<p>
+	ACTA CIRCUNSTANCIADA POR DESABASTO DE MEDICAMENTOS Y MATERIAL DE CURACIÓN.
+</p>
+<p>
+En la ciudad de ___________________ del Estado de Chiapas, siendo las ___:___ hrs. del día __ de ______ del 2016, nos encontramos reunidos en la ___________________________________, perteneciente a la Red de Servicios de hospitales del Instituto de Salud en el Estado, autoridades de este nosocomio con el objeto de inspeccionar, verificar los niveles de Abasto de insumos médicos del que resulta determinante el  desabasto e incumplimiento de la empresa ____________, considerando  los siguientes:
+</p>
+<p>
+ANTECEDENTES
+ El personal que conforma la empresa __________________,que se encarga de dispensar los medicamentos y material de curación no ha mantenido el nivel de abasto optimo y necesario en la unidad, y a los cuales se comprometió de conformidad en el Contrato Abierto de Prestación de Servicios de fecha 26 de enero de 2016 que contrajo con este Instituto de Salud, que en su Cláusula Segunda, Numeral VIII, que a la letra dice: 
+</p>
+<p>
+…“SEGUNDA. "EL PROVEEDOR" se obliga a lo siguiente:…
+</p>
+<p>
+…VIII. “EL PROVEEDOR” deberá mantener en existencia las cantidades necesarias de medicamentos y material de curación en cada módulo de distribución para hacer frente cualquier eventualidad o emergencia. Si por alguna razón imputable a “EL PROVEEDOR” llegara a existir faltante o desabasto de alguna clave de medicamentos o material de curación, para mantener la operatividad de las Unidades Médicas y no poner en riesgo la salud o incluso la vida misma de los usuarios de los servicios de salud brindados por “EL INSTITUTO”, “EL PROVEEDOR” se compromete a surtir en un periodo máximo de 24 horas dichas claves; en caso de que terminado este plazo continuara el desabasto de medicamento o material de curación, entorpeciendo este acto el fin de privilegiar las acciones y medidas preventivas destinadas a evitar o mitigar el impacto negativo que tendría este hecho en la población, “EL INSTITUTO” podrá efectuar la compra inmediata de los medicamentos y material de curación en el mercado local…
+</p>
+<p>
+ ...La compra de los medicamentos y material de curación que “EL INSTITUTO” adquiera con motivo del desabasto de alguna de las claves será realizada por la Subdirección de Recursos Materiales, a solicitud expresa de la Dirección de Atención Médica…”
+</p>
+<p>
+Han sido constantes las solicitudes hechas por este nosocomio a la empresa señalando sobre el desabasto y la problemática que este hecho ha originado, sin que esta atienda las necesidades de manera oportuna de las claves solicitadas en los términos del contrato ni emitido oficio de negativa de surtimiento alguno a las solicitudes que se hacen por medio de colectivos y/o recetas médicas.
+</p>
+<p>
+En seguimiento al punto anterior es importante resaltar que ante el incumplimiento de esta cláusula, han transcurrido más de 24 horas, término en el cual la empresa debió solventar la emergencia de desabasto. 
+</p>
+<p>
+Derivado de los puntos anteriores, y ante los no surtimientos continuos de las recetas médicas así como de los colectivos en los diferentes turnos de este hospital, matutino, vespertino, nocturno y fines de semana, ni se cumple con el sistema de vale/recetas, NO SE ESTA DANDO LA ATENCIÓN ADECUADA A LOS TRATAMIENTOS INDICADOS POR LOS MÉDICOS, NI OTORGANDO LAS CURACIONES QUE SE REALIZAN EN LOS DIFERENTES SERVICIOS DE LAS UNIDADES QUE CONFORMAN ESTE HOSPITAL, POR PARTE DEL PERSONAL DE ENFERMERÍA.
+</p>
+<p>
+Derivado de lo anterior, se toman los siguientes: 
+</p>
+<p>
+A C U E R D O S 
+</p>
+<p>
+La presente Acta Circunstanciada  POR DESABASTO DE MEDICAMENTOS Y MATERIAL DE CURACIÓN, se hará de conocimiento oficial a las Oficinas Centrales de la Secretaría de Salud, Dirigido a la Dirección de Atención Médica con el objeto de gestionar las acciones pertinentes para solventar la notable problemática generada por el desbasto de medicamentos y material de curación por parte de la Empresa _____________________. con carácter de URGENTE.
+</p>
+<p>
+El contar con estos insumos, subsanaran las deficiencias del servicio brindado hasta el momento, dándole asistencia médica a los pacientes con el cual podrán tener mejores oportunidades de mejoría en su salud.
+</p>
+<p>
+Se adjunta a este Informe, el listado de medicamentos y material de curación con las claves y las cantidades necesarias para cubrir y solventar el desabasto por un periodo de 15 días, en tanto “EL PROVEEDOR” restablece con normalidad el servicio de suministro, maniobras de trasportación, carga, descarga, conservación, dispensación, resguardo y control de los bienes y productos descritos en los Pedidos Números _______________________ los cuales son necesarios para continuar con la operatividad de este hospital, haciendo énfasis que con ello se vería beneficiado directamente los usuarios de salud, y evitaría un conflicto social y al interior del mismo.
+</p>
+<p>
+Previa lectura de la presente y no habiendo más asunto que tratar, remítase en original al Instituto de Salud el presente Informe, por lo que se da por concluida la misma, siendo las ___:___ hrs. Firmando para constancia en todas sus hojas al margen y al calce los que en ella intervinieron.
+</p>
+<p>
+DIRECTOR DEL HOSPITAL
+</p>
+<p>
+ADMINISTRADOR
+</p>
+<p>
+ENCARGADO DE ALMACÉN
+</p>
+<p>
+VISTO BUENO 
+</p>
+<p>
+COORDINADOR DE LA COMISIÓN DE ABASTO DE MEDICAMENTOS
+</p>
+<p>
+AUTORIZA
+</p>
+<p>
+DRA. LETICIA GUADALUPE MONTOYA LIÉVANO<br>
+DIRECTORA DE ATENCIÓN MÉDICA
+</p>
 </body>
 </html>

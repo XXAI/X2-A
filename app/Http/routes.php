@@ -28,7 +28,9 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::resource('permisos', 'PermisoController', ['only' => ['index', 'show', 'store','update','destroy']]);
 
     Route::resource('actas', 'ActaController', ['only' => ['index', 'show', 'store','update','destroy']]);
-    Route::get('acta-pdf/{id}',   'ActaController@generarPDF');
+    
+    Route::get('acta-pdf/{id}',   'ActaController@generarActaPDF');
+    Route::get('requisiciones-pdf/{id}',   'ActaController@generarRequisicionPDF');
     
     Route::group(['prefix' => 'sync','namespace' => 'Sync'], function () {
         Route::get('manual',    'SincronizacionController@manual');        
