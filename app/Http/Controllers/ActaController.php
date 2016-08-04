@@ -173,6 +173,10 @@ class ActaController extends Controller
         $data = [];
         $data['acta'] = Acta::with('requisiciones')->find($id);
 
+        if($data['acta']->estatus != 2){
+            return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
+        }
+
         $pedidos = $data['acta']->requisiciones->lists('pedido')->toArray();
         $data['acta']->requisiciones = implode(', ', $pedidos);
 
@@ -200,6 +204,11 @@ class ActaController extends Controller
     public function generarRequisicionPDF($id){
         $data = [];
         $data['acta'] = Acta::with('requisiciones.insumos')->find($id);
+
+        if($data['acta']->estatus != 2){
+            return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
+        }
+
         $data['unidad'] = env('CLUES_DESCRIPCION');
         $data['empresa'] = env('EMPRESA');
 
@@ -209,6 +218,10 @@ class ActaController extends Controller
 
     public function generarJSON($id){
         $acta = Acta::with('requisiciones.insumos')->find($id);
+
+        if($acta->estatus != 2){
+            return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
+        }
 
         Storage::makeDirectory("export");
         Storage::put('export/acta.json',json_encode($acta));
