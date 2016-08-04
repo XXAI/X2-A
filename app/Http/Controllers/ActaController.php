@@ -9,7 +9,7 @@ use App\Http\Requests;
 use App\Models\Acta;
 use App\Models\Requisicion;
 use Illuminate\Support\Facades\Input;
-use \Validator,\Hash, \Response, \DB;
+use \Validator,\Hash, \Response, \DB, \PDF;
 
 class ActaController extends Controller
 {
@@ -166,6 +166,14 @@ class ActaController extends Controller
      */
     public function show($id){
         return Response::json([ 'data' => Acta::with('requisiciones.insumos')->find($id) ],200);
+    }
+
+    public function generarPDF($id){
+        $data = [];
+        $data['acta'] = Acta::with('requisiciones.insumos')->find($id);
+        
+        $pdf = PDF::loadView('pdf.acta', $data);
+        return $pdf->stream('acta.pdf');
     }
 
     /**
