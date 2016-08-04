@@ -9,7 +9,7 @@ use App\Http\Requests;
 use App\Models\Acta;
 use App\Models\Requisicion;
 use Illuminate\Support\Facades\Input;
-use \Validator,\Hash, \Response, \DB, \PDF;
+use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive;
 
 class ActaController extends Controller
 {
@@ -169,13 +169,32 @@ class ActaController extends Controller
     }
 
     public function generarActaPDF($id){
+        $meses = ['01'=>'Enero','02'=>'Febrero','03'=>'Marzo','04'=>'Abril','05'=>'Mayo','06'=>'Junio','07'=>'Julio','08'=>'Agosto','09'=>'Septiembre','10'=>'Octubre','11'=>'Noviembre','12'=>'Diciembre'];
         $data = [];
-        $data['acta'] = Acta::find($id);
+        $data['acta'] = Acta::with('requisiciones')->find($id);
+
+        $pedidos = $data['acta']->requisiciones->lists('pedido')->toArray();
+        $data['acta']->requisiciones = implode(', ', $pedidos);
+
+        $data['acta']->hora_inicio = substr($data['acta']->hora_inicio, 0,5);
+        $data['acta']->hora_termino = substr($data['acta']->hora_termino, 0,5);
+
+        $fecha = explode('-',$data['acta']->fecha);
+        $fecha[1] = $meses[$fecha[1]];
+        $data['acta']->fecha = $fecha;
+
         $data['unidad'] = env('CLUES_DESCRIPCION');
         $data['empresa'] = env('EMPRESA');
         
         $pdf = PDF::loadView('pdf.acta', $data);
-        return $pdf->stream('acta.pdf');
+        $pdf->output();
+        $dom_pdf = $pdf->getDomPDF();
+        $canvas = $dom_pdf->get_canvas();
+        $w = $canvas->get_width();
+        $h = $canvas->get_height();
+        $canvas->page_text(($w/2)-10, ($h-100), "{PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
+        
+        return $pdf->stream($data['acta']->folio.'-Acta.pdf');
     }
 
     public function generarRequisicionPDF($id){
@@ -185,11 +204,37 @@ class ActaController extends Controller
         $data['empresa'] = env('EMPRESA');
 
         $pdf = PDF::loadView('pdf.requisiciones', $data);
-        return $pdf->stream('requisiciones.pdf');
+        return $pdf->stream($data['acta']->folio.'Requisiciones.pdf');
     }
 
     public function generarJSON($id){
         $acta = Acta::with('requisiciones.insumos')->find($id);
+
+        Storage::makeDirectory("export");
+        Storage::put('export/acta.json',json_encode($acta));
+
+        $storage_path = storage_path();
+        $zip = new ZipArchive();
+        $zippath = $storage_path."/app/";
+        $zipname = "json.".env('CLUES').".zip";
+
+        exec("zip -P ".env('SECRET_KEY')." -j -r ".$zippath.$zipname." \"".$zippath."/export/\"");
+        
+        $zip_status = $zip->open($zippath.$zipname);
+
+        if ($zip_status === true) {
+
+            $zip->close();
+            Storage::deleteDirectory("export");
+            
+            ///Then download the zipped file.
+            header('Content-Type: application/zip');
+            header('Content-disposition: attachment; filename='.$zipname);
+            header('Content-Length: ' . filesize($zippath.$zipname));
+            readfile($zippath.$zipname);
+            Storage::delete($zipname);
+            exit();
+        }
     }
 
     /**
