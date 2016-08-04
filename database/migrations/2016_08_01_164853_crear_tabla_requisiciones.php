@@ -16,7 +16,7 @@ class CrearTablaRequisiciones extends Migration
             $table->increments('id');
             $table->integer('acta_id')->length(10)->unsigned();
             $table->integer('numero')->length(10)->unsigned();
-            $table->string('pedido',10);
+            $table->string('pedido',15);
             $table->string('lotes',255);
             $table->string('empresa',45);
             $table->integer('tipo_requisicion')->length(1);

@@ -115,6 +115,7 @@ class ActaController extends Controller
 
             if(isset($inputs['requisiciones'])){
                 if(count($inputs['requisiciones']) > 3){
+                    DB::rollBack();
                     throw new \Exception("No pueden haber mas de tres requesiciones por acta");
                 }
 
@@ -229,7 +230,7 @@ class ActaController extends Controller
         $storage_path = storage_path();
         $zip = new ZipArchive();
         $zippath = $storage_path."/app/";
-        $zipname = "json.".env('CLUES').".zip";
+        $zipname = "acta.".str_replace('/','-', $acta->folio).".zip";
 
         exec("zip -P ".env('SECRET_KEY')." -j -r ".$zippath.$zipname." \"".$zippath."/export/\"");
         
