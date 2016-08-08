@@ -89,7 +89,7 @@ class ActaController extends Controller
             'dias_surtimiento'  =>'required',
             'sub_total'         =>'required',
             'gran_total'        =>'required',
-            'iva'               =>'sometimes_required',
+            'iva'               =>'required',
             'firma_solicita'    =>'required',
             'cargo_solicita'    =>'required'
         ];
@@ -132,11 +132,11 @@ class ActaController extends Controller
                     }
 
                     //$max_requisicion = Requisicion::where('tipo_requisicion',$inputs_requisicion['tipo_requisicion'])->max('numero');
-                    $max_requisicion = Requisicion::max('numero');
-                    if(!$max_requisicion){
-                        $max_requisicion = 0;
-                    }
-                    $inputs_requisicion['numero'] = $max_requisicion+1;
+                    //$max_requisicion = Requisicion::max('numero');
+                    //if(!$max_requisicion){
+                        //$max_requisicion = 0;
+                    //}
+                    //$inputs_requisicion['numero'] = $max_requisicion+1;
                     $inputs_requisicion['empresa'] = $configuracion->empresa_clave;
                     $requisicion = Requisicion::create($inputs_requisicion);
 
@@ -232,7 +232,7 @@ class ActaController extends Controller
     }
 
     function encryptData($value){
-       $key = "289374DSFA2";
+       $key = "1C6B37CFCDF98AB8FA29E47E4B8EF1F3";
        $text = $value;
        $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
        $iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
@@ -315,7 +315,7 @@ class ActaController extends Controller
             'dias_surtimiento'  =>'required',
             'sub_total'         =>'required',
             'gran_total'        =>'required',
-            'iva'               =>'sometimes_required',
+            'iva'               =>'required',
             'firma_solicita'    =>'required',
             'cargo_solicita'    =>'required'
         ];
@@ -363,11 +363,11 @@ class ActaController extends Controller
                         $requisiciones_guardadas[$requisicion->id] = true;
                     }else{
                         //$max_requisicion = Requisicion::where('tipo_requisicion',$inputs_requisicion['tipo_requisicion'])->max('numero');
-                        $max_requisicion = Requisicion::max('numero');
-                        if(!$max_requisicion){
-                            $max_requisicion = 0;
-                        }
-                        $inputs_requisicion['numero'] = $max_requisicion+1;
+                        //$max_requisicion = Requisicion::max('numero');
+                        //if(!$max_requisicion){
+                            //$max_requisicion = 0;
+                        //}
+                        //$inputs_requisicion['numero'] = $max_requisicion+1;
                         $inputs_requisicion['acta_id'] = $acta->id;
                         $inputs_requisicion['empresa'] = $configuracion->empresa_clave;
                         $inputs_requisicion['firma_director'] = $configuracion->director_unidad;
@@ -401,7 +401,7 @@ class ActaController extends Controller
             }
 
             DB::commit();
-
+            $acta->load('requisiciones');
             return Response::json([ 'data' => $acta ],200);
 
         } catch (\Exception $e) {

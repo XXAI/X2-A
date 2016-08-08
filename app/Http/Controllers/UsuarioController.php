@@ -91,8 +91,10 @@ class UsuarioController extends Controller
             $usuario = Usuario::create($inputs);
 
             $roles_usuario = [];
-            foreach ($roles['roles'] as $rol) {
-                $roles_usuario[] = ['rol_id'=>$rol['id']];
+            if(isset($inputs['roles'])){
+                foreach ($inputs['roles'] as $rol) {
+                    $roles_usuario[] = $rol['id'];
+                }
             }
 
             if($usuario){
@@ -144,8 +146,9 @@ class UsuarioController extends Controller
             'apellidos'     => 'required'
         ];
 
-        $inputs = Input::only('id','password','nombre', 'apellidos');
-        $roles = Input::only('roles');
+        //$inputs = Input::only('id','password','nombre', 'apellidos');
+        //$roles = Input::only('roles');
+        $inputs = Input::all();
 
         $v = Validator::make($inputs, $reglas, $mensajes);
 
@@ -160,23 +163,28 @@ class UsuarioController extends Controller
                 throw new \Exception("Usuario no encontrado");
             }
 
-            if($inputs['password']){
-                $inputs['password'] = Hash::make($inputs['password']);
-            }else{
-                $inputs['password'] = $usuario->password;
+            if(isset($inputs['password'])){
+                if($inputs['password']){
+                    $inputs['password'] = Hash::make($inputs['password']);
+                }else{
+                    $inputs['password'] = $usuario->password;
+                }
             }
+            
             $usuario->update($inputs);
 
             $roles_usuario = [];
-            foreach ($roles['roles'] as $rol) {
-                $roles_usuario[] = ['rol_id'=>$rol['id']];
+            if(isset($inputs['roles'])){
+                foreach ($inputs['roles'] as $rol) {
+                    $roles_usuario[] = $rol['id'];
+                }
             }
-            
+
             if($usuario){
                 $usuario->roles()->sync($roles_usuario);
             }
 
-            return Response::json([ 'data' => $usuario,'asf'=>$ch],200);
+            return Response::json([ 'data' => $usuario],200);
 
         } catch (\Exception $e) {
             return Response::json(['error' => $e->getMessage(),'line'=>$e->getLine()], HttpResponse::HTTP_CONFLICT);

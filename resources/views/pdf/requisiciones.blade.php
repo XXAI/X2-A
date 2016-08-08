@@ -4,9 +4,9 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<style type="text/css">
 		@page {
-            margin-top: 10.3em;
-            margin-left: 1.6em;
-            margin-right: 0.6em;
+            margin-top: 7.3em;
+            margin-left: 5.6em;
+            margin-right: 6.6em;
             margin-bottom: 1.3em;
         }
         table{
@@ -118,7 +118,7 @@
 		    position: fixed;
 		}
 		.header {
-		    top: -15.0em;
+		    top: -9.8em;
 		}
 		.footer {
 		    bottom: 0px;
@@ -175,7 +175,7 @@
 				<th width="35%" class="encabezado-tabla">DIAS DE SURTIMIENTO</th>
 			</tr>
 			<tr class="tabla-datos">
-				<td class="encabezado-tabla">No. {{$requisicion->numero}}</td>
+				<td class="encabezado-tabla"></td>
 				<td class="encabezado-tabla">{{$unidad}}</td>
 				<td class="encabezado-tabla">{{$requisicion->pedido}}</td>
 				<td class="encabezado-tabla">{{$requisicion->lotes}}</td>
@@ -217,7 +217,7 @@
 			</tr>
 			<tr class="tabla-datos">
 				<th colspan="2" class="encabezado-tabla texto-derecha">IVA</th>
-				<td class="encabezado-tabla">SI IVA</td>
+				<td class="encabezado-tabla">{{($requisicion->tipo_requisicion==3)?'$ '.number_format($requisicion->iva,2):'SIN IVA'}}</td>
 			</tr>
 			<tr class="tabla-datos">
 				<th colspan="2" class="encabezado-tabla texto-derecha">GRAN TOTAL</th>
