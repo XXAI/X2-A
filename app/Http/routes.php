@@ -21,9 +21,10 @@ Route::get('check-token',       'AutenticacionController@verificar');
 
 Route::group(['middleware' => 'jwt'], function () {
 
-	Route::resource('usuarios', 'UsuarioController',    ['only' => ['index', 'show', 'store','update','destroy']]);
-	Route::resource('roles', 	'RolController',    	['only' => ['index']]);
-    Route::resource('insumos',  'InsumoController',     ['only' => ['index']]);
+	Route::resource('usuarios',        'UsuarioController',        ['only' => ['index', 'show', 'store','update','destroy']]);
+    Route::resource('configuracion',   'ConfiguracionController',  ['only' => ['show','update']]);
+	Route::resource('roles', 	       'RolController',    	       ['only' => ['index']]);
+    Route::resource('insumos',         'InsumoController',         ['only' => ['index']]);
 
     Route::resource('permisos', 'PermisoController', ['only' => ['index', 'show', 'store','update','destroy']]);
 

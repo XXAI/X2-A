@@ -33,5 +33,24 @@ class RolesSeeder extends Seeder
         }
 
         DB::table('permiso_rol')->insert($relations);
+
+        $permisos = Permiso::where('grupo','=','Actas')->lists('id');
+        
+        $admin_rol = new Rol();
+        $admin_rol->id = 'CAPTURA';
+        $admin_rol->nombre = 'Captura de actas';
+        $admin_rol->save();
+
+        $rol_id = $admin_rol->id;
+        $relations = array();
+
+        foreach ($permisos as $permiso_id) {
+            $relations[] = [
+                'permiso_id' => $permiso_id,
+                'rol_id' => $rol_id
+            ];
+        }
+
+        DB::table('permiso_rol')->insert($relations);
     }
 }

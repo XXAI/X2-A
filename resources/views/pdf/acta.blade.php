@@ -138,13 +138,13 @@
 	</p>
 	<br>
 	<p class="texto-justificado">
-		En la ciudad de {{$acta->ciudad}} del Estado de Chiapas, siendo las {{$acta->hora_inicio}} hrs. del día {{$acta->fecha[2]}} de {{$acta->fecha[1]}} del 2016, nos encontramos reunidos en la {{$acta->lugar_reunion}}, perteneciente a la Red de Servicios de hospitales del Instituto de Salud en el Estado, autoridades de este nosocomio con el objeto de inspeccionar, verificar los niveles de Abasto de insumos médicos del que resulta determinante el  desabasto e incumplimiento de la empresa {{$acta->empresa}}, considerando  los siguientes:
+		En la ciudad de {{$acta->ciudad}} del Estado de Chiapas, siendo las {{$acta->hora_inicio}} hrs. del día {{$acta->fecha[2]}} de {{$acta->fecha[1]}} del 2016, nos encontramos reunidos en la {{$acta->lugar_reunion}}, perteneciente a la Red de Servicios de hospitales del Instituto de Salud en el Estado, autoridades de este nosocomio con el objeto de inspeccionar, verificar los niveles de Abasto de insumos médicos del que resulta determinante el  desabasto e incumplimiento de la empresa {{$empresa}}, considerando  los siguientes:
 	</p>
 	<p class="texto-centro">
 		<strong>ANTECEDENTES</strong>
 	</p>
 	<p class="texto-justificado">
- 		<strong>El personal que conforma la empresa {{$acta->empresa}},que se encarga de dispensar los medicamentos y material de curación no ha mantenido el nivel de abasto optimo y necesario en la unidad, y a los cuales se comprometió de conformidad en el Contrato Abierto de Prestación de Servicios de fecha 26 de enero de 2016 que contrajo con este Instituto de Salud, que en su Cláusula Segunda, Numeral VIII,</strong> que a la letra dice: 
+ 		<strong>El personal que conforma la empresa {{$empresa}},que se encarga de dispensar los medicamentos y material de curación no ha mantenido el nivel de abasto optimo y necesario en la unidad, y a los cuales se comprometió de conformidad en el Contrato Abierto de Prestación de Servicios de fecha 26 de enero de 2016 que contrajo con este Instituto de Salud, que en su Cláusula Segunda, Numeral VIII,</strong> que a la letra dice: 
 	</p>
 	<p class="cursiva">
 		<strong>…“SEGUNDA. "EL PROVEEDOR"</strong> se obliga a lo siguiente:…
@@ -176,7 +176,7 @@
 	<br>
 	<ol>
 		<li class="texto-justificado">
-			<strong>La presente Acta Circunstanciada  POR DESABASTO DE MEDICAMENTOS Y MATERIAL DE CURACIÓN, se hará de conocimiento oficial a las Oficinas Centrales de la Secretaría de Salud, Dirigido a la Dirección de Atención Médica</strong> con el objeto de gestionar las acciones pertinentes para solventar la notable problemática generada por el desbasto de medicamentos y material de curación por parte de la Empresa {{$acta->empresa}}. <strong>con carácter de URGENTE.</strong>
+			<strong>La presente Acta Circunstanciada  POR DESABASTO DE MEDICAMENTOS Y MATERIAL DE CURACIÓN, se hará de conocimiento oficial a las Oficinas Centrales de la Secretaría de Salud, Dirigido a la Dirección de Atención Médica</strong> con el objeto de gestionar las acciones pertinentes para solventar la notable problemática generada por el desbasto de medicamentos y material de curación por parte de la Empresa {{$empresa}}. <strong>con carácter de URGENTE.</strong>
 		</li>
 		<li class="texto-justificado negrita">
 			El contar con estos insumos, subsanaran las deficiencias del servicio brindado hasta el momento, dándole asistencia médica a los pacientes con el cual podrán tener mejores oportunidades de mejoría en su salud.

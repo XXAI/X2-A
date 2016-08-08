@@ -151,7 +151,7 @@
 			<tr><td colspan="4" class="titulo2" align="center">INSTITUTO DE SALUD</td></tr>
 			<tr><td colspan="4" class="titulo2" align="center">{{$unidad}}</td></tr>
 			<tr><td colspan="4" class="titulo2" align="center">REQUISICICIÓN DE INSUMOS DE MEDICAMENTOS</td></tr>
-			<tr><td colspan="4" class="titulo2" align="center">ANEXO DEL ACTA No. {{$acta->folio}} DE FECHA {{$acta->fecha}}</td></tr>
+			<tr><td colspan="4" class="titulo2" align="center">ANEXO DEL ACTA No. {{$acta->folio}} DE FECHA {{$acta->fecha[2]}} DE {{$acta->fecha[1]}} DEL {{$acta->fecha[0]}}</td></tr>
 		</table>
 	</diV>
 	@foreach($acta->requisiciones as $index => $requisicion)
@@ -161,7 +161,7 @@
 	<table width="100%">
 		<thead>
 			<tr class="tabla-datos">
-				<th colspan="6" class="encabezado-tabla naranja" align="center">REQUISICION DE {{($requisicion->tipo_requisicion == 1)?'MEDICAMENTOS CAUSES':(($requisicion->tipo_requisicion == 2)?'MEDICAMENTOS NO CAUSES':'MATERIAL DE CURACIÓN')}} </th>
+				<th colspan="6" class="encabezado-tabla" align="center">REQUISICION DE {{($requisicion->tipo_requisicion == 1)?'MEDICAMENTOS CAUSES':(($requisicion->tipo_requisicion == 2)?'MEDICAMENTOS NO CAUSES':'MATERIAL DE CURACIÓN')}} </th>
 			</tr>
 			<tr class="tabla-datos">
 				<th rowspan="2" width="20%" class="encabezado-tabla">REQUISICIÓN DE COMPRA</th>
@@ -217,7 +217,7 @@
 			</tr>
 			<tr class="tabla-datos">
 				<th colspan="2" class="encabezado-tabla texto-derecha">IVA</th>
-				<td></td>
+				<td class="encabezado-tabla">SI IVA</td>
 			</tr>
 			<tr class="tabla-datos">
 				<th colspan="2" class="encabezado-tabla texto-derecha">GRAN TOTAL</th>
@@ -233,12 +233,12 @@
 				<th width="50%" rowspan="3"></th>
 			</tr>
 			<tr class="tabla-datos">
-				<td class="encabezado-tabla naranja">ADMINISTRADOR</td>
-				<td class="encabezado-tabla"></td>
+				<td class="encabezado-tabla">{{$requisicion->firma_solicita}}</td>
+				<td class="encabezado-tabla">{{$requisicion->firma_director}}</td>
 			</tr>
 			<tr class="tabla-datos">
-				<td class="encabezado-tabla"></td>
-				<td class="encabezado-tabla naranja">DIRECTOR DE LA JURISDICCIÓN O UNIDAD MÉDICA</td>
+				<td class="encabezado-tabla">{{mb_strtoupper($requisicion->cargo_solicita,'UTF-8')}}</td>
+				<td class="encabezado-tabla">DIRECTOR DE LA JURISDICCIÓN O UNIDAD MÉDICA</td>
 			</tr>
 		</tbody>
 	</table>

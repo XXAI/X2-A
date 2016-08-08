@@ -171,15 +171,15 @@ class UsuarioController extends Controller
             foreach ($roles['roles'] as $rol) {
                 $roles_usuario[] = ['rol_id'=>$rol['id']];
             }
-
+            
             if($usuario){
                 $usuario->roles()->sync($roles_usuario);
             }
 
-            return Response::json([ 'data' => $usuario ],200);
+            return Response::json([ 'data' => $usuario,'asf'=>$ch],200);
 
         } catch (\Exception $e) {
-            return Response::json(['error' => $e->getMessage(),'line'=>$e->getLine(),'asdf'=>$roles], HttpResponse::HTTP_CONFLICT);
+            return Response::json(['error' => $e->getMessage(),'line'=>$e->getLine()], HttpResponse::HTTP_CONFLICT);
         } 
     }
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use App\Models\Insumo;
+use App\Models\Configuracion;
 use Illuminate\Support\Facades\Input;
 
 use Response,  Validator, DB;
@@ -21,7 +22,8 @@ class InsumoController extends Controller {
 	 */
 	public function index(){
 		$query = Input::get('query');
-		$empresa = env('EMPRESA');
+		$configuracion = Configuracion::find(1);
+		$empresa = $configuracion->empresa_clave;;
 		if($query){
             $insumos = Insumo::where(function($condition)use($query){
 			                $condition->where('clave','LIKE','%'.$query.'%')

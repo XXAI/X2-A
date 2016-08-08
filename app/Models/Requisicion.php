@@ -7,7 +7,7 @@ use \DB;
 
 class Requisicion extends Model {
 	protected $table = 'requisiciones';
-	protected $fillable = ['acta_id', 'numero', 'pedido', 'lotes', 'empresa', 'tipo_requisicion', 'dias_surtimiento', 'sub_total', 'gran_total', 'iva', 'firma_solicita', 'firma_director'];
+	protected $fillable = ['acta_id', 'numero', 'pedido', 'lotes', 'empresa', 'tipo_requisicion', 'dias_surtimiento', 'sub_total', 'gran_total', 'iva', 'firma_solicita','cargo_solicita', 'firma_director'];
 
 	public function detalles(){
         return $this->hasMany('App\Models\DetalleRequisicion','requisicion_id');

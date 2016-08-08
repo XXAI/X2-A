@@ -42,6 +42,20 @@ class PermisosSeeder extends Seeder
                 'updated_at' => Carbon::now(),
             ],
             [
+                'id' => '37DC1A627A44E',
+                'descripcion' => "Editar Configuracion",
+                'grupo' => "Administrador",
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'id' => '71A3786CCEBD4',
+                'descripcion' => "Ver Configuracion",
+                'grupo' => "Administrador",
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
                 'id' => 'D7A9BAC54EF15',
                 'descripcion' => "Ver roles",
                 'grupo' => "Administrador",
