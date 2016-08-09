@@ -18,6 +18,7 @@ class ConfiguracionSeeder extends Seeder
 				'empresa_clave' => 'clave',
 				'empresa_nombre' => 'Seleccionar empresa',
 				'director_unidad' => 'Nombre del Director de la unidad',
+                'lugar_entrega' => 'Especificar lugar de entrega',
 				'solicitante_nombre' => null,
 				'solicitante_cargo' => null
             ]

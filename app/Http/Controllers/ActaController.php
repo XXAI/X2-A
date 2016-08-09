@@ -114,6 +114,7 @@ class ActaController extends Controller
             $inputs['estatus'] = 1;
             $inputs['empresa'] = $configuracion->empresa_clave;
             $inputs['firma_director'] = $configuracion->director_unidad;
+            $inputs['lugar_entrega'] = $configuracion->lugar_entrega;
             $acta = Acta::create($inputs);
 
             if(isset($inputs['requisiciones'])){

@@ -45,7 +45,8 @@ class ConfiguracionController extends Controller
             'clues'             =>'required',
             'clues_nombre'      =>'required',
             'empresa_clave'     =>'required',
-            'director_unidad'   =>'required'
+            'director_unidad'   =>'required',
+            'lugar_entrega'     =>'required'
         ];
 
         $empresas = [

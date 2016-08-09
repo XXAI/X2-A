@@ -19,6 +19,7 @@ class CrearTablaConfiguracion extends Migration
             $table->string('empresa_clave',14);
             $table->string('empresa_nombre',255);
             $table->string('director_unidad',255);
+            $table->string('lugar_entrega',255);
             $table->string('solicitante_nombre',255)->nullable();
             $table->string('solicitante_cargo',255)->nullable();
             $table->string('ciudad',255)->nullable();
