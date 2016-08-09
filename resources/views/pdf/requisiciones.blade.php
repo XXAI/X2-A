@@ -159,38 +159,36 @@
 		<div style="page-break-after:always;"></div>
 	@endif
 	<table width="100%">
-		<thead>
+		<tbody>
 			<tr class="tabla-datos">
-				<th colspan="6" class="encabezado-tabla" align="center">REQUISICION DE {{($requisicion->tipo_requisicion == 1)?'MEDICAMENTOS CAUSES':(($requisicion->tipo_requisicion == 2)?'MEDICAMENTOS NO CAUSES':'MATERIAL DE CURACIÓN')}} </th>
+				<th colspan="10" class="encabezado-tabla" align="center">REQUISICION DE {{($requisicion->tipo_requisicion == 1)?'MEDICAMENTOS CAUSES':(($requisicion->tipo_requisicion == 2)?'MEDICAMENTOS NO CAUSES':'MATERIAL DE CURACIÓN')}} </th>
 			</tr>
 			<tr class="tabla-datos">
-				<th rowspan="2" width="20%" class="encabezado-tabla">REQUISICIÓN DE COMPRA</th>
-				<th rowspan="2" width="20%" class="encabezado-tabla">UNIDAD MÉDICA EN DESABASTO</th>
-				<th colspan="4" class="encabezado-tabla">DATOS</th>
+				<th colspan="2" rowspan="2" width="20%" class="encabezado-tabla">REQUISICIÓN DE COMPRA</th>
+				<th colspan="2" rowspan="2" width="20%" class="encabezado-tabla">UNIDAD MÉDICA EN DESABASTO</th>
+				<th colspan="6" class="encabezado-tabla">DATOS</th>
 			</tr>
 			<tr class="tabla-datos">
 				<th width="10%" class="encabezado-tabla">PEDIDO</th>
 				<th width="7%" class="encabezado-tabla">LOTES A <br>ADJUDICAR</th>
 				<th width="8%" class="encabezado-tabla">EMPRESA <br>ADJUDICADA EN <br>LICITACIÓN</th>
-				<th width="35%" class="encabezado-tabla">DIAS DE SURTIMIENTO</th>
+				<th colspan="3" width="35%" class="encabezado-tabla">DIAS DE SURTIMIENTO</th>
 			</tr>
 			<tr class="tabla-datos">
-				<td class="encabezado-tabla"></td>
-				<td class="encabezado-tabla">{{$unidad}}</td>
+				<td colspan="2" class="encabezado-tabla"></td>
+				<td colspan="2" class="encabezado-tabla">{{$unidad}}</td>
 				<td class="encabezado-tabla">{{$requisicion->pedido}}</td>
 				<td class="encabezado-tabla">{{$requisicion->lotes}}</td>
 				<td class="encabezado-tabla">{{$empresa}}</td>
-				<td class="encabezado-tabla">{{$requisicion->dias_surtimiento}}</td>
+				<td colspan="3" class="encabezado-tabla">{{$requisicion->dias_surtimiento}}</td>
 			</tr>
-		</thead>
-	</table>
-	<table width="100%">
+		</tbody>
 		<thead>
 			<tr class="tabla-datos">
 				<th class="encabezado-tabla" width="10%">No. DE LOTE</th>
 				<th class="encabezado-tabla" width="10%">CLAVE</th>
-				<th class="encabezado-tabla" width="30%">DESCRIPCIÓN DEL INSUMO</th>
-				<th class="encabezado-tabla" width="15%">CANTIDAD</th>
+				<th colspan="3" class="encabezado-tabla" width="30%">DESCRIPCIÓN DEL INSUMO</th>
+				<th colspan="2" class="encabezado-tabla" width="15%">CANTIDAD</th>
 				<th class="encabezado-tabla" width="15%">UNIDAD DE MEDIDA</th>
 				<th class="encabezado-tabla" width="10%">PRECIO <br>UNITARIO</th>
 				<th class="encabezado-tabla" width="10%">TOTAL</th>
@@ -201,8 +199,8 @@
 			<tr class="tabla-datos">
 				<td class="encabezado-tabla">{{$insumo->lote}}</td>
 				<td class="encabezado-tabla">{{$insumo->clave}}</td>
-				<td class="encabezado-tabla">{{$insumo->descripcion}}</td>
-				<td class="encabezado-tabla">{{number_format($insumo->pivot->cantidad)}}</td>
+				<td colspan="3" class="encabezado-tabla">{{$insumo->descripcion}}</td>
+				<td colspan="2" class="encabezado-tabla">{{number_format($insumo->pivot->cantidad)}}</td>
 				<td class="encabezado-tabla">{{$insumo->unidad}}</td>
 				<td class="encabezado-tabla">$ {{number_format($insumo->precio,2)}}</td>
 				<td class="encabezado-tabla">$ {{number_format($insumo->pivot->total,2)}}</td>
@@ -211,7 +209,7 @@
 		</tbody>
 		<tfoot>
 			<tr class="tabla-datos">
-				<td colspan="4" rowspan="3"></td>
+				<td colspan="7" rowspan="3"></td>
 				<th colspan="2" class="encabezado-tabla texto-derecha">SUBTOTAL</th>
 				<td class="encabezado-tabla">$ {{number_format($requisicion->sub_total,2)}}</td>
 			</tr>
@@ -223,24 +221,20 @@
 				<th colspan="2" class="encabezado-tabla texto-derecha">GRAN TOTAL</th>
 				<td class="encabezado-tabla">$ {{number_format($requisicion->gran_total,2)}}</td>
 			</tr>
+			<tr class="tabla-datos">
+				<th colspan="3" width="25%" class="encabezado-tabla">SOLICITA</th>
+				<th colspan="2" width="25%" class="encabezado-tabla">DIRECCIÓN O UNIDAD</th>
+				<th colspan="5" width="50%" rowspan="3"></th>
+			</tr>
+			<tr class="tabla-datos">
+				<td colspan="3" class="encabezado-tabla">{{$requisicion->firma_solicita}}</td>
+				<td colspan="2" class="encabezado-tabla">{{$requisicion->firma_director}}</td>
+			</tr>
+			<tr class="tabla-datos">
+				<td colspan="3" class="encabezado-tabla">{{mb_strtoupper($requisicion->cargo_solicita,'UTF-8')}}</td>
+				<td colspan="2" class="encabezado-tabla">DIRECTOR DE LA JURISDICCIÓN O UNIDAD MÉDICA</td>
+			</tr>
 		</tfoot>
-	</table>
-	<table width="100%">
-		<tbody>
-			<tr class="tabla-datos">
-				<th class="encabezado-tabla">SOLICITA</th>
-				<th class="encabezado-tabla">DIRECCIÓN O UNIDAD</th>
-				<th width="50%" rowspan="3"></th>
-			</tr>
-			<tr class="tabla-datos">
-				<td class="encabezado-tabla">{{$requisicion->firma_solicita}}</td>
-				<td class="encabezado-tabla">{{$requisicion->firma_director}}</td>
-			</tr>
-			<tr class="tabla-datos">
-				<td class="encabezado-tabla">{{mb_strtoupper($requisicion->cargo_solicita,'UTF-8')}}</td>
-				<td class="encabezado-tabla">DIRECTOR DE LA JURISDICCIÓN O UNIDAD MÉDICA</td>
-			</tr>
-		</tbody>
 	</table>
 	@endforeach
 </body>
