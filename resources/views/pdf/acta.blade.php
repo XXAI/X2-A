@@ -9,6 +9,18 @@
             margin-right: 6.6em;
             margin-bottom: 7.3em;
         }
+        #watermark {
+			position: fixed;
+			top: 15%;
+			left: 105px;
+			transform: rotate(45deg);
+			transform-origin: 50% 50%;
+			opacity: .5;
+			font-size: 120px;
+			color: #CCCCCC;
+			width: 480px;
+			text-align: center;
+		}
         table{
         	width:100%;
         	border-collapse: collapse;
@@ -133,6 +145,9 @@
 		<br><br><br><br><br>
 		<div class="texto-centro cursiva">“2016, Año de Don Ángel Albino Corzo”</div>	
 	</div>
+	@if($acta->estatus == 1)
+	<div id="watermark">SIN VALIDEZ</div>
+	@endif
 	<p class="texto-centro">
 		<strong>ACTA CIRCUNSTANCIADA POR DESABASTO DE MEDICAMENTOS Y MATERIAL DE CURACIÓN.</strong>
 	</p>

@@ -9,6 +9,18 @@
             margin-right: 6.6em;
             margin-bottom: 1.3em;
         }
+        #watermark {
+			position: fixed;
+			top: 15%;
+			left: 105px;
+			transform: rotate(45deg);
+			transform-origin: 50% 50%;
+			opacity: .5;
+			font-size: 120px;
+			color: #CCCCCC;
+			width: 480px;
+			text-align: center;
+		}
         table{
         	width:100%;
         	border-collapse: collapse;
@@ -153,7 +165,10 @@
 			<tr><td colspan="4" class="titulo2" align="center">REQUISICICIÓN DE INSUMOS DE MEDICAMENTOS</td></tr>
 			<tr><td colspan="4" class="titulo2" align="center">ANEXO DEL ACTA No. {{$acta->folio}} DE FECHA {{$acta->fecha[2]}} DE {{$acta->fecha[1]}} DEL {{$acta->fecha[0]}}</td></tr>
 		</table>
-	</diV>
+	</div>
+	@if($acta->estatus == 1)
+	<div id="watermark">SIN VALIDEZ</div>
+	@endif
 	@foreach($acta->requisiciones as $index => $requisicion)
 	@if($index > 0)
 		<div style="page-break-after:always;"></div>

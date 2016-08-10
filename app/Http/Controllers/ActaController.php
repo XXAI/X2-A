@@ -44,7 +44,8 @@ class ActaController extends Controller
 
             $totales = $recurso->count();
             
-            $recurso = $recurso->skip(($pagina-1)*$elementos_por_pagina)->take($elementos_por_pagina)
+            $recurso = $recurso->with('requisiciones')
+                                ->skip(($pagina-1)*$elementos_por_pagina)->take($elementos_por_pagina)
                                 ->orderBy('id','desc')->get();
 
             //$queries = DB::getQueryLog();
@@ -100,7 +101,7 @@ class ActaController extends Controller
 
         $v = Validator::make($inputs, $reglas_acta, $mensajes);
         if ($v->fails()) {
-            return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
+            return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
         }
 
         try {
@@ -129,7 +130,7 @@ class ActaController extends Controller
                     $v = Validator::make($inputs_requisicion, $reglas_requisicion, $mensajes);
                     if ($v->fails()) {
                         DB::rollBack();
-                        return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
+                        return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
                     }
 
                     //$max_requisicion = Requisicion::where('tipo_requisicion',$inputs_requisicion['tipo_requisicion'])->max('numero');
@@ -181,9 +182,9 @@ class ActaController extends Controller
         $data['acta'] = Acta::with('requisiciones')->find($id);
         $configuracion = Configuracion::find(1);
 
-        if($data['acta']->estatus != 2){
+        /*if($data['acta']->estatus != 2){
             return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
-        }
+        }*/
 
         $pedidos = $data['acta']->requisiciones->lists('pedido')->toArray();
         $data['acta']->requisiciones = implode(', ', $pedidos);
@@ -220,9 +221,9 @@ class ActaController extends Controller
         $fecha[1] = $meses[$fecha[1]];
         $data['acta']->fecha = $fecha;
 
-        if($data['acta']->estatus != 2){
+        /*if($data['acta']->estatus != 2){
             return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
-        }
+        }*/
 
         $data['unidad'] = mb_strtoupper($configuracion->clues_nombre,'UTF-8');
         $data['empresa'] = $configuracion->empresa_nombre;
@@ -329,7 +330,7 @@ class ActaController extends Controller
 
         $v = Validator::make($inputs, $reglas_acta, $mensajes);
         if ($v->fails()) {
-            return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
+            return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
         }
 
         try {
@@ -355,7 +356,7 @@ class ActaController extends Controller
                     $v = Validator::make($inputs_requisicion, $reglas_requisicion, $mensajes);
                     if ($v->fails()) {
                         DB::rollBack();
-                        return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
+                        return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
                     }
 
                     if(isset($inputs_requisicion['id'])){
