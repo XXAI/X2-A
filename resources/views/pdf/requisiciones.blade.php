@@ -162,7 +162,7 @@
 			</tr>
 			<tr><td colspan="4" class="titulo2" align="center">INSTITUTO DE SALUD</td></tr>
 			<tr><td colspan="4" class="titulo2" align="center">{{$unidad}}</td></tr>
-			<tr><td colspan="4" class="titulo2" align="center">REQUISICICIÓN DE INSUMOS DE MEDICAMENTOS</td></tr>
+			<tr><td colspan="4" class="titulo2" align="center">REQUISICICIÓN DE INSUMOS DE MEDICAMENTOS Y MATERIALES DE CURACIÓN</td></tr>
 			<tr><td colspan="4" class="titulo2" align="center">ANEXO DEL ACTA No. {{$acta->folio}} DE FECHA {{$acta->fecha[2]}} DE {{$acta->fecha[1]}} DEL {{$acta->fecha[0]}}</td></tr>
 		</table>
 	</div>
@@ -190,7 +190,7 @@
 				<th colspan="3" width="35%" class="encabezado-tabla">DIAS DE SURTIMIENTO</th>
 			</tr>
 			<tr class="tabla-datos">
-				<td colspan="2" class="encabezado-tabla"></td>
+				<td colspan="2" class="encabezado-tabla">{{$requisicion->numero}}</td>
 				<td colspan="2" class="encabezado-tabla">{{$unidad}}</td>
 				<td class="encabezado-tabla">{{$requisicion->pedido}}</td>
 				<td class="encabezado-tabla">{{$requisicion->lotes}}</td>

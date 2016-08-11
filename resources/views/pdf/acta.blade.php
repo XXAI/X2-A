@@ -149,7 +149,7 @@
 	<div id="watermark">SIN VALIDEZ</div>
 	@endif
 	<p class="texto-centro">
-		<strong>ACTA CIRCUNSTANCIADA POR DESABASTO DE MEDICAMENTOS Y MATERIAL DE CURACIÓN.</strong>
+		<strong>ACTA CIRCUNSTANCIADA POR DESABASTO DE MEDICAMENTOS Y MATERIAL DE CURACIÓN No. {{$acta->folio}}.</strong>
 	</p>
 	<br>
 	<p class="texto-justificado">
