@@ -353,7 +353,7 @@ class ActaController extends Controller
             }
 
             if($inputs['estatus'] == 2 && $acta->estatus != 2){
-                $max_acta = Acta::max('numero');
+                $max_acta = Acta::where('folio','like',$configuracion->clues.'/%')->max('numero');
                 if(!$max_acta){
                     $max_acta = 0;
                 }
@@ -386,7 +386,8 @@ class ActaController extends Controller
                     }
 
                     if($acta->estatus == 2 && !isset($inputs_requisicion['numero'])){
-                        $max_requisicion = Requisicion::max('numero');
+                        $actas = Acta::where('folio','like',$configuracion->clues.'/%')->lists('id');
+                        $max_requisicion = Requisicion::whereIn('acta_id',$actas)->max('numero');
                         if(!$max_requisicion){
                             $max_requisicion = 0;
                         }
