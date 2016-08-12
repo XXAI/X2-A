@@ -32,9 +32,7 @@ class UsuarioController extends Controller
 
             if($query){
                 $recurso = $recurso->where(function($condition)use($query){
-                    $condition->where('id','LIKE','%'.$query.'%')
-                            ->orWhere('nombre','LIKE','%'.$query.'%')
-                            ->orWhere('apellidos','LIKE','%'.$query.'%');
+                    $condition->where('id','LIKE','%'.$query.'%');
                 });
             }
 
@@ -62,50 +60,6 @@ class UsuarioController extends Controller
      */
     public function store(Request $request)
     {
-        $mensajes = [
-            
-            'required'      => "required",
-            'email'         => "email",
-            'unique'        => "unique"
-        ];
-
-        $reglas = [
-            'id'            => 'required|email|unique:usuarios',
-            'password'      => 'required',
-            'nombre'        => 'required',
-            'apellidos'     => 'required'
-        ];
-
-        $inputs = Input::only('id','servidor_id','password','nombre', 'apellidos');
-        $roles = Input::only('roles');
-
-        $v = Validator::make($inputs, $reglas, $mensajes);
-
-        if ($v->fails()) {
-            return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
-        }
-
-        try {
-            $inputs['servidor_id'] = env("SERVIDOR_ID");
-            $inputs['password'] = Hash::make($inputs['password']);
-            $usuario = Usuario::create($inputs);
-
-            $roles_usuario = [];
-            if(isset($inputs['roles'])){
-                foreach ($inputs['roles'] as $rol) {
-                    $roles_usuario[] = $rol['id'];
-                }
-            }
-
-            if($usuario){
-                $usuario->roles()->sync($roles_usuario);
-            }
-
-            return Response::json([ 'data' => $usuario ],200);
-
-        } catch (\Exception $e) {
-            return Response::json(['error' => $e->getMessage(),'line'=>$e->getLine(),'asdf'=>$roles], HttpResponse::HTTP_CONFLICT);
-        } 
     }
 
     /**
@@ -116,13 +70,6 @@ class UsuarioController extends Controller
      */
     public function show($id)
     {
-        try {
-            $usuario = Usuario::with('roles')->find($id);
-
-            return Response::json([ 'data' => $usuario ],200);
-        } catch (\Exception $e) {
-            return Response::json(['error' => $e->getMessage()], HttpResponse::HTTP_CONFLICT);
-        } 
     }
 
     /**
@@ -134,61 +81,6 @@ class UsuarioController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $mensajes = [
-            'required'      => "required",
-            'email'         => "email",
-            'unique'        => "unique"
-        ];
-
-        $reglas = [
-            'id'            => 'required|email',
-            'nombre'        => 'required',
-            'apellidos'     => 'required'
-        ];
-
-        //$inputs = Input::only('id','password','nombre', 'apellidos');
-        //$roles = Input::only('roles');
-        $inputs = Input::all();
-
-        $v = Validator::make($inputs, $reglas, $mensajes);
-
-        if ($v->fails()) {
-            return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
-        }
-
-        try {
-            $usuario = Usuario::find($id);
-
-            if(!$usuario){
-                throw new \Exception("Usuario no encontrado");
-            }
-
-            if(isset($inputs['password'])){
-                if($inputs['password']){
-                    $inputs['password'] = Hash::make($inputs['password']);
-                }else{
-                    $inputs['password'] = $usuario->password;
-                }
-            }
-            
-            $usuario->update($inputs);
-
-            $roles_usuario = [];
-            if(isset($inputs['roles'])){
-                foreach ($inputs['roles'] as $rol) {
-                    $roles_usuario[] = $rol['id'];
-                }
-            }
-
-            if($usuario){
-                $usuario->roles()->sync($roles_usuario);
-            }
-
-            return Response::json([ 'data' => $usuario],200);
-
-        } catch (\Exception $e) {
-            return Response::json(['error' => $e->getMessage(),'line'=>$e->getLine()], HttpResponse::HTTP_CONFLICT);
-        } 
     }
 
     /**
