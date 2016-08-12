@@ -7,6 +7,7 @@ use Illuminate\Http\Response as HttpResponse;
 
 use App\Http\Requests;
 use App\Models\Configuracion;
+use App\Models\Usuario;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive;
 
@@ -20,11 +21,7 @@ class ConfiguracionController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id){
-        $empresas = [
-            ['clave'=>'disur','nombre'=>'DISTRIBUIDORA DISUR, S.A. DE C.V.'],
-            ['clave'=>'exfarma','nombre'=>'EXFARMA, S.A. DE C.V.']
-        ];
-        return Response::json([ 'data' => Configuracion::find(1), 'catalogos' => ['empresas' => $empresas ]],200);
+        return Response::json([ 'data' => Configuracion::find(1) ],200);
     }
 
     /**
@@ -42,30 +39,22 @@ class ConfiguracionController extends Controller
         ];
 
         $reglas = [
-            'clues'             =>'required',
-            'clues_nombre'      =>'required',
-            'empresa_clave'     =>'required',
             'director_unidad'   =>'required',
             'lugar_entrega'     =>'required'
-        ];
-
-        $empresas = [
-            'disur'=> 'DISTRIBUIDORA DISUR, S.A. DE C.V.',
-            'exfarma'=> 'EXFARMA, S.A. DE C.V.'
         ];
 
         $inputs = Input::all();
 
         $v = Validator::make($inputs, $reglas, $mensajes);
         if ($v->fails()) {
-            return Response::json(['error' => $v->errors()], HttpResponse::HTTP_CONFLICT);
+            return Response::json(['error' => $v->errors(), 'error_code'=>'invalid_form'], HttpResponse::HTTP_CONFLICT);
         }
 
         try {
-            $inputs['empresa_nombre'] = $empresas[$inputs['empresa_clave']];
             $configuracion = Configuracion::find(1);
-
+            $usuario = Usuario::find($configuracion->clues);
             $configuracion->update($inputs);
+            $usuario->update($inputs);
 
             return Response::json([ 'data' => $configuracion ],200);
         } catch (\Exception $e) {

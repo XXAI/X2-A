@@ -15,7 +15,7 @@ class CrearTablaRequisiciones extends Migration
         Schema::create('requisiciones', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('acta_id')->length(10)->unsigned();
-            $table->integer('numero')->length(10)->unsigned()->nullable();
+            $table->integer('numero')->length(10)->nullable();
             $table->string('pedido',15);
             $table->string('lotes',255);
             $table->string('empresa',45);
@@ -26,7 +26,7 @@ class CrearTablaRequisiciones extends Migration
             $table->decimal('iva',15,2);
             $table->string('firma_solicita',255);
             $table->string('cargo_solicita',255);
-            $table->string('firma_director',255);
+            $table->string('firma_director',255)->nullable();
             $table->timestamps();
         });
     }

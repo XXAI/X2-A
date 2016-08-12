@@ -16,13 +16,25 @@ class CrearTablaConfiguracion extends Migration
             $table->increments('id');
             $table->string('clues',15);
             $table->string('clues_nombre',255);
-            $table->string('empresa_clave',14);
-            $table->string('empresa_nombre',255);
-            $table->string('director_unidad',255);
-            $table->string('lugar_entrega',255);
-            $table->string('solicitante_nombre',255)->nullable();
-            $table->string('solicitante_cargo',255)->nullable();
-            $table->string('ciudad',255)->nullable();
+
+            $table->string('jurisdiccion',5)->nullable();
+            $table->string('municipio',255)->nullable();
+            $table->string('localidad',255)->nullable();
+            $table->string('tipologia',255)->nullable();
+
+            $table->string('empresa_clave',255)->nullable();
+            $table->string('empresa_nombre',255)->nullable();
+
+            $table->string('director_unidad',255)->nullable();
+            $table->string('administrador',255)->nullable();
+            $table->string('encargado_almacen',255)->nullable();
+            $table->string('coordinador_comision_abasto',255)->nullable();
+
+            //$table->string('solicitante_nombre',255)->nullable();
+            //$table->string('solicitante_cargo',255)->nullable();
+
+            $table->string('lugar_entrega',255)->nullable();
+
             $table->timestamps();
         });
     }

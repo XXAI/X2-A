@@ -108,14 +108,17 @@ class ActaController extends Controller
 
             DB::beginTransaction();
 
-            $max_acta = Acta::max('id');
+            //$max_acta = Acta::max('id');
             $configuracion = Configuracion::find(1);
 
-            $inputs['folio'] = $configuracion->clues . '/' . ($max_acta+1) . '/' . date('Y');
+            $inputs['folio'] = $configuracion->clues . '/'.'00'.'/' . date('Y');
             $inputs['estatus'] = 1;
             $inputs['empresa'] = $configuracion->empresa_clave;
-            $inputs['firma_director'] = $configuracion->director_unidad;
             $inputs['lugar_entrega'] = $configuracion->lugar_entrega;
+            $inputs['director_unidad'] = $configuracion->director_unidad;
+            $inputs['administrador'] = $configuracion->administrador;
+            $inputs['encargado_almacen'] = $configuracion->encargado_almacen;
+            $inputs['coordinador_comision_abasto'] = $configuracion->coordinador_comision_abasto;
             $acta = Acta::create($inputs);
 
             if(isset($inputs['requisiciones'])){
@@ -133,13 +136,13 @@ class ActaController extends Controller
                         return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
                     }
 
-                    //$max_requisicion = Requisicion::where('tipo_requisicion',$inputs_requisicion['tipo_requisicion'])->max('numero');
                     //$max_requisicion = Requisicion::max('numero');
                     //if(!$max_requisicion){
                         //$max_requisicion = 0;
                     //}
                     //$inputs_requisicion['numero'] = $max_requisicion+1;
                     $inputs_requisicion['empresa'] = $configuracion->empresa_clave;
+                    $inputs_requisicion['dias_surtimiento'] = 15;
                     $requisicion = Requisicion::create($inputs_requisicion);
 
                     if(isset($inputs_requisicion['insumos'])){
@@ -187,7 +190,14 @@ class ActaController extends Controller
         }*/
 
         $pedidos = $data['acta']->requisiciones->lists('pedido')->toArray();
-        $data['acta']->requisiciones = implode(', ', $pedidos);
+        if(count($pedidos) == 1){
+            $data['acta']->requisiciones = $pedidos[0];
+        }elseif(count($pedidos) == 2){
+            $data['acta']->requisiciones = $pedidos[0] . ' y ' . $pedidos[1];
+        }else{
+            $data['acta']->requisiciones = $pedidos[0] . ', ' . $pedidos[1] . ' y ' . $pedidos[2];
+        }
+        //$data['acta']->requisiciones = implode(', ', $pedidos);
 
         $data['acta']->hora_inicio = substr($data['acta']->hora_inicio, 0,5);
         $data['acta']->hora_termino = substr($data['acta']->hora_termino, 0,5);
@@ -304,7 +314,6 @@ class ActaController extends Controller
             'hora_inicio'       =>'required',
             'hora_termino'      =>'required',
             'lugar_reunion'     =>'required',
-            'empresa'           =>'required',
             'firma_solicita'    =>'required',
             'cargo_solicita'    =>'required',
             'requisiciones'     =>'required|array|min:1'
@@ -343,6 +352,21 @@ class ActaController extends Controller
                 throw new \Exception("El Acta no se puede editar ya que se encuentra con estatus de finalizada");
             }
 
+            if($inputs['estatus'] == 2 && $acta->estatus != 2){
+                $max_acta = Acta::max('numero');
+                if(!$max_acta){
+                    $max_acta = 0;
+                }
+                $inputs['folio'] = $configuracion->clues . '/'.($max_acta+1).'/' . date('Y');
+                $inputs['numero'] = ($max_acta+1);
+            }
+
+            $inputs['lugar_entrega'] = $configuracion->lugar_entrega;
+            $inputs['director_unidad'] = $configuracion->director_unidad;
+            $inputs['administrador'] = $configuracion->administrador;
+            $inputs['encargado_almacen'] = $configuracion->encargado_almacen;
+            $inputs['coordinador_comision_abasto'] = $configuracion->coordinador_comision_abasto;
+            
             $acta->update($inputs);
 
             if(isset($inputs['requisiciones'])){
@@ -353,10 +377,20 @@ class ActaController extends Controller
                 $acta->load('requisiciones');
                 $requisiciones_guardadas = [];
                 foreach ($inputs['requisiciones'] as $inputs_requisicion) {
+                    $inputs_requisicion['dias_surtimiento'] = 15;
+                    $inputs_requisicion['firma_director'] = $configuracion->director_unidad;
                     $v = Validator::make($inputs_requisicion, $reglas_requisicion, $mensajes);
                     if ($v->fails()) {
                         DB::rollBack();
                         return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
+                    }
+
+                    if($acta->estatus == 2 && !isset($inputs_requisicion['numero'])){
+                        $max_requisicion = Requisicion::max('numero');
+                        if(!$max_requisicion){
+                            $max_requisicion = 0;
+                        }
+                        $inputs_requisicion['numero'] = $max_requisicion+1;
                     }
 
                     if(isset($inputs_requisicion['id'])){
@@ -364,15 +398,8 @@ class ActaController extends Controller
                         $requisicion->update($inputs_requisicion);
                         $requisiciones_guardadas[$requisicion->id] = true;
                     }else{
-                        //$max_requisicion = Requisicion::where('tipo_requisicion',$inputs_requisicion['tipo_requisicion'])->max('numero');
-                        //$max_requisicion = Requisicion::max('numero');
-                        //if(!$max_requisicion){
-                            //$max_requisicion = 0;
-                        //}
-                        //$inputs_requisicion['numero'] = $max_requisicion+1;
                         $inputs_requisicion['acta_id'] = $acta->id;
                         $inputs_requisicion['empresa'] = $configuracion->empresa_clave;
-                        $inputs_requisicion['firma_director'] = $configuracion->director_unidad;
                         $requisicion = Requisicion::create($inputs_requisicion);
                     }
 
@@ -404,7 +431,7 @@ class ActaController extends Controller
 
             DB::commit();
             $acta->load('requisiciones');
-            return Response::json([ 'data' => $acta ],200);
+            return Response::json([ 'data' => $acta, 'respuesta_code' =>'updated' ],200);
 
         } catch (\Exception $e) {
             DB::rollBack();

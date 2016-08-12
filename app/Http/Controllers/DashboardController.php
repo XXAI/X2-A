@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use JWTAuth, JWTFactory;
+use Tymon\JWTAuth\Exceptions\JWTException;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 
@@ -20,7 +23,7 @@ class DashboardController extends Controller
      *
      * @return Response
      */
-    public function index(){
+    public function index(Request $request){
         $total_actas_capturadas = Acta::count();
         //$total_actas_finalizadas =  Acta::where('estatus',2)->count();
         //$total_requisiciones = Requisicion::count();
@@ -37,7 +40,7 @@ class DashboardController extends Controller
                 # code...
             }*/
         }
-
+        
         $configuracion = Configuracion::find(1);
 
         $datos = [

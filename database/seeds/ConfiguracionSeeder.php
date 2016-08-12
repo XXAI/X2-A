@@ -13,14 +13,8 @@ class ConfiguracionSeeder extends Seeder
     {
         DB::table('configuracion')->insert([
             [
-            	'clues' => 'CLUES00001',
-				'clues_nombre' => 'Nombre de la Unidad Médica',
-				'empresa_clave' => 'clave',
-				'empresa_nombre' => 'Seleccionar empresa',
-				'director_unidad' => 'Nombre del Director de la unidad',
-                'lugar_entrega' => 'Especificar lugar de entrega',
-				'solicitante_nombre' => null,
-				'solicitante_cargo' => null
+            	'clues' => '----------',
+				'clues_nombre' => '-------------'
             ]
         ]);
     }

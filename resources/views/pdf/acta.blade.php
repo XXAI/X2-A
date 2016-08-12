@@ -68,8 +68,11 @@
 		  	text-align: right;
 		  	content: counter(item) ".";
 		}
-		.firma{
-			text-decoration: underline;
+		span.firma{
+			/*text-decoration: underline;*/
+			border-bottom: 1px solid black;
+			padding-left: 50px;
+			padding-right: 50px;
 		}
 		.texto{
 			font-family: arial, sans-serif;
@@ -206,14 +209,17 @@
 	</p>
 	<br>
 	<p class="texto-centro negrita">
+		<span class="firma">{{mb_strtoupper($acta->director_unidad,'UTF-8')}}</span><br>
 		DIRECTOR DEL HOSPITAL
 	</p>
 	<br>
 	<p class="texto-centro negrita">
+		<span class="firma">{{mb_strtoupper($acta->administrador,'UTF-8')}}</span><br>
 		ADMINISTRADOR
 	</p>
 	<br>
 	<p class="texto-centro negrita">
+		<span class="firma">{{mb_strtoupper($acta->encargado_almacen,'UTF-8')}}</span><br>
 		ENCARGADO DE ALMACÉN
 	</p>
 	<br>
@@ -222,6 +228,7 @@
 	</p>
 	<br>
 	<p class="texto-centro negrita">
+		<span class="firma">{{mb_strtoupper($acta->coordinador_comision_abasto,'UTF-8')}}</span><br>
 		COORDINADOR DE LA COMISIÓN DE ABASTO DE MEDICAMENTOS
 	</p>
 	<br>
@@ -229,10 +236,8 @@
 		AUTORIZA
 	</p>
 	<br>
-	<p class="texto-centro negrita firma">
-		DRA. LETICIA GUADALUPE MONTOYA LIÉVANO
-	</p>
 	<p class="texto-centro negrita">
+		<span class="firma">DRA. LETICIA GUADALUPE MONTOYA LIÉVANO</span><br>
 		DIRECTORA DE ATENCIÓN MÉDICA
 	</p>
 </body>

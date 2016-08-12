@@ -162,7 +162,7 @@
 			</tr>
 			<tr><td colspan="4" class="titulo2" align="center">INSTITUTO DE SALUD</td></tr>
 			<tr><td colspan="4" class="titulo2" align="center">{{$unidad}}</td></tr>
-			<tr><td colspan="4" class="titulo2" align="center">REQUISICICIÓN DE INSUMOS DE MEDICAMENTOS Y MATERIALES DE CURACIÓN</td></tr>
+			<tr><td colspan="4" class="titulo2" align="center">REQUISICICIÓN DE INSUMOS DE MEDICAMENTOS Y MATERIAL DE CURACIÓN</td></tr>
 			<tr><td colspan="4" class="titulo2" align="center">ANEXO DEL ACTA No. {{$acta->folio}} DE FECHA {{$acta->fecha[2]}} DE {{$acta->fecha[1]}} DEL {{$acta->fecha[0]}}</td></tr>
 		</table>
 	</div>

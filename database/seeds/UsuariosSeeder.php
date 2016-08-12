@@ -16,13 +16,17 @@ class UsuariosSeeder extends Seeder
      */
     public function run()
     {
-    	$usuario = new Usuario();
-        $usuario->id = 'administrador';
-        $usuario->nombre = 'Administrador';
-        $usuario->apellidos = 'del Sistema';
-        $usuario->password = Hash::make('desabasto-2016');
-        $usuario->save();
-
-        $usuario->roles()->attach('ADMIN');
+         DB::table('usuarios')->insert([
+            [
+                'id'=>'CSSSA019954',
+                'password' => Hash::make('drjesusgilbertogomezmaza'),
+                'nombre' => 'HOSPITAL CHIAPAS NOS UNE DR. JESUS GILBERTO GOMEZ MAZA',
+                'jurisdiccion' => 'I',
+                'municipio' => 'TUXTLA GUTIÉRREZ',
+                'localidad' => 'TUXTLA GUTIÉRREZ',
+                'tipologia' => 'HOSPITAL GENERAL',
+                'empresa_clave' => 'disur'
+            ]
+        ]);
     }
 }

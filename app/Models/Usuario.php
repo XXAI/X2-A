@@ -2,15 +2,13 @@
 namespace App\Models;
 
 use App\Models\BaseModel;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Contracts\Auth\Authenticatable;
 
 class Usuario extends BaseModel implements Authenticatable{
     
-    use SoftDeletes;
     protected $generarID = false;
     protected $guardarIDUsuario = false;
-    protected $fillable = ["id","servidor_id","password","nombre","apellidos"];
+    protected $fillable = ['director_unidad','administrador','encargado_almacen','coordinador_comision_abasto','lugar_entrega'];
     
     public function roles(){
 		  return $this->belongsToMany('App\Models\Rol', 'rol_usuario', 'usuario_id', 'rol_id');
