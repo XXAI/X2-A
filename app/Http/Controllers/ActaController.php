@@ -80,8 +80,8 @@ class ActaController extends Controller
             'hora_inicio'       =>'required',
             'hora_termino'      =>'required',
             'lugar_reunion'     =>'required',
-            'firma_solicita'    =>'required',
-            'cargo_solicita'    =>'required',
+            //'firma_solicita'    =>'required',
+            //'cargo_solicita'    =>'required',
             'requisiciones'     =>'required|array|min:1'
         ];
 
@@ -93,9 +93,9 @@ class ActaController extends Controller
             'dias_surtimiento'  =>'required',
             'sub_total'         =>'required',
             'gran_total'        =>'required',
-            'iva'               =>'required',
-            'firma_solicita'    =>'required',
-            'cargo_solicita'    =>'required'
+            'iva'               =>'required'
+            //'firma_solicita'    =>'required',
+            //'cargo_solicita'    =>'required'
         ];
 
         $inputs = Input::all();
@@ -133,7 +133,7 @@ class ActaController extends Controller
 
                 foreach ($inputs['requisiciones'] as $inputs_requisicion) {
                     $inputs_requisicion['acta_id'] = $acta->id;
-                    $inputs_requisicion['firma_director'] = $configuracion->director_unidad;
+                    //$inputs_requisicion['firma_director'] = $configuracion->director_unidad;
                     $v = Validator::make($inputs_requisicion, $reglas_requisicion, $mensajes);
                     if ($v->fails()) {
                         DB::rollBack();
@@ -322,8 +322,8 @@ class ActaController extends Controller
             'hora_inicio'       =>'required',
             'hora_termino'      =>'required',
             'lugar_reunion'     =>'required',
-            'firma_solicita'    =>'required',
-            'cargo_solicita'    =>'required',
+            //'firma_solicita'    =>'required',
+            //'cargo_solicita'    =>'required',
             'requisiciones'     =>'required|array|min:1'
         ];
 
@@ -334,9 +334,9 @@ class ActaController extends Controller
             'dias_surtimiento'  =>'required',
             'sub_total'         =>'required',
             'gran_total'        =>'required',
-            'iva'               =>'required',
-            'firma_solicita'    =>'required',
-            'cargo_solicita'    =>'required'
+            'iva'               =>'required'
+            //'firma_solicita'    =>'required',
+            //'cargo_solicita'    =>'required'
         ];
 
         $usuario = JWTAuth::parseToken()->getPayload();
@@ -387,7 +387,7 @@ class ActaController extends Controller
                 $requisiciones_guardadas = [];
                 foreach ($inputs['requisiciones'] as $inputs_requisicion) {
                     $inputs_requisicion['dias_surtimiento'] = 15;
-                    $inputs_requisicion['firma_director'] = $configuracion->director_unidad;
+                    //$inputs_requisicion['firma_director'] = $configuracion->director_unidad;
                     $v = Validator::make($inputs_requisicion, $reglas_requisicion, $mensajes);
                     if ($v->fails()) {
                         DB::rollBack();

@@ -31,7 +31,8 @@ class InsumoController extends Controller {
 		if($query){
             $insumos = Insumo::where(function($condition)use($query){
 			                $condition->where('clave','LIKE','%'.$query.'%')
-			                        ->orWhere('descripcion','LIKE','%'.$query.'%');
+			                        ->orWhere('descripcion','LIKE','%'.$query.'%')
+			                        ->orWhere('lote','LIKE','%'.$query.'%');
 			            });
         }else {
 			$insumos = Insumo::getModel();
