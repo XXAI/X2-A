@@ -147,10 +147,15 @@ class ActaController extends Controller
                     //$inputs_requisicion['numero'] = $max_requisicion+1;
                     $inputs_requisicion['empresa'] = $configuracion->empresa_clave;
                     $inputs_requisicion['dias_surtimiento'] = 15;
+                    $inputs_requisicion['sub_total'] = 0;
+                    $inputs_requisicion['iva'] = 0;
+                    $inputs_requisicion['gran_total'] = 0;
                     $requisicion = Requisicion::create($inputs_requisicion);
 
                     if(isset($inputs_requisicion['insumos'])){
                         $insumos = [];
+                        //$suma = 0;
+                        //$iva = 0;
                         foreach ($inputs_requisicion['insumos'] as $req_insumo) {
                             $insumos[] = [
                                 'insumo_id' => $req_insumo['insumo_id'],
@@ -159,6 +164,16 @@ class ActaController extends Controller
                             ];
                         }
                         $requisicion->insumos()->sync($insumos);
+
+                        $sub_total = $requisicion->insumos()->sum('total');
+                        $requisicion->sub_total = $sub_total;
+                        if($requisicion->tipo_requisicion == 3){
+                            $requisicion->iva = $sub_total*16/100;
+                        }else{
+                            $requisicion->iva = 0;
+                        }
+                        $requisicion->gran_total = $sub_total + $requisicion->iva;
+                        $requisicion->save();
                     }
                 }
             }
@@ -423,8 +438,23 @@ class ActaController extends Controller
                             ];
                         }
                         $requisicion->insumos()->sync($insumos);
+
+                        $sub_total = $requisicion->insumos()->sum('total');
+                        $requisicion->sub_total = $sub_total;
+                        if($requisicion->tipo_requisicion == 3){
+                            $requisicion->iva = $sub_total*16/100;
+                        }else{
+                            $requisicion->iva = 0;
+                        }
+                        $requisicion->gran_total = $sub_total + $requisicion->iva;
+                        $requisicion->save();
                     }else{
                         $requisicion->insumos()->sync([]);
+                        $requisicion->sub_total = 0;
+                        $requisicion->iva = 0;
+                        $requisicion->gran_total = 0;
+                        $requisicion->save();
+
                     }
                 }
                 $eliminar_requisiciones = [];
