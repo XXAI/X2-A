@@ -48,7 +48,11 @@ class AutenticacionController extends Controller
                                 'FF915DEC2F235'
                             ];
 
-                $configuracion = Configuracion::find(1);
+                $configuracion = Configuracion::where('clues',$usuario->id)->first();
+                if(!$configuracion){
+                    $configuracion = new Configuracion();
+                }
+                
 
                 if($configuracion->clues != $usuario->id){
                     $empresas = [

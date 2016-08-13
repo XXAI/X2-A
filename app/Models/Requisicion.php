@@ -15,7 +15,6 @@ class Requisicion extends Model {
 
     public function insumos(){
     	return $this->belongsToMany('\App\Models\Insumo', 'requisicion_insumo', 'requisicion_id', 'insumo_id')
-    				->porEmpresa()
     				->withPivot('cantidad','total');
     }
 }

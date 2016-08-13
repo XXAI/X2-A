@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use JWTAuth;
 
 use App\Http\Requests;
 use App\Models\Configuracion;
@@ -20,8 +21,10 @@ class ConfiguracionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id){
-        return Response::json([ 'data' => Configuracion::find(1) ],200);
+    public function show(Request $request, $id){
+        $usuario_token = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario_token->get('id'))->first();
+        return Response::json([ 'data' => $configuracion ],200);
     }
 
     /**
@@ -51,7 +54,9 @@ class ConfiguracionController extends Controller
         }
 
         try {
-            $configuracion = Configuracion::find(1);
+            $usuario = JWTAuth::parseToken()->getPayload();
+            $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+            //$configuracion = Configuracion::find(1);
             $usuario = Usuario::find($configuracion->clues);
             $configuracion->update($inputs);
             $usuario->update($inputs);

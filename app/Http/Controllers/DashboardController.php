@@ -24,11 +24,15 @@ class DashboardController extends Controller
      * @return Response
      */
     public function index(Request $request){
-        $total_actas_capturadas = Acta::count();
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+
+        $total_actas_capturadas = Acta::where('folio','like',$usuario->get('id').'/%')->count();
         //$total_actas_finalizadas =  Acta::where('estatus',2)->count();
         //$total_requisiciones = Requisicion::count();
 
-        $actas = Acta::with('requisiciones')->where('estatus',2)->get();
+        $actas = Acta::where('folio','like',$usuario->get('id').'/%')
+                    ->with('requisiciones')->where('estatus',2)->get();
         $total_actas_finalizadas = count($actas);
         $total_requisiciones = 0;
         $total_requisitado = 0;
@@ -41,7 +45,6 @@ class DashboardController extends Controller
             }*/
         }
         
-        $configuracion = Configuracion::find(1);
 
         $datos = [
             'total_actas_capturadas'    => $total_actas_capturadas,

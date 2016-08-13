@@ -9,6 +9,7 @@ use App\Http\Requests;
 use App\Models\Acta;
 use App\Models\Requisicion;
 use App\Models\Configuracion;
+use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive;
 
@@ -22,6 +23,8 @@ class ActaController extends Controller
     public function index(Request $request){
         try{
             //DB::enableQueryLog();
+            $usuario = JWTAuth::parseToken()->getPayload();
+
             $elementos_por_pagina = 50;
             $pagina = Input::get('pagina');
             if(!$pagina){
@@ -31,7 +34,7 @@ class ActaController extends Controller
             $query = Input::get('query');
             $filtro = Input::get('filtro');
 
-            $recurso = Acta::getModel();
+            $recurso = Acta::where('folio','like',$usuario->get('id').'/%');
 
             if($query){
                 $recurso = $recurso->where(function($condition)use($query){
@@ -109,7 +112,8 @@ class ActaController extends Controller
             DB::beginTransaction();
 
             //$max_acta = Acta::max('id');
-            $configuracion = Configuracion::find(1);
+            $usuario = JWTAuth::parseToken()->getPayload();
+            $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
 
             $inputs['folio'] = $configuracion->clues . '/'.'00'.'/' . date('Y');
             $inputs['estatus'] = 1;
@@ -183,7 +187,9 @@ class ActaController extends Controller
         $meses = ['01'=>'Enero','02'=>'Febrero','03'=>'Marzo','04'=>'Abril','05'=>'Mayo','06'=>'Junio','07'=>'Julio','08'=>'Agosto','09'=>'Septiembre','10'=>'Octubre','11'=>'Noviembre','12'=>'Diciembre'];
         $data = [];
         $data['acta'] = Acta::with('requisiciones')->find($id);
-        $configuracion = Configuracion::find(1);
+        
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
 
         /*if($data['acta']->estatus != 2){
             return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
@@ -225,7 +231,9 @@ class ActaController extends Controller
         $meses = ['01'=>'ENERO','02'=>'FEBRERO','03'=>'MARZO','04'=>'ABRIL','05'=>'MAYO','06'=>'JUNIO','07'=>'JULIO','08'=>'AGOSTO','09'=>'SEPTIEMBRE','10'=>'OCTUBRE','11'=>'NOVIEMBRE','12'=>'DICIEMBRE'];
         $data = [];
         $data['acta'] = Acta::with('requisiciones.insumos')->find($id);
-        $configuracion = Configuracion::find(1);
+
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
 
         $fecha = explode('-',$data['acta']->fecha);
         $fecha[1] = $meses[$fecha[1]];
@@ -331,7 +339,8 @@ class ActaController extends Controller
             'cargo_solicita'    =>'required'
         ];
 
-        $configuracion = Configuracion::find(1);
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
 
         $inputs = Input::all();
         //$inputs = Input::only('id','servidor_id','password','nombre', 'apellidos');

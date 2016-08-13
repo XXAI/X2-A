@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use JWTAuth;
 
 use Illuminate\Http\Request;
 use App\Models\Insumo;
@@ -20,9 +21,12 @@ class InsumoController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function index(){
+	public function index(Request $request){
 		$query = Input::get('query');
-		$configuracion = Configuracion::find(1);
+		
+		$usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+
 		$empresa = $configuracion->empresa_clave;;
 		if($query){
             $insumos = Insumo::where(function($condition)use($query){
@@ -33,12 +37,9 @@ class InsumoController extends Controller {
 			$insumos = Insumo::getModel();
 		}
 
-		$insumos = $insumos->select('id','pedido_'.$empresa.' AS pedido','requisicion','lote','clave','descripcion',
-						'marca_'.$empresa.' AS marca','unidad','cantidad','precio_'.$empresa.' AS precio','tipo',
-						'cause')
-						->where(function($condition)use($empresa){
-							$condition->whereNotNull('pedido_'.$empresa)->whereNotNull('precio_'.$empresa);
-						})
+		$insumos = $insumos->select('id','pedido','requisicion','lote','clave','descripcion',
+						'marca','unidad','cantidad','precio','tipo','cause')
+						->where('proveedor',$empresa)
 						->get();
 
 		return Response::json(['data'=>$insumos],200);
