@@ -116,6 +116,106 @@ class UsuariosSeeder extends Seeder
                 'localidad' => 'YAJALÓN',
                 'tipologia' => 'HOSPITAL GENERAL',
                 'empresa_clave' => 'disur'
+            ],
+            [
+                'id' => 'CSSSA017242',
+                'password' => Hash::make('medicamentos'),
+                'nombre' => 'OFICINA JURISDICCIONAL (COMITÁN)', 
+                'jurisdiccion' => 'III',
+                'municipio' => 'COMITÁN',
+                'localidad' => 'COMITÁN',
+                'tipologia' => 'COMITÁN',
+                'empresa_clave' => 'exfarma'
+            ],
+            [
+                'id' => 'CSSSA017312',
+                'password' => Hash::make('nutricion'),
+                'nombre' => 'OFICINA JURISDICCIONAL (MOTOZINTLA)', 
+                'jurisdiccion' => 'X',
+                'municipio' => 'MOTOZINTLA',
+                'localidad' => 'MOTOZINTLA',
+                'tipologia' => 'MOTOZINTLA',
+                'empresa_clave' => 'disur'
+            ],
+            [
+                'id' => 'CSSSA017300',
+                'password' => Hash::make('hospitales'),
+                'nombre' => 'OFICINA JURISDICCIONAL (OCOSINGO)', 
+                'jurisdiccion' => 'IX',
+                'municipio' => 'OCOSINGO',
+                'localidad' => 'OCOSINGO',
+                'tipologia' => 'OCOSINGO',
+                'empresa_clave' => 'disur'
+            ],
+            [
+                'id' => 'CSSSA017271',
+                'password' => Hash::make('bienestar'),
+                'nombre' => 'OFICINA JURISDICCIONAL (PALENQUE)', 
+                'jurisdiccion' => 'VI',
+                'municipio' => 'PALENQUE',
+                'localidad' => 'PALENQUE',
+                'tipologia' => 'PALENQUE',
+                'empresa_clave' => 'disur'
+            ],
+            [
+                'id' => 'CSSSA017266',
+                'password' => Hash::make('urgencias'),
+                'nombre' => 'OFICINA JURISDICCIONAL (PICHUCALCO)', 
+                'jurisdiccion' => 'V',
+                'municipio' => 'PICHUCALCO',
+                'localidad' => 'PICHUCALCO',
+                'tipologia' => 'PICHUCALCO',
+                'empresa_clave' => 'disur'
+            ],
+            [
+                'id' => 'CSSSA017230',
+                'password' => Hash::make('vacunacion'),
+                'nombre' => 'OFICINA JURISDICCIONAL (SAN CRISTÓBAL DE LAS CASAS)', 
+                'jurisdiccion' => 'II',
+                'municipio' => 'SAN CRISTÓBAL DE LAS CASAS',
+                'localidad' => 'SAN CRISTÓBAL DE LAS CASAS',
+                'tipologia' => 'SAN CRISTÓBAL DE LAS CASAS',
+                'empresa_clave' => 'exfarma'
+            ],
+            [
+                'id' => 'CSSSA017283',
+                'password' => Hash::make('deteccion'),
+                'nombre' => 'OFICINA JURISDICCIONAL (TAPACHULA)', 
+                'jurisdiccion' => 'VII',
+                'municipio' => 'TAPACHULA',
+                'localidad' => 'TAPACHULA',
+                'tipologia' => 'TAPACHULA',
+                'empresa_clave' => 'exfarma'
+            ],
+            [
+                'id' => 'CSSSA017295',
+                'password' => Hash::make('sanitario'),
+                'nombre' => 'OFICINA JURISDICCIONAL (TONALÁ)', 
+                'jurisdiccion' => 'VIII',
+                'municipio' => 'TONALÁ',
+                'localidad' => 'TONALÁ',
+                'tipologia' => 'TONALÁ',
+                'empresa_clave' => 'disur'
+            ],
+            [
+                'id' => 'CSSSA017225',
+                'password' => Hash::make('resistencia'),
+                'nombre' => 'OFICINA JURISDICCIONAL (TUXTLA GUTIÉRREZ)', 
+                'jurisdiccion' => 'I',
+                'municipio' => 'TUXTLA GUTIÉRREZ',
+                'localidad' => 'TUXTLA GUTIÉRREZ',
+                'tipologia' => 'TUXTLA GUTIÉRREZ',
+                'empresa_clave' => 'exfarma'
+            ],
+            [
+                'id' => 'CSSSA008112',
+                'password' => Hash::make('radiologia'),
+                'nombre' => 'OFICINA JURISDICCIONAL (VILLAFLORES)', 
+                'jurisdiccion' => 'IV',
+                'municipio' => 'VILLAFLORES',
+                'localidad' => 'VILLAFLORES',
+                'tipologia' => 'VILLAFLORES',
+                'empresa_clave' => 'exfarma'
             ]
         ]);
     }

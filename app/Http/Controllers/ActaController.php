@@ -470,7 +470,7 @@ class ActaController extends Controller
             }
 
             DB::commit();
-            $acta->load('requisiciones');
+            $acta->load('requisiciones.insumos');
             return Response::json([ 'data' => $acta, 'respuesta_code' =>'updated' ],200);
 
         } catch (\Exception $e) {

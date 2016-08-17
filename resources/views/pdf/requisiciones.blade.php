@@ -66,6 +66,9 @@
 		.texto-medio{
 			vertical-align: middle;
 		}
+		.texto-fondo{
+			vertical-align: bottom !important;
+		}
 		.texto-centro{
 			text-align: center;
 		}
@@ -242,8 +245,8 @@
 				<th colspan="5" width="50%" rowspan="3"></th>
 			</tr>
 			<tr class="tabla-datos">
-				<td colspan="3" class="encabezado-tabla">{{mb_strtoupper($acta->administrador,'UTF-8')}}</td>
-				<td colspan="2" class="encabezado-tabla">{{mb_strtoupper($acta->director_unidad,'UTF-8')}}</td>
+				<td colspan="3" class="encabezado-tabla texto-fondo" height="30">{{mb_strtoupper($acta->administrador,'UTF-8')}}</td>
+				<td colspan="2" class="encabezado-tabla texto-fondo" height="30">{{mb_strtoupper($acta->director_unidad,'UTF-8')}}</td>
 			</tr>
 			<tr class="tabla-datos">
 				<td colspan="3" class="encabezado-tabla">ADMINISTRADOR</td>
