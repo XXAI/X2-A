@@ -41,6 +41,8 @@ class InsumoController extends Controller {
 		$insumos = $insumos->select('id','pedido','requisicion','lote','clave','descripcion',
 						'marca','unidad','cantidad','precio','tipo','cause')
 						->where('proveedor',$empresa)
+						->orderBy('tipo')
+						->orderBy('precio')
 						->get();
 
 		return Response::json(['data'=>$insumos],200);

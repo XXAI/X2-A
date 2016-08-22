@@ -26,14 +26,18 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::resource('configuracion',   'ConfiguracionController',  ['only' => ['show','update']]);
 	Route::resource('roles', 	       'RolController',    	       ['only' => ['index']]);
     Route::resource('insumos',         'InsumoController',         ['only' => ['index']]);
+    Route::resource('clues',           'CluesController',          ['only' => ['index']]);
 
     Route::resource('permisos', 'PermisoController', ['only' => ['index', 'show', 'store','update','destroy']]);
 
     Route::resource('actas', 'ActaController', ['only' => ['index', 'show', 'store','update','destroy']]);
-    
+    Route::resource('requisiciones', 'RequisicionController', ['only' => ['index', 'show', 'store','update','destroy']]);
+
     Route::get('acta-pdf/{id}',             'ActaController@generarActaPDF');
     Route::get('requisiciones-pdf/{id}',    'ActaController@generarRequisicionPDF');
     Route::get('exportar-csv/{id}',         'ActaController@generarJSON');
+
+    Route::get('requisiciones-jurisdiccion-pdf','RequisicionController@generarRequisicionPDF');
     
     Route::group(['prefix' => 'sync','namespace' => 'Sync'], function () {
         Route::get('manual',    'SincronizacionController@manual');        

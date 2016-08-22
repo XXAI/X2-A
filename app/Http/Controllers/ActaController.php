@@ -276,7 +276,7 @@ class ActaController extends Controller
     }
 
     public function generarJSON($id){
-        $acta = Acta::with('requisiciones.insumos')->find($id);
+        $acta = Acta::with('requisiciones.insumos','requisiciones.insumosClues')->find($id);
 
         if($acta->estatus != 2){
             return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
@@ -437,6 +437,7 @@ class ActaController extends Controller
                                 'total' => $req_insumo['total']
                             ];
                         }
+                        $requisicion->insumos()->sync([]);
                         $requisicion->insumos()->sync($insumos);
 
                         $sub_total = $requisicion->insumos()->sum('total');

@@ -118,9 +118,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'disur'
             ],
             [
-                'id' => 'CSSSA017242',
-                'password' => Hash::make('medicamentos'),
-                'nombre' => 'OFICINA JURISDICCIONAL (COMITÁN)', 
+                'id' => 'CSSSA017353',
+                'password' => Hash::make('MEDICAMENTOS'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (COMITÁN)', 
                 'jurisdiccion' => 'III',
                 'municipio' => 'COMITÁN',
                 'localidad' => 'COMITÁN',
@@ -128,9 +128,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'exfarma'
             ],
             [
-                'id' => 'CSSSA017312',
-                'password' => Hash::make('nutricion'),
-                'nombre' => 'OFICINA JURISDICCIONAL (MOTOZINTLA)', 
+                'id' => 'JURISMOTO10',
+                'password' => Hash::make('NUTRICION'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (MOTOZINTLA)', 
                 'jurisdiccion' => 'X',
                 'municipio' => 'MOTOZINTLA',
                 'localidad' => 'MOTOZINTLA',
@@ -138,9 +138,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'disur'
             ],
             [
-                'id' => 'CSSSA017300',
-                'password' => Hash::make('hospitales'),
-                'nombre' => 'OFICINA JURISDICCIONAL (OCOSINGO)', 
+                'id' => 'CSSSA017411',
+                'password' => Hash::make('HOSPITALES'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (OCOSINGO)', 
                 'jurisdiccion' => 'IX',
                 'municipio' => 'OCOSINGO',
                 'localidad' => 'OCOSINGO',
@@ -148,9 +148,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'disur'
             ],
             [
-                'id' => 'CSSSA017271',
-                'password' => Hash::make('bienestar'),
-                'nombre' => 'OFICINA JURISDICCIONAL (PALENQUE)', 
+                'id' => 'CSSSA017382',
+                'password' => Hash::make('BIENESTAR'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (PALENQUE)', 
                 'jurisdiccion' => 'VI',
                 'municipio' => 'PALENQUE',
                 'localidad' => 'PALENQUE',
@@ -158,9 +158,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'disur'
             ],
             [
-                'id' => 'CSSSA017266',
-                'password' => Hash::make('urgencias'),
-                'nombre' => 'OFICINA JURISDICCIONAL (PICHUCALCO)', 
+                'id' => 'CSSSA017370',
+                'password' => Hash::make('URGENCIAS'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (PICHUCALCO)', 
                 'jurisdiccion' => 'V',
                 'municipio' => 'PICHUCALCO',
                 'localidad' => 'PICHUCALCO',
@@ -168,9 +168,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'disur'
             ],
             [
-                'id' => 'CSSSA017230',
-                'password' => Hash::make('vacunacion'),
-                'nombre' => 'OFICINA JURISDICCIONAL (SAN CRISTÓBAL DE LAS CASAS)', 
+                'id' => 'CSSSA017341',
+                'password' => Hash::make('VACUNACION'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (SAN CRISTÓBAL DE LAS CASAS)', 
                 'jurisdiccion' => 'II',
                 'municipio' => 'SAN CRISTÓBAL DE LAS CASAS',
                 'localidad' => 'SAN CRISTÓBAL DE LAS CASAS',
@@ -178,9 +178,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'exfarma'
             ],
             [
-                'id' => 'CSSSA017283',
-                'password' => Hash::make('deteccion'),
-                'nombre' => 'OFICINA JURISDICCIONAL (TAPACHULA)', 
+                'id' => 'CSSSA017394',
+                'password' => Hash::make('DETECCION'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (TAPACHULA)', 
                 'jurisdiccion' => 'VII',
                 'municipio' => 'TAPACHULA',
                 'localidad' => 'TAPACHULA',
@@ -188,9 +188,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'exfarma'
             ],
             [
-                'id' => 'CSSSA017295',
-                'password' => Hash::make('sanitario'),
-                'nombre' => 'OFICINA JURISDICCIONAL (TONALÁ)', 
+                'id' => 'CSSSA017406',
+                'password' => Hash::make('SANITARIO'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (TONALÁ)', 
                 'jurisdiccion' => 'VIII',
                 'municipio' => 'TONALÁ',
                 'localidad' => 'TONALÁ',
@@ -198,9 +198,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'disur'
             ],
             [
-                'id' => 'CSSSA017225',
-                'password' => Hash::make('resistencia'),
-                'nombre' => 'OFICINA JURISDICCIONAL (TUXTLA GUTIÉRREZ)', 
+                'id' => 'CSSSA017336',
+                'password' => Hash::make('RESISTENCIA'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (TUXTLA GUTIÉRREZ)', 
                 'jurisdiccion' => 'I',
                 'municipio' => 'TUXTLA GUTIÉRREZ',
                 'localidad' => 'TUXTLA GUTIÉRREZ',
@@ -208,9 +208,9 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'exfarma'
             ],
             [
-                'id' => 'CSSSA008112',
-                'password' => Hash::make('radiologia'),
-                'nombre' => 'OFICINA JURISDICCIONAL (VILLAFLORES)', 
+                'id' => 'CSSSA017365',
+                'password' => Hash::make('RADIOLOGIA'),
+                'nombre' => 'ALMACÉN JURISDICCIONAL (VILLAFLORES)', 
                 'jurisdiccion' => 'IV',
                 'municipio' => 'VILLAFLORES',
                 'localidad' => 'VILLAFLORES',

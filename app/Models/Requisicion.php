@@ -8,7 +8,7 @@ use \DB;
 class Requisicion extends Model {
 	protected $table = 'requisiciones';
 	protected $fillable = ['acta_id', 'numero', 'pedido', 'lotes', 'empresa', 'tipo_requisicion', 
-							'dias_surtimiento', 'sub_total', 'gran_total', 'iva'];
+							'dias_surtimiento', 'sub_total', 'gran_total', 'iva','clues'];
 	//'firma_solicita','cargo_solicita', 'firma_director'
 
 	public function detalles(){
@@ -18,5 +18,10 @@ class Requisicion extends Model {
     public function insumos(){
     	return $this->belongsToMany('\App\Models\Insumo', 'requisicion_insumo', 'requisicion_id', 'insumo_id')
     				->withPivot('cantidad','total');
+    }
+
+    public function insumosClues(){
+        return $this->belongsToMany('\App\Models\Insumo', 'requisicion_insumo_clues', 'requisicion_id', 'insumo_id')
+                    ->withPivot('clues','cantidad','total');
     }
 }
