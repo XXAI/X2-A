@@ -383,6 +383,7 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         'ActualizarTablaPivoteRequisicionInsumo' => __DIR__ . '/../..' . '/database/migrations/2016_08_18_133718_actualizar_tabla_pivote_requisicion_insumo.php',
         'ActualizarTablaRequisiciones' => __DIR__ . '/../..' . '/database/migrations/2016_08_18_121215_actualizar_tabla_requisiciones.php',
         'Adobe_Font_Metrics' => __DIR__ . '/..' . '/phenx/php-font-lib/classes/Adobe_Font_Metrics.php',
+        'AgregarTipoATablaUsuarios' => __DIR__ . '/../..' . '/database/migrations/2016_08_22_081950_agregar_tipo_a_tabla_usuarios.php',
         'Attribute_Translator' => __DIR__ . '/..' . '/dompdf/dompdf/include/attribute_translator.cls.php',
         'Block_Frame_Decorator' => __DIR__ . '/..' . '/dompdf/dompdf/include/block_frame_decorator.cls.php',
         'Block_Frame_Reflower' => __DIR__ . '/..' . '/dompdf/dompdf/include/block_frame_reflower.cls.php',

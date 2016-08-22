@@ -11,6 +11,7 @@ return array(
     'ActualizarTablaPivoteRequisicionInsumo' => $baseDir . '/database/migrations/2016_08_18_133718_actualizar_tabla_pivote_requisicion_insumo.php',
     'ActualizarTablaRequisiciones' => $baseDir . '/database/migrations/2016_08_18_121215_actualizar_tabla_requisiciones.php',
     'Adobe_Font_Metrics' => $vendorDir . '/phenx/php-font-lib/classes/Adobe_Font_Metrics.php',
+    'AgregarTipoATablaUsuarios' => $baseDir . '/database/migrations/2016_08_22_081950_agregar_tipo_a_tabla_usuarios.php',
     'Attribute_Translator' => $vendorDir . '/dompdf/dompdf/include/attribute_translator.cls.php',
     'Block_Frame_Decorator' => $vendorDir . '/dompdf/dompdf/include/block_frame_decorator.cls.php',
     'Block_Frame_Reflower' => $vendorDir . '/dompdf/dompdf/include/block_frame_reflower.cls.php',

@@ -16,7 +16,19 @@ class UsuariosSeeder extends Seeder
      */
     public function run()
     {
-         DB::table('usuarios')->insert([
+        $csv = storage_path().'/app/seeds/usuarios-clues.csv';
+        $query = sprintf("
+            LOAD DATA local INFILE '%s' 
+            INTO TABLE usuarios 
+            FIELDS TERMINATED BY ',' 
+            OPTIONALLY ENCLOSED BY '\"' 
+            ESCAPED BY '\"' 
+            LINES TERMINATED BY '\\n' 
+            IGNORE 1 LINES
+            (id,password,nombre,jurisdiccion,municipio,localidad,tipologia,empresa_clave,tipo_usuario)", addslashes($csv));
+        DB::connection()->getpdo()->exec($query);
+        /*
+        DB::table('usuarios')->insert([
             [
                 'id'=>'CSSSA007540',
                 'password' => Hash::make('hospitalregionaldrrafaelpascasiogamboatuxtla'),
@@ -218,5 +230,6 @@ class UsuariosSeeder extends Seeder
                 'empresa_clave' => 'exfarma'
             ]
         ]);
+        */
     }
 }
