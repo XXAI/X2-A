@@ -43,20 +43,29 @@ class AutenticacionController extends Controller
                     "id" => $usuario->id
                 ];
                 
-                $permisos = [
-                                '2EA4582FC8A19',
-                                '542C64323FC18',
-                                'DFBB15D35AF9F',
-                                'A99BCC6596321',
-                                '37DC1A627A44E',
-                                '71A3786CCEBD4',
-                                'D7A9BAC54EF15',
-                                'AFE7E7583A18C',
-                                '2EF18B5F2E2D7',
-                                'AC634E145647F',
-                                'FF915DEC2F235'
+                $permisos_unidad = [
+                                '37DC1A627A44E', //Editar Configuracion
+                                '71A3786CCEBD4' //Ver Configuracion
                             ];
-
+                $permisos_hospital = [
+                                '37DC1A627A44E', //Editar Configuracion
+                                '71A3786CCEBD4', //Ver Configuracion
+                                'AFE7E7583A18C', //Ver actas
+                                '2EF18B5F2E2D7', //Agregar actas
+                                'AC634E145647F', //Editar actas
+                                'F4CA88791CD94', //Exportar actas
+                                'FF915DEC2F235' //Eliminar actas
+                            ];
+                $permisos_jurisdiccion = [
+                                '37DC1A627A44E', //Editar Configuracion
+                                '71A3786CCEBD4', //Ver Configuracion
+                                'AFE7E7583A18C', //Ver actas
+                                'F4CA88791CD94', //Exportar actas
+                                '4E4D8E11F6E4A', //Ver Requisiciones
+                                '2438B88CD5ECC', //Guardar Requisiciones
+                                'FF915DEC2F235' //Eliminar actas
+                            ];
+                            
                 $configuracion = Configuracion::where('clues',$usuario->id)->first();
                 if(!$configuracion){
                     $configuracion = new Configuracion();
@@ -94,6 +103,13 @@ class AutenticacionController extends Controller
                         $permisos[] = $permiso->id;
                     }
                 }*/
+                if($usuario->tipo_usuario == 1){
+                    $permisos = $permisos_unidad;
+                }elseif($usuario->tipo_usuario == 2){
+                    $permisos = $permisos_jurisdiccion;
+                }else{
+                    $permisos = $permisos_hospital;
+                }
 
                 $payload = JWTFactory::make($claims);
                 $token = JWTAuth::encode($payload);

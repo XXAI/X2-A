@@ -31,7 +31,10 @@ class RequisicionController extends Controller
             $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$usuario->get('id'))->with('insumosClues')->get();
             
             $clues = Usuario::select('id AS clues','nombre','municipio','localidad','jurisdiccion')
-                            ->where('empresa_clave',$empresa)->get();
+                            ->where('empresa_clave',$empresa)
+                            ->where('jurisdiccion',$configuracion->jurisdiccion)
+                            ->where('tipo_usuario',1)
+                            ->get();
 
             return Response::json(['data'=>$requisiciones, 'clues'=>$clues, 'configuracion'=>$configuracion],200);
         }catch(Exception $ex){
