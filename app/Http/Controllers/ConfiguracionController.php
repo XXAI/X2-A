@@ -42,8 +42,7 @@ class ConfiguracionController extends Controller
         ];
 
         $reglas = [
-            'director_unidad'   =>'required',
-            'lugar_entrega'     =>'required'
+            'director_unidad'   =>'required'
         ];
 
         $inputs = Input::all();

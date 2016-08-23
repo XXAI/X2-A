@@ -9,6 +9,7 @@ use App\Http\Requests;
 use App\Models\Acta;
 use App\Models\Requisicion;
 use App\Models\Configuracion;
+use App\Models\Insumo;
 use App\Models\Usuario;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
@@ -35,6 +36,14 @@ class RequisicionController extends Controller
                             ->where('jurisdiccion',$configuracion->jurisdiccion)
                             ->where('tipo_usuario',1)
                             ->get();
+            /*
+            $insumos = Insumo::select('id','pedido','requisicion','lote','clave','descripcion',
+                        'marca','unidad','cantidad','precio','tipo','cause')
+                            ->where('proveedor',$empresa)
+                            ->orderBy('tipo')
+                            ->orderBy('precio')
+                            ->get();
+            */
 
             return Response::json(['data'=>$requisiciones, 'clues'=>$clues, 'configuracion'=>$configuracion],200);
         }catch(Exception $ex){

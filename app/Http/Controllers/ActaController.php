@@ -331,6 +331,14 @@ class ActaController extends Controller
             'date'          => "date"
         ];
 
+        $reglas_configuracion = [
+            'director_unidad'               => 'required',
+            'administrador'                 => 'required',
+            'encargado_almacen'             => 'required',
+            'coordinador_comision_abasto'   => 'required',
+            'lugar_entrega'                 => 'required'
+        ];
+
         $reglas_acta = [
             'ciudad'            =>'required',
             'fecha'             =>'required',
@@ -376,6 +384,12 @@ class ActaController extends Controller
                 throw new \Exception("El Acta no se puede editar ya que se encuentra con estatus de finalizada");
             }
 
+            $inputs['lugar_entrega'] = $configuracion->lugar_entrega;
+            $inputs['director_unidad'] = $configuracion->director_unidad;
+            $inputs['administrador'] = $configuracion->administrador;
+            $inputs['encargado_almacen'] = $configuracion->encargado_almacen;
+            $inputs['coordinador_comision_abasto'] = $configuracion->coordinador_comision_abasto;
+
             if($inputs['estatus'] == 2 && $acta->estatus != 2){
                 $max_acta = Acta::where('folio','like',$configuracion->clues.'/%')->max('numero');
                 if(!$max_acta){
@@ -383,14 +397,14 @@ class ActaController extends Controller
                 }
                 $inputs['folio'] = $configuracion->clues . '/'.($max_acta+1).'/' . date('Y');
                 $inputs['numero'] = ($max_acta+1);
+
+                $v = Validator::make($inputs, $reglas_configuracion, $mensajes);
+                if ($v->fails()) {
+                    DB::rollBack();
+                    return Response::json(['error' => 'Faltan datos de Configuración por capturar.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
             }
 
-            $inputs['lugar_entrega'] = $configuracion->lugar_entrega;
-            $inputs['director_unidad'] = $configuracion->director_unidad;
-            $inputs['administrador'] = $configuracion->administrador;
-            $inputs['encargado_almacen'] = $configuracion->encargado_almacen;
-            $inputs['coordinador_comision_abasto'] = $configuracion->coordinador_comision_abasto;
-            
             $acta->update($inputs);
 
             if(isset($inputs['requisiciones'])){
