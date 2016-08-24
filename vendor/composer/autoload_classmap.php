@@ -8,8 +8,10 @@ $baseDir = dirname($vendorDir);
 return array(
     'Absolute_Positioner' => $vendorDir . '/dompdf/dompdf/include/absolute_positioner.cls.php',
     'Abstract_Renderer' => $vendorDir . '/dompdf/dompdf/include/abstract_renderer.cls.php',
+    'ActualizarTablaActas' => $baseDir . '/database/migrations/2016_08_24_101720_actualizar_tabla_actas.php',
     'ActualizarTablaPivoteRequisicionInsumo' => $baseDir . '/database/migrations/2016_08_18_133718_actualizar_tabla_pivote_requisicion_insumo.php',
     'ActualizarTablaRequisiciones' => $baseDir . '/database/migrations/2016_08_18_121215_actualizar_tabla_requisiciones.php',
+    'ActualizarTablaUsuariosTipoConexion' => $baseDir . '/database/migrations/2016_08_24_104356_actualizar_tabla_usuarios_tipo_conexion.php',
     'Adobe_Font_Metrics' => $vendorDir . '/phenx/php-font-lib/classes/Adobe_Font_Metrics.php',
     'AgregarTipoATablaUsuarios' => $baseDir . '/database/migrations/2016_08_22_081950_agregar_tipo_a_tabla_usuarios.php',
     'Attribute_Translator' => $vendorDir . '/dompdf/dompdf/include/attribute_translator.cls.php',

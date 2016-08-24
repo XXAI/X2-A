@@ -148,7 +148,7 @@
 		<br><br><br><br><br>
 		<div class="texto-centro cursiva">“2016, Año de Don Ángel Albino Corzo”</div>	
 	</div>
-	@if($acta->estatus == 1)
+	@if($acta->estatus < 3)
 	<div id="watermark">SIN VALIDEZ</div>
 	@endif
 	<p class="texto-centro">

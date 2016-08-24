@@ -169,7 +169,7 @@
 			<tr><td colspan="4" class="titulo2" align="center">ANEXO DEL ACTA No. {{$acta->folio}} DE FECHA {{$acta->fecha[2]}} DE {{$acta->fecha[1]}} DEL {{$acta->fecha[0]}}</td></tr>
 		</table>
 	</div>
-	@if($acta->estatus == 1)
+	@if($acta->estatus < 3)
 	<div id="watermark">SIN VALIDEZ</div>
 	@endif
 	@foreach($acta->requisiciones as $index => $requisicion)
@@ -218,10 +218,22 @@
 				<td class="encabezado-tabla">{{$insumo->lote}}</td>
 				<td class="encabezado-tabla">{{$insumo->clave}}</td>
 				<td colspan="3" class="encabezado-tabla">{{$insumo->descripcion}}</td>
-				<td colspan="2" class="encabezado-tabla">{{number_format($insumo->pivot->cantidad)}}</td>
+				<td colspan="2" class="encabezado-tabla">
+				@if($acta->estatus < 3)
+					{{number_format($insumo->pivot->cantidad)}}
+				@else
+					{{number_format($insumo->pivot->cantidad_validada)}}
+				@endif
+				</td>
 				<td class="encabezado-tabla">{{$insumo->unidad}}</td>
 				<td class="encabezado-tabla">$ {{number_format($insumo->precio,2)}}</td>
-				<td class="encabezado-tabla">$ {{number_format($insumo->pivot->total,2)}}</td>
+				<td class="encabezado-tabla">
+				@if($acta->estatus < 3)
+					$ {{number_format($insumo->pivot->total,2)}}
+				@else
+					$ {{number_format($insumo->pivot->total_validado,2)}}
+				@endif
+				</td>
 			</tr>
 		@endforeach
 		</tbody>
@@ -229,15 +241,37 @@
 			<tr class="tabla-datos">
 				<td colspan="7" rowspan="3"></td>
 				<th colspan="2" class="encabezado-tabla texto-derecha">SUBTOTAL</th>
-				<td class="encabezado-tabla">$ {{number_format($requisicion->sub_total,2)}}</td>
+				<td class="encabezado-tabla">
+				@if($acta->estatus < 3)
+					$ {{number_format($requisicion->sub_total,2)}}
+				@else
+					$ {{number_format($requisicion->sub_total_validado,2)}}
+				@endif
+				</td>
 			</tr>
 			<tr class="tabla-datos">
 				<th colspan="2" class="encabezado-tabla texto-derecha">IVA</th>
-				<td class="encabezado-tabla">{{($requisicion->tipo_requisicion==3)?'$ '.number_format($requisicion->iva,2):'SIN IVA'}}</td>
+				<td class="encabezado-tabla">
+				@if($requisicion->tipo_requisicion == 3)
+					SIN IVA
+				@else
+					@if($acta->estatus < 3)
+						$ {{number_format($requisicion->iva,2)}}
+					@else
+						$ {{number_format($requisicion->iva_validado,2)}}
+					@endif
+				@endif
+				</td>
 			</tr>
 			<tr class="tabla-datos">
 				<th colspan="2" class="encabezado-tabla texto-derecha">GRAN TOTAL</th>
-				<td class="encabezado-tabla">$ {{number_format($requisicion->gran_total,2)}}</td>
+				<td class="encabezado-tabla">
+				@if($acta->estatus < 3)
+					$ {{number_format($requisicion->gran_total,2)}}
+				@else
+					$ {{number_format($requisicion->gran_total_validado,2)}}
+				@endif
+				</td>
 			</tr>
 			<tr class="tabla-datos">
 				<th colspan="3" width="25%" class="encabezado-tabla">SOLICITA</th>

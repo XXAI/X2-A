@@ -36,6 +36,7 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('acta-pdf/{id}',             'ActaController@generarActaPDF');
     Route::get('requisiciones-pdf/{id}',    'ActaController@generarRequisicionPDF');
     Route::get('exportar-csv/{id}',         'ActaController@generarJSON');
+    Route::post('importar-csv',             'ActaController@actualizarActa');
 
     Route::get('requisiciones-jurisdiccion-pdf','RequisicionController@generarRequisicionPDF');
     

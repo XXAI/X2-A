@@ -275,10 +275,19 @@ class ActaController extends Controller
        return $crypttext;
     }
 
+    function decryptData($value){
+       $key = "1C6B37CFCDF98AB8FA29E47E4B8EF1F3";
+       $crypttext = $value;
+       $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
+       $iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+       $decrypttext = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $key, $crypttext, MCRYPT_MODE_ECB, $iv);
+       return trim($decrypttext);
+    } 
+
     public function generarJSON($id){
         $acta = Acta::with('requisiciones.insumos','requisiciones.insumosClues')->find($id);
 
-        if($acta->estatus != 2){
+        if($acta->estatus < 2){
             return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
         }
 
@@ -314,6 +323,185 @@ class ActaController extends Controller
             exit();
         }else{
             return Response::json(['error' => 'El archivo zip, no se encuentra'], HttpResponse::HTTP_CONFLICT);
+        }
+    }
+
+    public function actualizarActa(Request $request){
+        $mensajes = [
+            'required'      => "required",
+            'array'         => "array",
+            'min'           => "min",
+            'unique'        => "unique",
+            'date'          => "date"
+        ];
+
+        $reglas_acta = [
+            'folio'                         => 'required',
+            'fecha_validacion'              => 'required',
+            'estatus'                       => 'required',
+            'clues'                         => 'required',
+            'requisiciones'                 => 'required|array|min:1'
+        ];
+
+        $reglas_requisicion = [
+            'tipo_requisicion'      =>'required',
+            'estatus'               =>'required',
+            'sub_total_validado'    =>'required',
+            'gran_total_validado'   =>'required',
+            'iva_validado'          =>'required'
+        ];
+
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $usuario_id = $usuario->get('id');
+
+        try {
+            if(Input::hasFile('zipfile')){
+                $destinationPath = storage_path().'/app/imports/'.$usuario_id.'/';
+                $upload_success = Input::file('zipfile')->move($destinationPath, 'archivo_zip.zip');
+
+                $zip = new ZipArchive;
+                $res = $zip->open($destinationPath.'archivo_zip.zip');
+                if ($res === TRUE) {
+                    $zip->extractTo($destinationPath);
+                    $zip->close();
+                } else {
+                    return Response::json(['error' => 'No se pudo extraer el archivo'], HttpResponse::HTTP_CONFLICT);
+                }
+                
+                $filename = $destinationPath . 'acta.json';
+                $handle = fopen($filename, "r");
+                $contents = fread($handle, filesize($filename));
+                $DecryptedData=$this->decryptData($contents);
+                fclose($handle);
+                
+                //$str = file_get_contents($destinationPath.'acta.json');
+                $json = json_decode($DecryptedData, true);
+
+                $v = Validator::make($json, $reglas_acta, $mensajes);
+                if ($v->fails()) {
+                    Storage::deleteDirectory('imports/'.$usuario_id.'/');
+                    return Response::json(['error' => 'Los datos del acta en el archivo estan incompletos', 'error_type'=>'data_validation','fields'=>$v->errors()], HttpResponse::HTTP_CONFLICT);
+                }
+
+                DB::beginTransaction();
+
+                $acta = Acta::with('requisiciones.insumos','requisiciones.insumosClues')
+                            ->where('folio',$json['folio'])->first();
+
+                if(!$acta){
+                    Storage::deleteDirectory('imports/'.$usuario_id.'/');
+                    return Response::json(['error' =>'El Acta indicada en el archivo no fue encontrada.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+
+                if($acta->estatus < 2){
+                    Storage::deleteDirectory('imports/'.$usuario_id.'/');
+                    return Response::json(['error' =>'El Acta no se encuentra finalizada.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+
+                $acta->fecha_validacion = $json['fecha_validacion'];
+                $acta->estatus = $json['estatus'];
+
+                $acta->save();
+
+                $requisiciones_json = [];
+                foreach ($json['requisiciones'] as $inputs_requisicion) {
+                    $v = Validator::make($inputs_requisicion, $reglas_requisicion, $mensajes);
+                    if ($v->fails()) {
+                        DB::rollBack();
+                        return Response::json(['error' => 'Los datos de las requisiciones en el archivo estan incompletos', 'error_type' => 'data_validation','fields'=>$v->errors()], HttpResponse::HTTP_CONFLICT);
+                    }
+
+                    if(isset($inputs_requisicion['insumos'])){
+                        $insumos = [];
+                        foreach ($inputs_requisicion['insumos'] as $req_insumo) {
+                            $insumos[$req_insumo['llave']] = [
+                                'cantidad_validada' => $req_insumo['pivot']['cantidad_aprovada'],
+                                'total_validado' => $req_insumo['pivot']['total_aprovado']
+                            ];
+                        }
+                        $inputs_requisicion['insumos'] = $insumos;
+                    }
+
+                    if(isset($inputs_requisicion['insumos_clues'])){
+                        $insumos = [];
+                        foreach ($inputs_requisicion['insumos_clues'] as $req_insumo) {
+                            $insumos[$req_insumo['llave'].'.'.$req_insumo['pivot']['clues']] = [
+                                'llave' => $req_insumo['llave'],
+                                'clues' => $req_insumo['pivot']['clues'],
+                                'cantidad_validada' => $req_insumo['pivot']['cantidad_validada'],
+                                'total_validado' => $req_insumo['pivot']['total_validado']
+                            ];
+                        }
+                        $inputs_requisicion['insumos_clues'] = $insumos;
+                    }
+
+                    if(!isset($requisiciones_json[$inputs_requisicion['tipo_requisicion']])){
+                        $requisiciones_json[$inputs_requisicion['tipo_requisicion']] = $inputs_requisicion;
+                    }
+                }
+
+                if(count($requisiciones_json) > 4){
+                    return Response::json(['error' => 'No debe de haber mas de cuatro requisiciones', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+
+                foreach ($acta->requisiciones as $requisicion) {
+                    if(isset($requisiciones_json[$requisicion->tipo_requisicion])){
+                        $requisicion_import = $requisiciones_json[$requisicion->tipo_requisicion];
+                        $requisicion->sub_total_validado = $requisicion_import['sub_total_validado'];
+                        $requisicion->gran_total_validado = $requisicion_import['gran_total_validado'];
+                        $requisicion->iva_validado = $requisicion_import['iva_validado'];
+
+                        $requisicion->save();
+
+                        $insumos_sync = [];
+                        foreach ($requisicion->insumos as $insumo) {
+                            $nuevo_insumo = [
+                                'insumo_id' => $insumo->id,
+                                'cantidad' => $insumo->pivot->cantidad,
+                                'total' => $insumo->pivot->total
+                            ];
+                            if(isset($requisicion_import['insumos'][$insumo->llave])){
+                                $insumo_import = $requisicion_import['insumos'][$insumo->llave];
+                                $nuevo_insumo['total_validado'] = $insumo_import['total_validado'];
+                                $nuevo_insumo['cantidad_validada'] = $insumo_import['cantidad_validada'];
+                            }
+                            $insumos_sync[] = $nuevo_insumo;
+                        }
+                        $requisicion->insumos()->sync([]);
+                        $requisicion->insumos()->sync($insumos_sync);
+
+                        $insumos_clues_sync = [];
+                        foreach ($requisicion->insumosClues as $insumo) {
+                            $nuevo_insumo = [
+                                'insumo_id' => $insumo->id,
+                                'clues' => $insumo->pivot->clues,
+                                'cantidad' => $insumo->pivot->cantidad,
+                                'total' => $insumo->pivot->total
+                            ];
+                            if(isset($requisicion_import['insumos_clues'][$insumo->llave.'.'.$insumo->pivot->clues])){
+                                $insumo_import = $requisicion_import['insumos_clues'][$insumo->llave.'.'.$insumo->pivot->clues];
+                                $nuevo_insumo['total_validado'] = $insumo_import['total_validado'];
+                                $nuevo_insumo['cantidad_validada'] = $insumo_import['cantidad_validada'];
+                            }
+                            $insumos_clues_sync[] = $nuevo_insumo;
+                        }
+                        $requisicion->insumosClues()->sync([]);
+                        $requisicion->insumosClues()->sync($insumos_clues_sync);
+                    }
+                }
+
+                DB::commit();
+
+                Storage::deleteDirectory('imports/'.$usuario_id.'/');
+
+                return Response::json([ 'data' => $json ],200);
+            }else{
+                throw new \Exception("No se encontro archivo a subir.", 1);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Storage::deleteDirectory('imports/'.$usuario_id.'/');
+            return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
         }
     }
 

@@ -28,21 +28,18 @@ class DashboardController extends Controller
         $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
 
         $total_actas_capturadas = Acta::where('folio','like',$usuario->get('id').'/%')->count();
-        //$total_actas_finalizadas =  Acta::where('estatus',2)->count();
-        //$total_requisiciones = Requisicion::count();
 
         $actas = Acta::where('folio','like',$usuario->get('id').'/%')
-                    ->with('requisiciones')->where('estatus',2)->get();
+                    ->with('requisiciones')->where('estatus','>=',2)->get();
         $total_actas_finalizadas = count($actas);
         $total_requisiciones = 0;
         $total_requisitado = 0;
+        $total_validado = 0;
 
         foreach ($actas as $acta) {
             $total_requisiciones += count($acta->requisiciones);
             $total_requisitado += $acta->requisiciones()->sum('gran_total');
-            /*foreach ($acta->requisiciones as $requisicion) {
-                # code...
-            }*/
+            $total_validado += $acta->requisiciones()->sum('gran_total_validado');
         }
         
 
@@ -51,6 +48,7 @@ class DashboardController extends Controller
             'total_actas_finalizadas'   => $total_actas_finalizadas,
             'total_requisiciones'       => $total_requisiciones,
             'total_requisitado'         => $total_requisitado,
+            'total_validado'            => $total_validado,
             'configuracion'             => $configuracion
         ];
 
