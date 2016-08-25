@@ -165,7 +165,7 @@
 			</tr>
 			<tr><td colspan="4" class="titulo2" align="center">INSTITUTO DE SALUD</td></tr>
 			<tr><td colspan="4" class="titulo2" align="center">{{$unidad}}</td></tr>
-			<tr><td colspan="4" class="titulo2" align="center">REQUISICICIÓN DE INSUMOS DE MEDICAMENTOS Y MATERIAL DE CURACIÓN</td></tr>
+			<tr><td colspan="4" class="titulo2" align="center">REQUISICIÓN DE INSUMOS DE MEDICAMENTOS Y MATERIAL DE CURACIÓN</td></tr>
 			<tr><td colspan="4" class="titulo2" align="center">ANEXO DEL ACTA No. {{$acta->folio}} DE FECHA {{$acta->fecha[2]}} DE {{$acta->fecha[1]}} DEL {{$acta->fecha[0]}}</td></tr>
 		</table>
 	</div>
@@ -196,7 +196,7 @@
 				<td colspan="2" class="encabezado-tabla">{{$requisicion->numero}}</td>
 				<td colspan="2" class="encabezado-tabla">{{$unidad}}</td>
 				<td class="encabezado-tabla">{{$requisicion->pedido}}</td>
-				<td class="encabezado-tabla">{{$requisicion->lotes}}</td>
+				<td class="encabezado-tabla">{{count($requisicion->insumos)}}</td>
 				<td class="encabezado-tabla">{{$empresa}}</td>
 				<td colspan="3" class="encabezado-tabla">{{$requisicion->dias_surtimiento}}</td>
 			</tr>
@@ -252,7 +252,7 @@
 			<tr class="tabla-datos">
 				<th colspan="2" class="encabezado-tabla texto-derecha">IVA</th>
 				<td class="encabezado-tabla">
-				@if($requisicion->tipo_requisicion == 3)
+				@if($requisicion->tipo_requisicion != 3)
 					SIN IVA
 				@else
 					@if($acta->estatus < 3)

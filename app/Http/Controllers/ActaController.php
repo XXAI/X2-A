@@ -201,7 +201,15 @@ class ActaController extends Controller
     public function generarActaPDF($id){
         $meses = ['01'=>'Enero','02'=>'Febrero','03'=>'Marzo','04'=>'Abril','05'=>'Mayo','06'=>'Junio','07'=>'Julio','08'=>'Agosto','09'=>'Septiembre','10'=>'Octubre','11'=>'Noviembre','12'=>'Diciembre'];
         $data = [];
-        $data['acta'] = Acta::with('requisiciones')->find($id);
+        $data['acta'] = Acta::find($id);
+
+        if($data['acta']->estatus > 2){
+            $data['acta']->load(['requisiciones'=>function($query){
+                $query->where('gran_total_validado','>',0);
+            }]);
+        }else{
+            $data['acta']->load('requisiciones');
+        }
         
         $usuario = JWTAuth::parseToken()->getPayload();
         $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
@@ -218,7 +226,6 @@ class ActaController extends Controller
         }else{
             $data['acta']->requisiciones = $pedidos[0] . ', ' . $pedidos[1] . ' y ' . $pedidos[2];
         }
-        //$data['acta']->requisiciones = implode(', ', $pedidos);
 
         $data['acta']->hora_inicio = substr($data['acta']->hora_inicio, 0,5);
         $data['acta']->hora_termino = substr($data['acta']->hora_termino, 0,5);
@@ -245,7 +252,19 @@ class ActaController extends Controller
     public function generarRequisicionPDF($id){
         $meses = ['01'=>'ENERO','02'=>'FEBRERO','03'=>'MARZO','04'=>'ABRIL','05'=>'MAYO','06'=>'JUNIO','07'=>'JULIO','08'=>'AGOSTO','09'=>'SEPTIEMBRE','10'=>'OCTUBRE','11'=>'NOVIEMBRE','12'=>'DICIEMBRE'];
         $data = [];
-        $data['acta'] = Acta::with('requisiciones.insumos')->find($id);
+        $data['acta'] = Acta::find($id);
+
+        if($data['acta']->estatus > 2){
+            $data['acta']->load([
+                'requisiciones'=>function($query){
+                    $query->where('gran_total_validado','>',0);
+                },'requisiciones.insumos'=>function($query){
+                    $query->wherePivot('total_validado','>',0);
+                }
+            ]);
+        }else{
+            $data['acta']->load('requisiciones.insumos');
+        }
 
         $usuario = JWTAuth::parseToken()->getPayload();
         $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
@@ -447,6 +466,7 @@ class ActaController extends Controller
                 foreach ($acta->requisiciones as $requisicion) {
                     if(isset($requisiciones_json[$requisicion->tipo_requisicion])){
                         $requisicion_import = $requisiciones_json[$requisicion->tipo_requisicion];
+                        $requisicion->numero = $requisicion_import['numero'];
                         $requisicion->sub_total_validado = $requisicion_import['sub_total_validado'];
                         $requisicion->gran_total_validado = $requisicion_import['gran_total_validado'];
                         $requisicion->iva_validado = $requisicion_import['iva_validado'];
@@ -568,7 +588,7 @@ class ActaController extends Controller
 
             $acta = Acta::find($id);
 
-            if($acta->estatus == 2){
+            if($acta->estatus >= 2){
                 throw new \Exception("El Acta no se puede editar ya que se encuentra con estatus de finalizada");
             }
 
@@ -611,6 +631,7 @@ class ActaController extends Controller
                         return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
                     }
 
+                    /*
                     if($acta->estatus == 2 && !isset($inputs_requisicion['numero'])){
                         $actas = Acta::where('folio','like',$configuracion->clues.'/%')->lists('id');
                         $max_requisicion = Requisicion::whereIn('acta_id',$actas)->max('numero');
@@ -619,6 +640,7 @@ class ActaController extends Controller
                         }
                         $inputs_requisicion['numero'] = $max_requisicion+1;
                     }
+                    */
 
                     if(isset($inputs_requisicion['id'])){
                         $requisicion = Requisicion::find($inputs_requisicion['id']);

@@ -73,6 +73,14 @@ class RequisicionController extends Controller
             'hora_termino'      =>'required',
             'lugar_reunion'     =>'required'
         ];
+
+        $reglas_configuracion = [
+            'director_unidad'               => 'required',
+            'administrador'                 => 'required',
+            'encargado_almacen'             => 'required',
+            'coordinador_comision_abasto'   => 'required',
+            'lugar_entrega'                 => 'required'
+        ];
         
         $parametros = Input::all();
         $inputs = $parametros['requisiciones'];
@@ -191,6 +199,12 @@ class RequisicionController extends Controller
                 $inputs_acta['administrador'] = $configuracion->administrador;
                 $inputs_acta['encargado_almacen'] = $configuracion->encargado_almacen;
                 $inputs_acta['coordinador_comision_abasto'] = $configuracion->coordinador_comision_abasto;
+
+                $v = Validator::make($inputs_acta, $reglas_configuracion, $mensajes);
+                if ($v->fails()) {
+                    DB::rollBack();
+                    return Response::json(['error' => 'Faltan datos de Configuración por capturar.', 'error_type'=>'data_validation', 'validacion'=>$v->errors()], HttpResponse::HTTP_CONFLICT);
+                }
                 
                 $acta = Acta::create($inputs_acta);
 
