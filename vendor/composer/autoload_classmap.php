@@ -9,6 +9,7 @@ return array(
     'Absolute_Positioner' => $vendorDir . '/dompdf/dompdf/include/absolute_positioner.cls.php',
     'Abstract_Renderer' => $vendorDir . '/dompdf/dompdf/include/abstract_renderer.cls.php',
     'ActualizarTablaActas' => $baseDir . '/database/migrations/2016_08_24_101720_actualizar_tabla_actas.php',
+    'ActualizarTablaActasIndices' => $baseDir . '/database/migrations/2016_08_29_100848_actualizar_tabla_actas_indices.php',
     'ActualizarTablaPivoteRequisicionInsumo' => $baseDir . '/database/migrations/2016_08_18_133718_actualizar_tabla_pivote_requisicion_insumo.php',
     'ActualizarTablaRequisiciones' => $baseDir . '/database/migrations/2016_08_18_121215_actualizar_tabla_requisiciones.php',
     'ActualizarTablaUsuariosTipoConexion' => $baseDir . '/database/migrations/2016_08_24_104356_actualizar_tabla_usuarios_tipo_conexion.php',

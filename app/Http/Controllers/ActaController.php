@@ -405,7 +405,7 @@ class ActaController extends Controller
                 DB::beginTransaction();
 
                 $acta = Acta::with('requisiciones.insumos','requisiciones.insumosClues')
-                            ->where('folio',$json['folio'])->first();
+                            ->where('folio',$json['folio'])->where('folio','like',$usuario_id.'/%')->first();
 
                 if(!$acta){
                     Storage::deleteDirectory('imports/'.$usuario_id.'/');

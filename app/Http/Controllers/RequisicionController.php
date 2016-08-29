@@ -29,22 +29,19 @@ class RequisicionController extends Controller
             $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
             $empresa = $configuracion->empresa_clave;
 
-            $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$usuario->get('id'))->with('insumosClues')->get();
+            if(!Input::get('catalogos')){
+                $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$usuario->get('id'))->with('insumosClues')->get();
+            }else{
+                $requisiciones = [];
+            }
+            
             
             $clues = Usuario::select('id AS clues','nombre','municipio','localidad','jurisdiccion')
                             ->where('empresa_clave',$empresa)
                             ->where('jurisdiccion',$configuracion->jurisdiccion)
                             ->where('tipo_usuario',1)
                             ->get();
-            /*
-            $insumos = Insumo::select('id','pedido','requisicion','lote','clave','descripcion',
-                        'marca','unidad','cantidad','precio','tipo','cause')
-                            ->where('proveedor',$empresa)
-                            ->orderBy('tipo')
-                            ->orderBy('precio')
-                            ->get();
-            */
-
+            
             return Response::json(['data'=>$requisiciones, 'clues'=>$clues, 'configuracion'=>$configuracion],200);
         }catch(Exception $ex){
             return Response::json(['error'=>$e->getMessage()],500);
@@ -94,6 +91,10 @@ class RequisicionController extends Controller
                 return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
             }
         }
+
+        if(!isset($parametros['requisiciones'])){
+            return Response::json(['error' => 'No hay datos de requisiciones para guardar', 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
+        }
         
         try {
 
@@ -129,10 +130,12 @@ class RequisicionController extends Controller
                     if(isset($arreglo_requisiciones[$inputs_requisicion['pedido']])){
                         $requisicion = $arreglo_requisiciones[$inputs_requisicion['pedido']];
                         $requisicion->update($inputs_requisicion);
-                        $requisiciones_guardadas[$requisicion->id] = true;
+                        //$requisiciones_guardadas[$requisicion->id] = true;
                     }else{
                         $requisicion = Requisicion::create($inputs_requisicion);
+                        $requisiciones[] = $requisicion;
                     }
+                    $requisiciones_guardadas[$requisicion->id] = true;
 
                     if(isset($inputs_requisicion['insumos'])){
                         $insumos = [];

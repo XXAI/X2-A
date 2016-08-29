@@ -381,6 +381,7 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         'Absolute_Positioner' => __DIR__ . '/..' . '/dompdf/dompdf/include/absolute_positioner.cls.php',
         'Abstract_Renderer' => __DIR__ . '/..' . '/dompdf/dompdf/include/abstract_renderer.cls.php',
         'ActualizarTablaActas' => __DIR__ . '/../..' . '/database/migrations/2016_08_24_101720_actualizar_tabla_actas.php',
+        'ActualizarTablaActasIndices' => __DIR__ . '/../..' . '/database/migrations/2016_08_29_100848_actualizar_tabla_actas_indices.php',
         'ActualizarTablaPivoteRequisicionInsumo' => __DIR__ . '/../..' . '/database/migrations/2016_08_18_133718_actualizar_tabla_pivote_requisicion_insumo.php',
         'ActualizarTablaRequisiciones' => __DIR__ . '/../..' . '/database/migrations/2016_08_18_121215_actualizar_tabla_requisiciones.php',
         'ActualizarTablaUsuariosTipoConexion' => __DIR__ . '/../..' . '/database/migrations/2016_08_24_104356_actualizar_tabla_usuarios_tipo_conexion.php',
