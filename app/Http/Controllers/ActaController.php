@@ -126,7 +126,7 @@ class ActaController extends Controller
             $acta = Acta::create($inputs);
 
             if(isset($inputs['requisiciones'])){
-                if(count($inputs['requisiciones']) > 3){
+                if(count($inputs['requisiciones']) > 4){
                     DB::rollBack();
                     throw new \Exception("No pueden haber mas de tres requesiciones por acta");
                 }
@@ -555,8 +555,6 @@ class ActaController extends Controller
             'hora_inicio'       =>'required',
             'hora_termino'      =>'required',
             'lugar_reunion'     =>'required',
-            //'firma_solicita'    =>'required',
-            //'cargo_solicita'    =>'required',
             'requisiciones'     =>'required|array|min:1'
         ];
 
@@ -568,8 +566,6 @@ class ActaController extends Controller
             'sub_total'         =>'required',
             'gran_total'        =>'required',
             'iva'               =>'required'
-            //'firma_solicita'    =>'required',
-            //'cargo_solicita'    =>'required'
         ];
 
         $usuario = JWTAuth::parseToken()->getPayload();
@@ -618,7 +614,7 @@ class ActaController extends Controller
             $acta->update($inputs);
 
             if(isset($inputs['requisiciones'])){
-                if(count($inputs['requisiciones']) > 3){
+                if(count($inputs['requisiciones']) > 4){
                     throw new \Exception("No pueden haber mas de tres requesiciones por acta");
                 }
 

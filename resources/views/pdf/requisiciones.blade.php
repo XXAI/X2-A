@@ -179,7 +179,7 @@
 	<table width="100%">
 		<tbody>
 			<tr class="tabla-datos">
-				<th colspan="10" class="encabezado-tabla" align="center">REQUISICION DE {{($requisicion->tipo_requisicion == 1)?'MEDICAMENTOS CAUSES':(($requisicion->tipo_requisicion == 2)?'MEDICAMENTOS NO CAUSES':'MATERIAL DE CURACIÓN')}} </th>
+				<th colspan="10" class="encabezado-tabla" align="center">REQUISICION DE {{($requisicion->tipo_requisicion == 1)?'MEDICAMENTOS CAUSES':(($requisicion->tipo_requisicion == 2)?'MEDICAMENTOS NO CAUSES':(($requisicion->tipo_requisicion == 3)?'MATERIAL DE CURACIÓN':'MEDICAMENTOS CONTROLADOS'))}} </th>
 			</tr>
 			<tr class="tabla-datos">
 				<th colspan="2" rowspan="2" width="20%" class="encabezado-tabla">REQUISICIÓN DE COMPRA</th>
