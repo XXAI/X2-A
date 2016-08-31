@@ -27,6 +27,7 @@ class AutenticacionController extends Controller
             $usuario->save();
         }
         */
+        //$pass= Hash::make('hospitaldelamujertuxtla');
         //Usuario::saveMany($usuarios);
 
         try {
@@ -118,6 +119,7 @@ class AutenticacionController extends Controller
 
                 $payload = JWTFactory::make($claims);
                 $token = JWTAuth::encode($payload);
+                //, 'pass'=>$pass
                 return response()->json(['token' => $token->get(), 'usuario'=>$usuario, 'permisos'=>$permisos], 200);
             } else {
                 return response()->json(['error' => 'invalid_credentials'], 401); 

@@ -273,6 +273,10 @@
 				@endif
 				</td>
 			</tr>
+		</tfoot>
+	</table>
+	<table width="100%" style="page-break-inside:avoid;">
+		<tbody>
 			<tr class="tabla-datos">
 				<th colspan="3" width="25%" class="encabezado-tabla">SOLICITA</th>
 				<th colspan="2" width="25%" class="encabezado-tabla">DIRECCIÓN O UNIDAD</th>
@@ -286,7 +290,7 @@
 				<td colspan="3" class="encabezado-tabla">ADMINISTRADOR</td>
 				<td colspan="2" class="encabezado-tabla">DIRECTOR DE LA JURISDICCIÓN O UNIDAD MÉDICA</td>
 			</tr>
-		</tfoot>
+		</tbody>
 	</table>
 	@endforeach
 </body>
