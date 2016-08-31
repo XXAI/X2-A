@@ -109,12 +109,13 @@ class RequisicionController extends Controller
 
             $arreglo_requisiciones = [];
             foreach ($requisiciones as $requisicion) {
-                $arreglo_requisiciones[$requisicion->pedido] = $requisicion;
+                //$arreglo_requisiciones[$requisicion->pedido] = $requisicion;
+                $arreglo_requisiciones[$requisicion->tipo_requisicion] = $requisicion;
             }
 
             if(isset($inputs)){
-                if(count($inputs) > 3){
-                    throw new \Exception("No pueden haber mas de tres requisiciones");
+                if(count($inputs) > 4){
+                    throw new \Exception("No pueden haber mas de cuatro requisiciones");
                 }
 
                 $requisiciones_guardadas = [];
@@ -127,8 +128,8 @@ class RequisicionController extends Controller
                     $inputs_requisicion['gran_total'] = 0;
                     $inputs_requisicion['iva'] = 0;
                     
-                    if(isset($arreglo_requisiciones[$inputs_requisicion['pedido']])){
-                        $requisicion = $arreglo_requisiciones[$inputs_requisicion['pedido']];
+                    if(isset($arreglo_requisiciones[$inputs_requisicion['tipo_requisicion']])){
+                        $requisicion = $arreglo_requisiciones[$inputs_requisicion['tipo_requisicion']];
                         $requisicion->update($inputs_requisicion);
                         //$requisiciones_guardadas[$requisicion->id] = true;
                     }else{
@@ -210,17 +211,17 @@ class RequisicionController extends Controller
                 }
                 
                 $acta = Acta::create($inputs_acta);
-
+                /*
                 $actas = Acta::where('folio','like',$configuracion->clues.'/%')->lists('id');
-
                 $max_requisicion = Requisicion::whereIn('acta_id',$actas)->max('numero');
                 if(!$max_requisicion){
                     $max_requisicion = 0;
                 }
+                */
 
                 foreach ($requisiciones as $index => $requisicion) {
-                    $max_requisicion += 1;
-                    $requisiciones[$index]->numero = $max_requisicion;
+                    //$max_requisicion += 1;
+                    //$requisiciones[$index]->numero = $max_requisicion;
                     $requisicion_insumos = [];
                     foreach ($requisicion->insumosClues as $insumo) {
                         if(!isset($requisicion_insumos[$insumo->pivot->insumo_id])){

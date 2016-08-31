@@ -128,7 +128,7 @@ class ActaController extends Controller
             if(isset($inputs['requisiciones'])){
                 if(count($inputs['requisiciones']) > 4){
                     DB::rollBack();
-                    throw new \Exception("No pueden haber mas de tres requesiciones por acta");
+                    throw new \Exception("No pueden haber mas de cuatro requesiciones por acta");
                 }
 
                 foreach ($inputs['requisiciones'] as $inputs_requisicion) {
@@ -220,7 +220,8 @@ class ActaController extends Controller
             return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
         }*/
 
-        $pedidos = $data['acta']->requisiciones->lists('pedido')->toArray();
+        //$pedidos = $data['acta']->requisiciones->lists('pedido')->toArray();
+        $pedidos = array_keys($data['acta']->requisiciones->lists('pedido','pedido')->toArray());
         if(count($pedidos) == 1){
             $data['acta']->requisiciones = $pedidos[0];
         }elseif(count($pedidos) == 2){
@@ -615,7 +616,7 @@ class ActaController extends Controller
 
             if(isset($inputs['requisiciones'])){
                 if(count($inputs['requisiciones']) > 4){
-                    throw new \Exception("No pueden haber mas de tres requesiciones por acta");
+                    throw new \Exception("No pueden haber mas de cuatro requesiciones por acta");
                 }
 
                 $acta->load('requisiciones');
