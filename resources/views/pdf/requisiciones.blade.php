@@ -207,9 +207,9 @@
 				<th class="encabezado-tabla" width="10%">CLAVE</th>
 				<th colspan="3" class="encabezado-tabla" width="30%">DESCRIPCIÓN DEL INSUMO</th>
 				<th colspan="2" class="encabezado-tabla" width="15%">CANTIDAD</th>
-				<th class="encabezado-tabla" width="15%">UNIDAD DE MEDIDA</th>
+				<th class="encabezado-tabla" width="13%">UNIDAD DE MEDIDA</th>
 				<th class="encabezado-tabla" width="10%">PRECIO <br>UNITARIO</th>
-				<th class="encabezado-tabla" width="10%">TOTAL</th>
+				<th class="encabezado-tabla" width="12%">TOTAL</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -237,11 +237,13 @@
 			</tr>
 		@endforeach
 		</tbody>
-		<tfoot>
+	</table>
+	<table width="100%" style="page-break-inside:avoid;">
+		<tbody>
 			<tr class="tabla-datos">
-				<td colspan="7" rowspan="3"></td>
-				<th colspan="2" class="encabezado-tabla texto-derecha">SUBTOTAL</th>
-				<td class="encabezado-tabla">
+				<td rowspan="3" ></td>
+				<th class="encabezado-tabla texto-derecha" width="24%">SUBTOTAL</th>
+				<td class="encabezado-tabla" width="10%">
 				@if($acta->estatus < 3)
 					$ {{number_format($requisicion->sub_total,2)}}
 				@else
@@ -250,7 +252,7 @@
 				</td>
 			</tr>
 			<tr class="tabla-datos">
-				<th colspan="2" class="encabezado-tabla texto-derecha">IVA</th>
+				<th class="encabezado-tabla texto-derecha">IVA</th>
 				<td class="encabezado-tabla">
 				@if($requisicion->tipo_requisicion != 3)
 					SIN IVA
@@ -264,7 +266,7 @@
 				</td>
 			</tr>
 			<tr class="tabla-datos">
-				<th colspan="2" class="encabezado-tabla texto-derecha">GRAN TOTAL</th>
+				<th class="encabezado-tabla texto-derecha">GRAN TOTAL</th>
 				<td class="encabezado-tabla">
 				@if($acta->estatus < 3)
 					$ {{number_format($requisicion->gran_total,2)}}
@@ -273,7 +275,7 @@
 				@endif
 				</td>
 			</tr>
-		</tfoot>
+		</tbody>
 	</table>
 	<table width="100%" style="page-break-inside:avoid;">
 		<tbody>
