@@ -197,7 +197,7 @@ class ActaController extends Controller
     public function show(Request $request, $id){
 		$usuario = JWTAuth::parseToken()->getPayLoad();
 		$configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
-        return Response::json([ 'data' => Acta::with('requisiciones.insumos')->find($id), 'configuracion'=>$configuracion ], 200);
+        return Response::json([ 'data' => Acta::with(['requisiciones'=>function($query){ $query->orderBy('requisiciones.tipo_requisicion'); },'requisiciones.insumos'])->find($id), 'configuracion'=>$configuracion ], 200);
     }
 
     public function generarActaPDF($id){
