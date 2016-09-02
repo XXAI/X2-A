@@ -262,11 +262,14 @@ class ActaController extends Controller
                 'requisiciones'=>function($query){
                     $query->where('gran_total_validado','>',0);
                 },'requisiciones.insumos'=>function($query){
-                    $query->wherePivot('total_validado','>',0);
+                    $query->wherePivot('total_validado','>',0)
+                        ->orderBy('lote');
                 }
             ]);
         }else{
-            $data['acta']->load('requisiciones.insumos');
+            $data['acta']->load(['requisiciones.insumos'=>function($query){
+                $query->orderBy('lote');
+            }]);
         }
 
         $usuario = JWTAuth::parseToken()->getPayload();
