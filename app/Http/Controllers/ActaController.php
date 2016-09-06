@@ -440,8 +440,8 @@ class ActaController extends Controller
                         $insumos = [];
                         foreach ($inputs_requisicion['insumos'] as $req_insumo) {
                             $insumos[$req_insumo['llave']] = [
-                                'cantidad_validada' => $req_insumo['pivot']['cantidad_aprovada'],
-                                'total_validado' => $req_insumo['pivot']['total_aprovado']
+                                'cantidad_validada' => $req_insumo['pivot']['cantidad_validada'],
+                                'total_validado' => $req_insumo['pivot']['total_validado']
                             ];
                         }
                         $inputs_requisicion['insumos'] = $insumos;
