@@ -66,7 +66,7 @@ return [
             'options' => [PDO::MYSQL_ATTR_LOCAL_INFILE => true],
             'engine' => null,
         ],
-
+        
         'mysql_sync' => [
             'driver' => 'mysql',
             'host' => env('DB_HOST_SYNC'),
