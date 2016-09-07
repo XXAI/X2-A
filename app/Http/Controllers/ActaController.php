@@ -42,16 +42,27 @@ class ActaController extends Controller
                 $recurso = $recurso->where(function($condition)use($query){
                     $condition->where('folio','LIKE','%'.$query.'%')
                             ->orWhere('lugar_reunion','LIKE','%'.$query.'%')
-                            ->orWhere('empresa','LIKE','%'.$query.'%')
                             ->orWhere('ciudad','LIKE','%'.$query.'%');
                 });
+            }
+
+            if($filtro){
+                if(isset($filtro['estatus'])){
+                    if($filtro['estatus'] == 'validados'){
+                        $recurso = $recurso->where('estatus','3');
+                    }else if($filtro['estatus'] == 'enviados'){
+                        $recurso = $recurso->where('estatus','2');
+                    }
+                }
             }
 
             $totales = $recurso->count();
             
             $recurso = $recurso->with('requisiciones')
                                 ->skip(($pagina-1)*$elementos_por_pagina)->take($elementos_por_pagina)
-                                ->orderBy('id','desc')->get();
+                                ->orderBy('estatus','asc')
+                                ->orderBy('created_at','desc')
+                                ->get();
 
             //$queries = DB::getQueryLog();
             //$last_query = end($queries);
