@@ -210,7 +210,15 @@ class ActaController extends Controller
     public function show(Request $request, $id){
 		$usuario = JWTAuth::parseToken()->getPayLoad();
 		$configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
-        return Response::json([ 'data' => Acta::with(['requisiciones'=>function($query){ $query->orderBy('requisiciones.tipo_requisicion'); },'requisiciones.insumos'])->find($id), 'configuracion'=>$configuracion ], 200);
+        $acta = Acta::with([
+                    'requisiciones'=>function($query){ 
+                        $query->orderBy('tipo_requisicion'); 
+                    },
+                    'requisiciones.insumos'=>function($query){
+                        $query->orderBy('lote'); 
+                    }
+                ])->find($id);
+        return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion ], 200);
     }
 
     public function generarActaPDF($id){
@@ -758,6 +766,7 @@ class ActaController extends Controller
             $acta = Acta::with('requisiciones')->find($id);
             foreach ($acta->requisiciones as $requisicion) {
                 $requisicion->insumos()->sync([]);
+                $requisicion->insumosClues()->sync([]);
             }
             Requisicion::where('acta_id',$id)->delete();
             Acta::destroy($id);
