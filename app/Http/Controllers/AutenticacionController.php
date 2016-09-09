@@ -46,12 +46,12 @@ class AutenticacionController extends Controller
                 
                 $permisos_unidad = [
                                 '37DC1A627A44E', //Editar Configuracion
-                                '71A3786CCEBD4', //Ver Configuracion
-                                '6F5427E97863A', //Ver solicitudes
-                                '44F584F6B56DE', //Agregar solicitudes
-                                '439536318C63C', //Editar solicitudes
-                                '77D798C33FC46', //Exportar solicitudes
-                                '1D25DB28AC412' //Eliminar solicitudes
+                                '71A3786CCEBD4' //Ver Configuracion
+                                //'6F5427E97863A', //Ver solicitudes
+                                //'44F584F6B56DE', //Agregar solicitudes
+                                //'439536318C63C', //Editar solicitudes
+                                //'77D798C33FC46', //Exportar solicitudes
+                                //'1D25DB28AC412' //Eliminar solicitudes
                             ];
                 $permisos_hospital = [
                                 '37DC1A627A44E', //Editar Configuracion
@@ -60,7 +60,9 @@ class AutenticacionController extends Controller
                                 '2EF18B5F2E2D7', //Agregar actas
                                 'AC634E145647F', //Editar actas
                                 'F4CA88791CD94', //Exportar actas
-                                'FF915DEC2F235' //Eliminar actas
+                                'FF915DEC2F235', //Eliminar actas
+                                //'97728B3AD53DB', //Ver pedidos
+                                '721A42C7F4693' //Recepción de pedidos
                             ];
                 $permisos_jurisdiccion = [
                                 '37DC1A627A44E', //Editar Configuracion
@@ -69,7 +71,9 @@ class AutenticacionController extends Controller
                                 'F4CA88791CD94', //Exportar actas
                                 '4E4D8E11F6E4A', //Ver Requisiciones
                                 '2438B88CD5ECC', //Guardar Requisiciones
-                                'FF915DEC2F235' //Eliminar actas
+                                'FF915DEC2F235', //Eliminar actas
+                                //'97728B3AD53DB', //Ver pedidos
+                                '721A42C7F4693' //Recepción de pedidos
                             ];
                             
                 $configuracion = Configuracion::where('clues',$usuario->id)->first();
