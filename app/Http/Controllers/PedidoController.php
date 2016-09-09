@@ -209,17 +209,17 @@ class PedidoController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show(Request $request, $id){
-		$usuario = JWTAuth::parseToken()->getPayLoad();
-		$configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
         $acta = Acta::with([
-                    'requisiciones'=>function($query){ 
-                        $query->orderBy('tipo_requisicion'); 
-                    },
-                    'requisiciones.insumos'=>function($query){
-                        $query->orderBy('lote'); 
-                    }
-                ])->find($id);
-        return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion ], 200);
+            'requisiciones'=>function($query){
+                $query->orderBy('tipo_requisicion');
+            },'requisiciones.insumos'=>function($query){
+                $query->orderBy('lote');
+            },'requisiciones.insumosClues'])->find($id);
+
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+
+        return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion],200);
     }
 
     public function sincronizar($id){
