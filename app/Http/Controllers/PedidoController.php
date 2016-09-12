@@ -8,6 +8,7 @@ use Illuminate\Http\Response as HttpResponse;
 use App\Http\Traits\SyncTrait;
 use App\Http\Requests;
 use App\Models\Acta;
+use App\Models\Proveedor;
 use App\Models\Requisicion;
 use App\Models\Configuracion;
 use JWTAuth;
@@ -213,13 +214,15 @@ class PedidoController extends Controller
             'requisiciones'=>function($query){
                 $query->orderBy('tipo_requisicion');
             },'requisiciones.insumos'=>function($query){
-                $query->orderBy('lote');
+                $query->where('cantidad_validada','>',0)->orderBy('lote');
             },'requisiciones.insumosClues'])->find($id);
 
         $usuario = JWTAuth::parseToken()->getPayload();
         $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
 
-        return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion],200);
+        $proveedores = Proveedor::all();
+
+        return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion, 'proveedores' => $proveedores],200);
     }
 
     public function sincronizar($id){

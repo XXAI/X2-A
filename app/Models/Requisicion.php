@@ -17,11 +17,11 @@ class Requisicion extends Model {
 
     public function insumos(){
     	return $this->belongsToMany('\App\Models\Insumo', 'requisicion_insumo', 'requisicion_id', 'insumo_id')
-    				->withPivot('cantidad','total','cantidad_validada','total_validado');
+    				->withPivot('cantidad','total','cantidad_validada','total_validado','cantidad_recibida','total_recibido');
     }
 
     public function insumosClues(){
         return $this->belongsToMany('\App\Models\Insumo', 'requisicion_insumo_clues', 'requisicion_id', 'insumo_id')
-                    ->withPivot('clues','cantidad','total','cantidad_validada','total_validado');
+                    ->withPivot('clues','cantidad','total','cantidad_validada','total_validado','cantidad_recibida','total_recibido');
     }
 }
