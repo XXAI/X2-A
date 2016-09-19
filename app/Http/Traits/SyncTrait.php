@@ -2,10 +2,123 @@
 namespace App\Http\Traits;
 
 use App\Models\Acta;
+use App\Models\Entrega;
+use App\Models\StockInsumo;
 use App\Models\Requisicion;
 use DB, Exception;
 
 trait SyncTrait{
+    public function actualizarEntregaCentral($entrega_id){
+        try{
+            $entrega_local = Entrega::with('stock')->find($entrega_id);
+            $acta_local = Acta::find($entrega_local->acta_id);
+
+            $default = DB::getPdo(); // Default conn
+            $secondary = DB::connection('mysql_sync')->getPdo();
+
+            DB::setPdo($secondary);
+            DB::beginTransaction();
+
+            $acta_central = Acta::with('requisiciones.insumos')->where('folio',$acta_local->folio)->first();
+
+            if(!$acta_central){
+                throw new Exception('El acta no se encuentra en el servidor central', 1);
+            }
+
+            $entrega_central = new Entrega();
+            $entrega_central->proveedor_id          = $entrega_local->proveedor_id;
+            $entrega_central->fecha_entrega         = $entrega_local->fecha_entrega;
+            $entrega_central->hora_entrega          = $entrega_local->hora_entrega;
+            $entrega_central->fecha_proxima_entrega = $entrega_local->fecha_proxima_entrega;
+            $entrega_central->nombre_recibe         = $entrega_local->nombre_recibe;
+            $entrega_central->nombre_entrega        = $entrega_local->nombre_entrega;
+            $entrega_central->estatus               = 3;
+
+            if($acta_central->entregas()->save($entrega_central)){
+                $guardar_stock = [];
+                $cantidades_insumos = [];
+                //Se agrega el stock entregado
+                foreach ($entrega_local->stock as $ingreso) {
+                    $nuevo_ingreso = new StockInsumo();
+
+                    $nuevo_ingreso->insumo_id           = $ingreso->insumo_id;
+                    $nuevo_ingreso->lote                = $ingreso->lote;
+                    $nuevo_ingreso->fecha_caducidad     = $ingreso->fecha_caducidad;
+                    $nuevo_ingreso->cantidad_entregada  = $ingreso->cantidad_entregada;
+                    $nuevo_ingreso->stock               = $ingreso->stock;
+                    $nuevo_ingreso->usado               = $ingreso->usado;
+                    $nuevo_ingreso->disponible          = $ingreso->disponible;
+
+                    $cantidades_insumos[$nuevo_ingreso->insumo_id] = $nuevo_ingreso->cantidad_entregada;
+
+                    $guardar_stock[] = $nuevo_ingreso;
+                }
+                $entrega_central->stock()->saveMany($guardar_stock);
+
+                $proveedor_id = $entrega_central->proveedor_id;
+                //Se actualizan las requisiciones y los insumos entregados en el acta.
+                for($i = 0, $total = count($acta_central->requisiciones); $i < $total; $i++) {
+                    $requisicion = $acta_central->requisiciones[$i];
+                    if(count($requisicion->insumos)){
+                        $requisicion_insumos_sync = [];
+                        for ($j=0, $total_insumos = count($requisicion->insumos); $j < $total_insumos ; $j++) { 
+                            $insumo = $requisicion->insumos[$j];
+                            $insumo_sync = [
+                                'requisicion_id'    => $insumo->pivot->requisicion_id,
+                                'insumo_id'         => $insumo->pivot->insumo_id,
+                                'cantidad'          => $insumo->pivot->cantidad,
+                                'total'             => $insumo->pivot->total,
+                                'cantidad_validada' => $insumo->pivot->cantidad_validada,
+                                'total_validado'    => $insumo->pivot->total_validado,
+                                'cantidad_recibida' => $insumo->pivot->cantidad_recibida,
+                                'total_recibido'    => $insumo->pivot->total_recibido,
+                                'proveedor_id'      => $insumo->pivot->proveedor_id
+                            ];
+                            if($insumo_sync['proveedor_id'] == $proveedor_id){
+                                if(!$insumo_sync['cantidad_recibida']){
+                                    $insumo_sync['cantidad_recibida'] = 0;
+                                    $insumo_sync['total_recibido'] = 0;
+                                }
+                                if(isset($cantidades_insumos[$insumo_sync['insumo_id']])){
+                                    $insumo_sync['cantidad_recibida'] += $cantidades_insumos[$insumo_sync['insumo_id']];
+                                    $insumo_sync['total_recibido'] += ($cantidades_insumos[$insumo_sync['insumo_id']] * $insumo->precio);
+                                }
+                            }
+                            $requisicion_insumos_sync[] = $insumo_sync;
+                        }
+                        $requisicion->insumos()->sync([]);
+                        $requisicion->insumos()->sync($requisicion_insumos_sync);
+                        $sub_total = $requisicion->insumos()->sum('total_recibido');
+                        if($requisicion->tipo_requisicion == 3){
+                            $iva = $sub_total*16/100;
+                        }else{
+                            $iva = 0;
+                        }
+                        $requisicion->sub_total_recibido = $sub_total;
+                        $requisicion->iva_recibido = $iva;
+                        $requisicion->gran_total_recibido = $sub_total + $iva;
+                        $requisicion->save();
+                    }
+                }
+            }
+            
+            DB::commit();
+            DB::setPdo($default);
+
+            $entrega_local->estatus = 3;
+            $entrega_local->save();
+
+            return ['estatus'=>true];
+
+        }catch(Exception $e){
+            //$conexion_remota->rollback();
+            DB::rollBack();
+            DB::setPdo($default);
+            return ['estatus'=>false,'message'=>$e->getMessage()];
+            //return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
+        }
+    }
+
 	public function actualizarCentral($folio){
         try{
             $acta_local = Acta::with('requisiciones.insumos','requisiciones.insumosClues')->where('folio',$folio)->first();

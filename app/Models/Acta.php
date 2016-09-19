@@ -12,4 +12,7 @@ class Acta extends Model {
 	public function requisiciones(){
         return $this->hasMany('App\Models\Requisicion','acta_id');
     }
+    public function entregas(){
+    	return $this->hasMany('App\Models\Entrega','acta_id');
+    }
 }

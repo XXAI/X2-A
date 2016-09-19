@@ -41,6 +41,8 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::post('importar-csv',                         'ActaController@actualizarActa');
     Route::get('sincronizar-validacion/{id}',           'ActaController@sincronizar');
 
+    Route::get('sincronizar-entrega/{id}',           'PedidoController@sincronizar');
+
     Route::get('requisiciones-jurisdiccion-pdf','RequisicionController@generarRequisicionPDF');
     
     Route::group(['prefix' => 'sync','namespace' => 'Sync'], function () {

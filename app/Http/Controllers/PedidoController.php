@@ -8,6 +8,8 @@ use Illuminate\Http\Response as HttpResponse;
 use App\Http\Traits\SyncTrait;
 use App\Http\Requests;
 use App\Models\Acta;
+use App\Models\Entrega;
+use App\Models\StockInsumo;
 use App\Models\Proveedor;
 use App\Models\Requisicion;
 use App\Models\Configuracion;
@@ -89,38 +91,24 @@ class PedidoController extends Controller
             'date'          => "date"
         ];
 
-        $reglas_acta = [
-            'ciudad'            =>'required',
-            'fecha'             =>'required',
-            'hora_inicio'       =>'required',
-            'hora_termino'      =>'required',
-            'lugar_reunion'     =>'required',
-            //'firma_solicita'    =>'required',
-            //'cargo_solicita'    =>'required',
-            'requisiciones'     =>'required|array|min:1'
-        ];
-
-        $reglas_requisicion = [
-            'acta_id'           =>'required',
-            'pedido'            =>'required',
-            'lotes'             =>'required',
-            'tipo_requisicion'  =>'required',
-            'dias_surtimiento'  =>'required',
-            'sub_total'         =>'required',
-            'gran_total'        =>'required',
-            'iva'               =>'required'
-            //'firma_solicita'    =>'required',
-            //'cargo_solicita'    =>'required'
+        $reglas_entrega = [
+            'proveedor_id'              =>'required',
+            'fecha_entrega'             =>'required',
+            'hora_entrega'              =>'required',
+            //'fecha_proxima_entrega'   =>'sometimes_required',
+            'nombre_recibe'             =>'required',
+            'nombre_entrega'            =>'required'
         ];
 
         $inputs = Input::all();
-        //$inputs = Input::only('id','servidor_id','password','nombre', 'apellidos');
         //var_dump(json_encode($inputs));die;
 
-        $v = Validator::make($inputs, $reglas_acta, $mensajes);
+        $v = Validator::make($inputs, $reglas_entrega, $mensajes);
         if ($v->fails()) {
             return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
         }
+
+        //return Response::json(['data' => $inputs, 'error_type'=>'data_validation', 'error'=>'No seguir. Probando'], HttpResponse::HTTP_CONFLICT);
 
         try {
 
@@ -130,72 +118,148 @@ class PedidoController extends Controller
             $usuario = JWTAuth::parseToken()->getPayload();
             $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
 
-            $inputs['folio'] = $configuracion->clues . '/'.'00'.'/' . date('Y');
-            $inputs['estatus'] = 1;
-            $inputs['empresa'] = $configuracion->empresa_clave;
-            $inputs['lugar_entrega'] = $configuracion->lugar_entrega;
-            $inputs['director_unidad'] = $configuracion->director_unidad;
-            $inputs['administrador'] = $configuracion->administrador;
-            $inputs['encargado_almacen'] = $configuracion->encargado_almacen;
-            $inputs['coordinador_comision_abasto'] = $configuracion->coordinador_comision_abasto;
-            $acta = Acta::create($inputs);
+            $proveedor_id = $inputs['proveedor_id'];
 
-            if(isset($inputs['requisiciones'])){
-                if(count($inputs['requisiciones']) > 4){
-                    DB::rollBack();
-                    throw new \Exception("No pueden haber mas de cuatro requesiciones por acta");
+            //Se obtiene el acta con la entrega abierta del proveedor a guardar
+            $acta = Acta::with([
+                        'entregas'=>function($query)use($proveedor_id){
+                            $query->where('proveedor_id',$proveedor_id)->where('estatus','<',3);
+                        },
+                        'requisiciones.insumos'=>function($query)use($proveedor_id){
+                            $query->wherePivot('cantidad_validada','>',0)->wherePivot('proveedor_id',$proveedor_id);
+                        }
+                    ])->find($inputs['acta_id']);
+
+            //Checamos si son necesarias mas entregas.
+            $suma_pedido = 0;
+            $suma_entregado = 0;
+            foreach ($acta->requisiciones as $requisicion) {
+                foreach ($requisicion->insumos as $insumo) {
+                    $suma_pedido += $insumo->pivot->cantidad_validada;
+                    $suma_entregado += $insumo->pivot->cantidad_recibida;
                 }
+            }
 
-                foreach ($inputs['requisiciones'] as $inputs_requisicion) {
-                    $inputs_requisicion['acta_id'] = $acta->id;
-                    //$inputs_requisicion['firma_director'] = $configuracion->director_unidad;
-                    $v = Validator::make($inputs_requisicion, $reglas_requisicion, $mensajes);
-                    if ($v->fails()) {
-                        DB::rollBack();
-                        return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
-                    }
+            if($suma_entregado >= $suma_pedido){
+                return Response::json(['error' =>'Este proveedor ya ha entregado la totalidad de los insumos', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
+            }
 
-                    //$max_requisicion = Requisicion::max('numero');
-                    //if(!$max_requisicion){
-                        //$max_requisicion = 0;
-                    //}
-                    //$inputs_requisicion['numero'] = $max_requisicion+1;
-                    $inputs_requisicion['empresa'] = $configuracion->empresa_clave;
-                    $inputs_requisicion['dias_surtimiento'] = 15;
-                    $inputs_requisicion['sub_total'] = 0;
-                    $inputs_requisicion['iva'] = 0;
-                    $inputs_requisicion['gran_total'] = 0;
-                    $requisicion = Requisicion::create($inputs_requisicion);
+            //Si la entrega existe se prepara para modificar de lo contrario se crea una nueva
+            if(count($acta->entregas)){
+                $entrega = $acta->entregas[0];
+            }else{
+                $entrega = new Entrega();
+            }
 
-                    if(isset($inputs_requisicion['insumos'])){
-                        $insumos = [];
-                        //$suma = 0;
-                        //$iva = 0;
-                        foreach ($inputs_requisicion['insumos'] as $req_insumo) {
-                            $insumos[] = [
-                                'insumo_id' => $req_insumo['insumo_id'],
-                                'cantidad' => $req_insumo['cantidad'],
-                                'total' => $req_insumo['total']
-                            ];
-                        }
-                        $requisicion->insumos()->sync($insumos);
+            $entrega->proveedor_id          = $proveedor_id;
+            $entrega->fecha_entrega         = $inputs['fecha_entrega'];
+            $entrega->hora_entrega          = $inputs['hora_entrega'];
+            if(isset($inputs['fecha_proxima_entrega'])){
+                $entrega->fecha_proxima_entrega = $inputs['fecha_proxima_entrega'];
+            }
+            $entrega->nombre_recibe         = $inputs['nombre_recibe'];
+            $entrega->nombre_entrega        = $inputs['nombre_entrega'];
+            $entrega->estatus               = $inputs['estatus'];
 
-                        $sub_total = $requisicion->insumos()->sum('total');
-                        $requisicion->sub_total = $sub_total;
-                        if($requisicion->tipo_requisicion == 3){
-                            $requisicion->iva = $sub_total*16/100;
+            if($acta->entregas()->save($entrega)){
+                $entrega->load('stock');
+                $stock_guardado = [];
+                foreach ($entrega->stock as $stock) {
+                    $stock_guardado[$stock->insumo_id] = $stock;
+                }
+                $guardar_stock = [];
+                $cantidades_insumos = [];
+                foreach ($inputs['ingresos_requisicion'] as $requisicion) {
+                    foreach ($requisicion as $ingreso) {
+                        if(!isset($stock_guardado[$ingreso['insumo_id']])){
+                            $nuevo_ingreso = new StockInsumo();
                         }else{
-                            $requisicion->iva = 0;
+                            $nuevo_ingreso = $stock_guardado[$ingreso['insumo_id']];
                         }
-                        $requisicion->gran_total = $sub_total + $requisicion->iva;
-                        $requisicion->save();
+
+                        $nuevo_ingreso->insumo_id = $ingreso['insumo_id'];
+                        $nuevo_ingreso->lote = $ingreso['lote'];
+                        $nuevo_ingreso->fecha_caducidad = $ingreso['fecha_caducidad'];
+                        $nuevo_ingreso->cantidad_entregada = $ingreso['cantidad'];
+
+                        $cantidades_insumos[$nuevo_ingreso->insumo_id] = $nuevo_ingreso->cantidad_entregada;
+
+                        $guardar_stock[] = $nuevo_ingreso;
                     }
+                }
+                $entrega->stock()->saveMany($guardar_stock);
+
+                if($entrega->estatus == 2){
+                    $acta->load('requisiciones.insumos');
+
+                    for($i = 0, $total = count($acta->requisiciones); $i < $total; $i++) {
+                        $requisicion = $acta->requisiciones[$i];
+                        if(count($requisicion->insumos)){
+                            $requisicion_insumos_sync = [];
+                            for ($j=0, $total_insumos = count($requisicion->insumos); $j < $total_insumos ; $j++) { 
+                                $insumo = $requisicion->insumos[$j];
+                                $insumo_sync = [
+                                    'requisicion_id'    => $insumo->pivot->requisicion_id,
+                                    'insumo_id'         => $insumo->pivot->insumo_id,
+                                    'cantidad'          => $insumo->pivot->cantidad,
+                                    'total'             => $insumo->pivot->total,
+                                    'cantidad_validada' => $insumo->pivot->cantidad_validada,
+                                    'total_validado'    => $insumo->pivot->total_validado,
+                                    'cantidad_recibida' => $insumo->pivot->cantidad_recibida,
+                                    'total_recibido'    => $insumo->pivot->total_recibido,
+                                    'proveedor_id'      => $insumo->pivot->proveedor_id
+                                ];
+                                if($insumo_sync['proveedor_id'] == $proveedor_id){
+                                    if(!$insumo_sync['cantidad_recibida']){
+                                        $insumo_sync['cantidad_recibida'] = 0;
+                                        $insumo_sync['total_recibido'] = 0;
+                                    }
+                                    if(isset($cantidades_insumos[$insumo_sync['insumo_id']])){
+                                        $insumo_sync['cantidad_recibida'] += $cantidades_insumos[$insumo_sync['insumo_id']];
+                                        $insumo_sync['total_recibido'] += ($cantidades_insumos[$insumo_sync['insumo_id']] * $insumo->precio);
+                                    }
+                                }
+                                $requisicion_insumos_sync[] = $insumo_sync;
+                            }
+                            $requisicion->insumos()->sync([]);
+                            $requisicion->insumos()->sync($requisicion_insumos_sync);
+                            $sub_total = $requisicion->insumos()->sum('total_recibido');
+                            if($requisicion->tipo_requisicion == 3){
+                                $iva = $sub_total*16/100;
+                            }else{
+                                $iva = 0;
+                            }
+                            $requisicion->sub_total_recibido = $sub_total;
+                            $requisicion->iva_recibido = $iva;
+                            $requisicion->gran_total_recibido = $sub_total + $iva;
+                            $requisicion->save();
+                        }
+                    }
+
+                    $entrega->load('stock');
+                    $actualizar_stock = [];
+                    for($i = 0, $total = count($entrega->stock); $i < $total; $i++) {
+                        $insumo = $entrega->stock[$i];
+                        $insumo->stock = $insumo->cantidad_entregada;
+                        $insumo->usado = 0;
+                        $insumo->disponible = $insumo->cantidad_entregada;
+                        $actualizar_stock[] = $insumo;
+                    }
+                    $entrega->stock()->saveMany($actualizar_stock);
                 }
             }
 
             DB::commit();
 
-            return Response::json([ 'data' => $acta ],200);
+            if($entrega->estatus == 2){
+                $resultado = $this->actualizarEntregaCentral($entrega->id);
+                if(!$resultado['estatus']){
+                    return Response::json(['error' => 'Error al intentar sincronizar la entrega del pedido', 'error_type' => 'data_validation', 'message'=>$resultado['message']], HttpResponse::HTTP_CONFLICT);
+                }
+                $entrega = Entrega::find($entrega->id);
+            }
+
+            return Response::json([ 'data' => $entrega ],200);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -215,7 +279,7 @@ class PedidoController extends Controller
                 $query->orderBy('tipo_requisicion');
             },'requisiciones.insumos'=>function($query){
                 $query->where('cantidad_validada','>',0)->orderBy('lote');
-            },'requisiciones.insumosClues'])->find($id);
+            },'entregas.stock'])->find($id);
 
         $usuario = JWTAuth::parseToken()->getPayload();
         $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
@@ -224,21 +288,23 @@ class PedidoController extends Controller
 
         return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion, 'proveedores' => $proveedores],200);
     }
-
+    
     public function sincronizar($id){
         try {
-            $acta = Acta::find($id);
-            if(!$acta){
-                return Response::json(['error' => 'Acta no encontrada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
+            $entrega = Entrega::find($id);
+            if(!$entrega){
+                return Response::json(['error' => 'Entrega no encontrada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
             }
-            if($acta->estatus == 2){
-                $resultado = $this->actualizarCentral($acta->folio);
+            if($entrega->estatus == 2){
+                $resultado = $this->actualizarEntregaCentral($id);
                 if(!$resultado['estatus']){
-                    return Response::json(['error' => 'Error al intentar sincronizar el acta', 'error_type' => 'data_validation', 'message'=>$resultado['message']], HttpResponse::HTTP_CONFLICT);
+                    return Response::json(['error' => 'Error al intentar sincronizar la entrega', 'error_type' => 'data_validation', 'message'=>$resultado['message']], HttpResponse::HTTP_CONFLICT);
                 }
-                $acta = Acta::find($id);
+                $entrega = Entrega::find($id);
+            }else{
+                return Response::json(['error' => 'La entrega no esta lista para ser enviada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
             }
-            return Response::json([ 'data' => $acta ],200);
+            return Response::json([ 'data' => $entrega ],200);
         } catch (\Exception $e) {
             return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
         }
