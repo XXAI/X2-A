@@ -177,10 +177,11 @@ class PedidoController extends Controller
                             $nuevo_ingreso = $stock_guardado[$ingreso['insumo_id']];
                         }
 
-                        $nuevo_ingreso->insumo_id = $ingreso['insumo_id'];
-                        $nuevo_ingreso->lote = $ingreso['lote'];
-                        $nuevo_ingreso->fecha_caducidad = $ingreso['fecha_caducidad'];
-                        $nuevo_ingreso->cantidad_entregada = $ingreso['cantidad'];
+                        $nuevo_ingreso->clues               = $configuracion->clues;
+                        $nuevo_ingreso->insumo_id           = $ingreso['insumo_id'];
+                        $nuevo_ingreso->lote                = $ingreso['lote'];
+                        $nuevo_ingreso->fecha_caducidad     = $ingreso['fecha_caducidad'];
+                        $nuevo_ingreso->cantidad_entregada  = $ingreso['cantidad'];
 
                         $cantidades_insumos[$nuevo_ingreso->insumo_id] = $nuevo_ingreso->cantidad_entregada;
 
@@ -240,7 +241,7 @@ class PedidoController extends Controller
                     $actualizar_stock = [];
                     for($i = 0, $total = count($entrega->stock); $i < $total; $i++) {
                         $insumo = $entrega->stock[$i];
-                        $insumo->stock = $insumo->cantidad_entregada;
+                        $insumo->stock = 1; //Stock activo = 1, inactivo = null
                         $insumo->usado = 0;
                         $insumo->disponible = $insumo->cantidad_entregada;
                         $actualizar_stock[] = $insumo;
@@ -284,7 +285,7 @@ class PedidoController extends Controller
         $usuario = JWTAuth::parseToken()->getPayload();
         $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
 
-        $proveedores = Proveedor::all();
+        $proveedores = Proveedor::all()->lists('nombre','id');
 
         return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion, 'proveedores' => $proveedores],200);
     }

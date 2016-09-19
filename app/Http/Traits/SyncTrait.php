@@ -41,6 +41,7 @@ trait SyncTrait{
                 foreach ($entrega_local->stock as $ingreso) {
                     $nuevo_ingreso = new StockInsumo();
 
+                    $nuevo_ingreso->clues               = $ingreso->clues;
                     $nuevo_ingreso->insumo_id           = $ingreso->insumo_id;
                     $nuevo_ingreso->lote                = $ingreso->lote;
                     $nuevo_ingreso->fecha_caducidad     = $ingreso->fecha_caducidad;
