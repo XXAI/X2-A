@@ -210,7 +210,7 @@
 	<br>
 	<p class="texto-centro negrita">
 		<span class="firma">{{mb_strtoupper($acta->director_unidad,'UTF-8')}}</span><br>
-		DIRECTOR DEL HOSPITAL
+		{{$etiqueta_director}}
 	</p>
 	<br>
 	<p class="texto-centro negrita">
