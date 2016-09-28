@@ -169,8 +169,8 @@ class PedidoController extends Controller
                 }
                 $guardar_stock = [];
                 $cantidades_insumos = [];
-                foreach ($inputs['ingresos_requisicion'] as $requisicion) {
-                    foreach ($requisicion as $ingreso) {
+                //foreach ($inputs['ingresos_requisicion'] as $requisicion) {
+                    foreach ($inputs['ingresos_requisicion'] as $ingreso) {
                         if(!isset($stock_guardado[$ingreso['insumo_id']])){
                             $nuevo_ingreso = new StockInsumo();
                         }else{
@@ -187,7 +187,7 @@ class PedidoController extends Controller
 
                         $guardar_stock[] = $nuevo_ingreso;
                     }
-                }
+                //}
                 $entrega->stock()->saveMany($guardar_stock);
 
                 if($entrega->estatus == 2){
@@ -299,7 +299,7 @@ class PedidoController extends Controller
             if($entrega->estatus == 2){
                 $resultado = $this->actualizarEntregaCentral($id);
                 if(!$resultado['estatus']){
-                    return Response::json(['error' => 'Error al intentar sincronizar la entrega', 'error_type' => 'data_validation', 'message'=>$resultado['message']], HttpResponse::HTTP_CONFLICT);
+                    return Response::json(['error' => 'Error al intentar sincronizar la entrega', 'error_type' => 'data_validation', 'message'=>$resultado['message'],'line'=>$resultado['line'],'extra_data'=>$resultado['extra_data']], HttpResponse::HTTP_CONFLICT);
                 }
                 $entrega = Entrega::find($id);
             }else{

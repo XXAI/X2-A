@@ -69,7 +69,7 @@ return [
         
         'mysql_sync' => [
             'driver' => 'mysql',
-            'host' => env('DB_HOST_SYNC'),
+            'host' => env('DB_HOST_SYNC','localhost'),
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE_SYNC', 'forge'),
             'username' => env('DB_USERNAME_SYNC', 'forge'),

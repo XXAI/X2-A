@@ -17,6 +17,7 @@ trait SyncTrait{
             $secondary = DB::connection('mysql_sync')->getPdo();
 
             DB::setPdo($secondary);
+            DB::enableQueryLog();
             DB::beginTransaction();
 
             $acta_central = Acta::with('requisiciones.insumos')->where('folio',$acta_local->folio)->first();
@@ -113,9 +114,12 @@ trait SyncTrait{
 
         }catch(Exception $e){
             //$conexion_remota->rollback();
+            $queries = DB::getQueryLog();
+            $last_query = end($queries);
+
             DB::rollBack();
             DB::setPdo($default);
-            return ['estatus'=>false,'message'=>$e->getMessage()];
+            return ['estatus'=>false,'message'=>$e->getMessage(),'line'=>$e->getLine(),'extra_data'=>$last_query];
             //return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
         }
     }
