@@ -95,7 +95,6 @@ class PedidoController extends Controller
             'proveedor_id'              =>'required',
             'fecha_entrega'             =>'required',
             'hora_entrega'              =>'required',
-            //'fecha_proxima_entrega'   =>'sometimes_required',
             'nombre_recibe'             =>'required',
             'nombre_entrega'            =>'required'
         ];
@@ -154,9 +153,6 @@ class PedidoController extends Controller
             $entrega->proveedor_id          = $proveedor_id;
             $entrega->fecha_entrega         = $inputs['fecha_entrega'];
             $entrega->hora_entrega          = $inputs['hora_entrega'];
-            if(isset($inputs['fecha_proxima_entrega'])){
-                $entrega->fecha_proxima_entrega = $inputs['fecha_proxima_entrega'];
-            }
             $entrega->nombre_recibe         = $inputs['nombre_recibe'];
             $entrega->nombre_entrega        = $inputs['nombre_entrega'];
             $entrega->estatus               = $inputs['estatus'];
@@ -254,12 +250,11 @@ class PedidoController extends Controller
 
             if($entrega->estatus == 2){
                 $resultado = $this->actualizarEntregaCentral($entrega->id);
-                if(!$resultado['estatus']){
-                    return Response::json(['error' => 'Error al intentar sincronizar la entrega del pedido', 'error_type' => 'data_validation', 'message'=>$resultado['message']], HttpResponse::HTTP_CONFLICT);
-                }
                 $entrega = Entrega::find($entrega->id);
+                if(!$resultado['estatus']){
+                    return Response::json(['error' => 'Error al intentar sincronizar la entrega del pedido', 'error_type' => 'data_validation', 'message'=>$resultado['message'], 'data'=>$entrega], HttpResponse::HTTP_CONFLICT);
+                }
             }
-
             return Response::json([ 'data' => $entrega ],200);
 
         } catch (\Exception $e) {
