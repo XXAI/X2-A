@@ -85,6 +85,7 @@ class PedidoController extends Controller
     public function store(Request $request){
         $mensajes = [
             'required'      => "required",
+            'required_if'   => "required",
             'array'         => "array",
             'min'           => "min",
             'unique'        => "unique",
@@ -95,8 +96,8 @@ class PedidoController extends Controller
             'proveedor_id'              =>'required',
             'fecha_entrega'             =>'required',
             'hora_entrega'              =>'required',
-            'nombre_recibe'             =>'required',
-            'nombre_entrega'            =>'required'
+            'nombre_recibe'             =>'required_if:estatus,2',
+            'nombre_entrega'            =>'required_if:estatus,2'
         ];
 
         $inputs = Input::all();
@@ -105,6 +106,12 @@ class PedidoController extends Controller
         $v = Validator::make($inputs, $reglas_entrega, $mensajes);
         if ($v->fails()) {
             return Response::json(['error' => $v->errors(), 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
+        }
+
+        if(!isset($inputs['ingresos_proveedor'])){
+            return Response::json(['error' => 'Se debe capturar al menos un ingreso', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
+        }else if(!count($inputs['ingresos_proveedor'])){
+            return Response::json(['error' => 'Se debe capturar al menos un ingreso', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
         }
 
         //return Response::json(['data' => $inputs, 'error_type'=>'data_validation', 'error'=>'No seguir. Probando'], HttpResponse::HTTP_CONFLICT);
@@ -153,38 +160,79 @@ class PedidoController extends Controller
             $entrega->proveedor_id          = $proveedor_id;
             $entrega->fecha_entrega         = $inputs['fecha_entrega'];
             $entrega->hora_entrega          = $inputs['hora_entrega'];
-            $entrega->nombre_recibe         = $inputs['nombre_recibe'];
-            $entrega->nombre_entrega        = $inputs['nombre_entrega'];
+            if($inputs['estatus'] > 1){
+                $entrega->nombre_recibe         = $inputs['nombre_recibe'];
+                $entrega->nombre_entrega        = $inputs['nombre_entrega'];
+                $entrega->observaciones         = $inputs['observaciones'];
+            }
             $entrega->estatus               = $inputs['estatus'];
 
             if($acta->entregas()->save($entrega)){
                 $entrega->load('stock');
                 $stock_guardado = [];
                 foreach ($entrega->stock as $stock) {
-                    $stock_guardado[$stock->insumo_id] = $stock;
-                }
-                $guardar_stock = [];
-                $cantidades_insumos = [];
-                //foreach ($inputs['ingresos_requisicion'] as $requisicion) {
-                    foreach ($inputs['ingresos_requisicion'] as $ingreso) {
-                        if(!isset($stock_guardado[$ingreso['insumo_id']])){
-                            $nuevo_ingreso = new StockInsumo();
-                        }else{
-                            $nuevo_ingreso = $stock_guardado[$ingreso['insumo_id']];
-                        }
-
-                        $nuevo_ingreso->clues               = $configuracion->clues;
-                        $nuevo_ingreso->insumo_id           = $ingreso['insumo_id'];
-                        $nuevo_ingreso->lote                = $ingreso['lote'];
-                        $nuevo_ingreso->fecha_caducidad     = $ingreso['fecha_caducidad'];
-                        $nuevo_ingreso->cantidad_entregada  = $ingreso['cantidad'];
-
-                        $cantidades_insumos[$nuevo_ingreso->insumo_id] = $nuevo_ingreso->cantidad_entregada;
-
-                        $guardar_stock[] = $nuevo_ingreso;
+                    if(!isset($stock_guardado[$stock->insumo_id])){
+                        $stock_guardado[$stock->insumo_id] = [];
                     }
-                //}
-                $entrega->stock()->saveMany($guardar_stock);
+                    $stock_guardado[$stock->insumo_id][] = $stock;
+                }
+
+                $guardar_stock = [];
+                $eliminar_stock = [];
+                $cantidades_insumos = [];
+                foreach ($inputs['ingresos_proveedor'] as $insumo_id => $ingreso) {
+                    $cantidades_insumos[$insumo_id] = $ingreso['cantidad'];
+
+                    //iteramos sobre el que tiene mayor número de items
+                    $total_lotes_form = count($ingreso['lotes']);
+
+                    if(isset($stock_guardado[$insumo_id])){
+                        $total_lotes_db = count($stock_guardado[$insumo_id]);
+                    }else{
+                        $total_lotes_db = 0;
+                    }
+
+                    if($total_lotes_form > $total_lotes_db){
+                        for($i = 0; $i < $total_lotes_form; $i++){
+                            if(isset($stock_guardado[$insumo_id][$i])){
+                                $nuevo_ingreso = $stock_guardado[$insumo_id][$i];
+                            }else{
+                                $nuevo_ingreso = new StockInsumo();
+                            }
+
+                            $nuevo_ingreso->clues               = $configuracion->clues;
+                            $nuevo_ingreso->insumo_id           = $insumo_id;
+                            $nuevo_ingreso->lote                = $ingreso['lotes'][$i]['lote'];
+                            $nuevo_ingreso->fecha_caducidad     = $ingreso['lotes'][$i]['fecha_caducidad'];
+                            $nuevo_ingreso->cantidad_entregada  = $ingreso['lotes'][$i]['cantidad'];
+
+                            $guardar_stock[] = $nuevo_ingreso;
+                        }
+                    }else{
+                        for($i = 0; $i < $total_lotes_db; $i++){
+                            if(!isset($ingreso['lotes'][$i])){
+                                $eliminar_stock[] = $stock_guardado[$insumo_id][$i]->id;
+                            }else{
+                                $nuevo_ingreso = $stock_guardado[$insumo_id][$i];
+
+                                $nuevo_ingreso->clues               = $configuracion->clues;
+                                $nuevo_ingreso->insumo_id           = $insumo_id;
+                                $nuevo_ingreso->lote                = $ingreso['lotes'][$i]['lote'];
+                                $nuevo_ingreso->fecha_caducidad     = $ingreso['lotes'][$i]['fecha_caducidad'];
+                                $nuevo_ingreso->cantidad_entregada  = $ingreso['lotes'][$i]['cantidad'];
+
+                                $guardar_stock[] = $nuevo_ingreso;
+                            }
+                        }
+                    }
+                }
+                
+                if(count($eliminar_stock)){
+                    StockInsumo::whereIn('id',$eliminar_stock)->delete();
+                }
+                if(count($guardar_stock)){
+                    $entrega->stock()->saveMany($guardar_stock);
+                }
 
                 if($entrega->estatus == 2){
                     $acta->load('requisiciones.insumos');

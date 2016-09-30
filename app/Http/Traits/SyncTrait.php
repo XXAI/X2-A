@@ -30,7 +30,7 @@ trait SyncTrait{
             $entrega_central->proveedor_id          = $entrega_local->proveedor_id;
             $entrega_central->fecha_entrega         = $entrega_local->fecha_entrega;
             $entrega_central->hora_entrega          = $entrega_local->hora_entrega;
-            $entrega_central->fecha_proxima_entrega = $entrega_local->fecha_proxima_entrega;
+            $entrega_central->observaciones         = $entrega_local->observaciones;
             $entrega_central->nombre_recibe         = $entrega_local->nombre_recibe;
             $entrega_central->nombre_entrega        = $entrega_local->nombre_entrega;
             $entrega_central->estatus               = 3;
