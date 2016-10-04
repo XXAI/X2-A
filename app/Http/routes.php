@@ -42,6 +42,7 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('sincronizar-validacion/{id}',           'ActaController@sincronizar');
 
     Route::get('sincronizar-entrega/{id}',           'PedidoController@sincronizar');
+    Route::get('ver-entrega/{id}',                   'PedidoController@showEntrega');
 
     Route::get('requisiciones-jurisdiccion-pdf','RequisicionController@generarRequisicionPDF');
     

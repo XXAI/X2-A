@@ -163,7 +163,9 @@ class PedidoController extends Controller
             if($inputs['estatus'] > 1){
                 $entrega->nombre_recibe         = $inputs['nombre_recibe'];
                 $entrega->nombre_entrega        = $inputs['nombre_entrega'];
-                $entrega->observaciones         = $inputs['observaciones'];
+                if(isset($inputs['observaciones'])){
+                    $entrega->observaciones         = $inputs['observaciones'];
+                }
             }
             $entrega->estatus               = $inputs['estatus'];
 
@@ -237,10 +239,16 @@ class PedidoController extends Controller
                 if($entrega->estatus == 2){
                     $acta->load('requisiciones.insumos');
 
+                    $claves_recibidas = [];
+                    $total_cantidad_recibida = 0;
+                    $claves_validadas = [];
+                    $total_cantidad_validada = 0;
+
                     for($i = 0, $total = count($acta->requisiciones); $i < $total; $i++) {
                         $requisicion = $acta->requisiciones[$i];
                         if(count($requisicion->insumos)){
                             $requisicion_insumos_sync = [];
+
                             for ($j=0, $total_insumos = count($requisicion->insumos); $j < $total_insumos ; $j++) { 
                                 $insumo = $requisicion->insumos[$j];
                                 $insumo_sync = [
@@ -259,9 +267,17 @@ class PedidoController extends Controller
                                         $insumo_sync['cantidad_recibida'] = 0;
                                         $insumo_sync['total_recibido'] = 0;
                                     }
+                                    if(!isset($claves_validadas[$insumo->pivot->insumo_id])){
+                                        $claves_validadas[$insumo->pivot->insumo_id] = true;
+                                    }
+                                    $total_cantidad_validada += $insumo->pivot->cantidad_validada;
                                     if(isset($cantidades_insumos[$insumo_sync['insumo_id']])){
                                         $insumo_sync['cantidad_recibida'] += $cantidades_insumos[$insumo_sync['insumo_id']];
                                         $insumo_sync['total_recibido'] += ($cantidades_insumos[$insumo_sync['insumo_id']] * $insumo->precio);
+                                        if(!isset($claves_recibidas[$insumo->pivot->insumo_id])){
+                                            $claves_recibidas[$insumo->pivot->insumo_id] = true;
+                                        }
+                                        $total_cantidad_recibida += $insumo_sync['cantidad_recibida'];
                                     }
                                 }
                                 $requisicion_insumos_sync[] = $insumo_sync;
@@ -280,6 +296,16 @@ class PedidoController extends Controller
                             $requisicion->save();
                         }
                     }
+
+                    $total_claves_recibidas = count($claves_recibidas);
+                    $total_claves_validadas = count($claves_validadas);
+
+                    $porcentaje_claves = ($total_claves_recibidas*100)/$total_claves_validadas;
+                    $porcentaje_cantidad = ($total_cantidad_recibida*100)/$total_cantidad_validada;
+
+                    $entrega->porcentaje_claves = $porcentaje_claves;
+                    $entrega->porcentaje_total = $porcentaje_cantidad;
+                    $entrega->save();
 
                     $entrega->load('stock');
                     $actualizar_stock = [];
@@ -331,6 +357,23 @@ class PedidoController extends Controller
         $proveedores = Proveedor::all()->lists('nombre','id');
 
         return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion, 'proveedores' => $proveedores],200);
+    }
+
+    public function showEntrega(Request $request, $id){
+        $entrega = Entrega::with('stock.insumo','acta')->find($id);
+
+        $proveedor_id = $entrega->proveedor_id;
+
+        $entrega->acta->load(['requisiciones.insumos'=>function($query)use($proveedor_id){
+            $query->select('id')->wherePivot('cantidad_recibida','>',0)->wherePivot('proveedor_id',$proveedor_id);
+        }]);
+
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+
+        $proveedor = Proveedor::find($proveedor_id);
+
+        return Response::json([ 'data' => $entrega, 'configuracion'=>$configuracion, 'proveedor' => $proveedor],200);
     }
     
     public function sincronizar($id){
