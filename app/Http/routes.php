@@ -30,16 +30,20 @@ Route::group(['middleware' => 'jwt'], function () {
 
     Route::resource('permisos', 'PermisoController', ['only' => ['index', 'show', 'store','update','destroy']]);
 
-    Route::resource('actas',            'ActaController',           ['only' => ['index', 'show', 'store','update','destroy']]);
-    Route::resource('requisiciones',    'RequisicionController',    ['only' => ['index', 'show', 'store','update','destroy']]);
-    Route::resource('solicitudes',      'SolicitudController',      ['only' => ['index', 'show', 'store','update','destroy']]);
-    Route::resource('pedidos',          'PedidoController',         ['only' => ['index', 'show', 'store']]);
+    Route::resource('actas',                    'ActaController',                   ['only' => ['index', 'show', 'store','update','destroy']]);
+    Route::resource('requisicionesunidades',    'RequisicionesUnidadController',    ['only' => ['index', 'show', 'store','update','destroy']]);
+    Route::resource('requisiciones',            'RequisicionController',            ['only' => ['index', 'show', 'store','update','destroy']]);
+    Route::resource('solicitudes',              'SolicitudController',              ['only' => ['index', 'show', 'store','update','destroy']]);
+    Route::resource('pedidos',                  'PedidoController',                 ['only' => ['index', 'show', 'store']]);
 
     Route::get('acta-pdf/{id}',                         'ActaController@generarActaPDF');
     Route::get('requisiciones-pdf/{id}',                'ActaController@generarRequisicionPDF');
     Route::get('exportar-csv/{id}',                     'ActaController@generarJSON');
     Route::post('importar-csv',                         'ActaController@actualizarActa');
+    Route::post('importar-csv-unidad',                  'RequisicionController@importar');
+    Route::post('importar-zip-unidad',                  'RequisicionesUnidadController@importar');
     Route::get('sincronizar-validacion/{id}',           'ActaController@sincronizar');
+    Route::get('exportar-csv-unidad/{id}',              'RequisicionesUnidadController@generarJSON');
 
     Route::get('sincronizar-entrega/{id}',           'PedidoController@sincronizar');
 

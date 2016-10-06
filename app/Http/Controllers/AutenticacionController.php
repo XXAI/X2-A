@@ -46,12 +46,12 @@ class AutenticacionController extends Controller
                 
                 $permisos_unidad = [
                                 '37DC1A627A44E', //Editar Configuracion
-                                '71A3786CCEBD4' //Ver Configuracion
-                                //'6F5427E97863A', //Ver solicitudes
-                                //'44F584F6B56DE', //Agregar solicitudes
-                                //'439536318C63C', //Editar solicitudes
-                                //'77D798C33FC46', //Exportar solicitudes
-                                //'1D25DB28AC412' //Eliminar solicitudes
+                                '71A3786CCEBD4', //Ver Configuracion
+                                '8164C929918CE', //Ver solicitudes
+                                'BD4D855ECDD33', //Agregar solicitudes
+                                '29DB51365894B', //Editar solicitudes
+                                'D2FA533BDCC56',  //Exportar solicitudes
+                                'CE8E156BCF5E8' //Eliminar solicitudes
                             ];
                 $permisos_hospital = [
                                 '37DC1A627A44E', //Editar Configuracion
@@ -62,7 +62,9 @@ class AutenticacionController extends Controller
                                 'F4CA88791CD94', //Exportar actas
                                 'FF915DEC2F235', //Eliminar actas
                                 //'97728B3AD53DB', //Ver pedidos
-                                '721A42C7F4693' //Recepción de pedidos
+                                '721A42C7F4693', //Recepción de pedidos
+
+                                '8164C929918CE', // Ver Unidades
                             ];
                 $permisos_jurisdiccion = [
                                 '37DC1A627A44E', //Editar Configuracion

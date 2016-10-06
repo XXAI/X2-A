@@ -307,4 +307,44 @@ class RequisicionController extends Controller
         $pdf = PDF::loadView('pdf.requisiciones', $data);
         return $pdf->stream($data['acta']->folio.'Requisiciones.pdf');
     }
+
+    function decryptData($value){
+        $key = "1C6B37CFCDF98AB8FA29E47E4B8EF1F3";
+        $crypttext = $value;
+        $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
+        $iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+        $decrypttext = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $key, $crypttext, MCRYPT_MODE_ECB, $iv);
+        return trim($decrypttext);
+    }
+
+    public function importar(Request $request)
+    {
+
+        if(Input::hasFile('zipfile')){
+            $path_provisional = "/app/imports/unidades/";
+            $destinationPath = storage_path().$path_provisional;
+            $upload_success = Input::file('zipfile')->move($destinationPath, 'archivo_zip.zip');
+
+            $zip = new ZipArchive;
+            $res = $zip->open($destinationPath.'archivo_zip.zip');
+            if ($res === TRUE) {
+                $zip->extractTo($destinationPath);
+                $zip->close();
+            } else {
+                return Response::json(['error' => 'No se pudo extraer el archivo'], HttpResponse::HTTP_CONFLICT);
+            }
+
+            $filename = $destinationPath . 'requisicion.json';
+            $handle = fopen($filename, "r");
+            $contents = fread($handle, filesize($filename));
+            $DecryptedData=$this->decryptData($contents);
+            fclose($handle);
+
+            //$str = file_get_contents($destinationPath.'acta.json');
+            $json = json_decode($DecryptedData, true);
+            Storage::delete($destinationPath.'archivo_zip.zip');
+            Storage::delete($filename);
+            return Response::json([ 'data' => $json  ],200);
+        }
+    }
 }
