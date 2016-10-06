@@ -4,7 +4,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<style type="text/css">
 		@page {
-            margin-top: 10.3em;
+            margin-top: 13.3em;
             margin-left: 5.6em;
             margin-right: 6.6em;
             margin-bottom: 7.3em;
@@ -117,7 +117,7 @@
 		    position: fixed;
 		}
 		.header {
-		    top: -15.0em;
+		    top: -18.0em;
 		}
 		.footer {
 		    bottom: 0px;
@@ -145,16 +145,16 @@
 				</td>
 			</tr>
 		</table>
-		<br><br><br><br><br>
+		<br><br><br>
 		<div class="texto-centro cursiva">“2016, Año de Don Ángel Albino Corzo”</div>	
+		<br>
+		<p class="texto-centro">
+			<strong>ACTA CIRCUNSTANCIADA POR DESABASTO DE MEDICAMENTOS Y MATERIAL DE CURACIÓN No. {{$acta->folio}}.</strong>
+		</p>
 	</div>
 	@if($acta->estatus < 3)
 	<div id="watermark">SIN VALIDEZ</div>
 	@endif
-	<p class="texto-centro">
-		<strong>ACTA CIRCUNSTANCIADA POR DESABASTO DE MEDICAMENTOS Y MATERIAL DE CURACIÓN No. {{$acta->folio}}.</strong>
-	</p>
-	<br>
 	<p class="texto-justificado">
 		En la ciudad de {{$acta->ciudad}} del Estado de Chiapas, siendo las {{$acta->hora_inicio}} hrs. del día {{$acta->fecha[2]}} de {{$acta->fecha[1]}} del 2016, nos encontramos reunidos en la {{$acta->lugar_reunion}}, perteneciente a la Red de Servicios de hospitales del Instituto de Salud en el Estado, autoridades de este nosocomio con el objeto de inspeccionar, verificar los niveles de Abasto de insumos médicos del que resulta determinante el  desabasto e incumplimiento de la empresa {{$empresa}}, considerando  los siguientes:
 	</p>
@@ -210,7 +210,7 @@
 	<br>
 	<p class="texto-centro negrita">
 		<span class="firma">{{mb_strtoupper($acta->director_unidad,'UTF-8')}}</span><br>
-		DIRECTOR DEL HOSPITAL
+		{{$etiqueta_director}}
 	</p>
 	<br>
 	<p class="texto-centro negrita">

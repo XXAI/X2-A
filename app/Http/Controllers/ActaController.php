@@ -10,6 +10,7 @@ use App\Http\Requests;
 use App\Models\Acta;
 use App\Models\Requisicion;
 use App\Models\Configuracion;
+use App\Models\Usuario;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive, Exception;
@@ -235,6 +236,8 @@ class ActaController extends Controller
         }
         
         $usuario = JWTAuth::parseToken()->getPayload();
+
+        $datos_usuario = Usuario::find($usuario->get('id'));
         $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
 
         /*if($data['acta']->estatus != 2){
@@ -261,6 +264,11 @@ class ActaController extends Controller
         $data['unidad'] = $configuracion->clues_nombre;
         $data['empresa'] = $configuracion->empresa_nombre;
         $data['empresa_clave'] = $configuracion->empresa_clave;
+        $data['etiqueta_director'] = 'DIRECTOR DEL HOSPITAL';
+
+        if($datos_usuario->tipo_usuario == 2){
+            $data['etiqueta_director'] = 'JEFE JURISDICCIONAL';
+        }
         
         $pdf = PDF::loadView('pdf.acta', $data);
         $pdf->output();

@@ -46,6 +46,7 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('exportar-csv-unidad/{id}',              'RequisicionesUnidadController@generarJSON');
 
     Route::get('sincronizar-entrega/{id}',           'PedidoController@sincronizar');
+    Route::get('ver-entrega/{id}',                   'PedidoController@showEntrega');
 
     Route::get('requisiciones-jurisdiccion-pdf','RequisicionController@generarRequisicionPDF');
     

@@ -13,6 +13,9 @@ class Acta extends Model {
         return $this->hasMany('App\Models\Requisicion','acta_id');
     }
     public function entregas(){
-    	return $this->hasMany('App\Models\Entrega','acta_id');
+    	return $this->hasMany('App\Models\Entrega','acta_id')->orderBy('fecha_entrega','desc')->orderBy('hora_entrega','desc');
+    }
+    public function ultimaEntrega(){
+    	return $this->hasOne('App\Models\Entrega','id','acta_id')->orderBy('fecha_entrega','desc')->orderBy('hora_entrega','desc');
     }
 }
