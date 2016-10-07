@@ -443,9 +443,7 @@ class ActaController extends Controller
                     Storage::deleteDirectory('imports/'.$usuario_id.'/');
                     return Response::json(['error' => 'Los datos del acta en el archivo estan incompletos', 'error_type'=>'data_validation','fields'=>$v->errors()], HttpResponse::HTTP_CONFLICT);
                 }
-
-                DB::beginTransaction();
-
+                
                 $acta = Acta::with('requisiciones.insumos','requisiciones.insumosClues')
                             ->where('folio',$json['folio'])->where('folio','like',$usuario_id.'/%')->first();
 
@@ -458,6 +456,13 @@ class ActaController extends Controller
                     Storage::deleteDirectory('imports/'.$usuario_id.'/');
                     return Response::json(['error' =>'El Acta no se encuentra finalizada.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
                 }
+
+                if($acta->estatus > intval($json['estatus'])){
+                    Storage::deleteDirectory('imports/'.$usuario_id.'/');
+                    return Response::json(['error' =>'El Acta cargada tiene un estatus mayor a la que se desea cargar.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+
+                DB::beginTransaction();
 
                 $acta->fecha_validacion = $json['fecha_validacion'];
                 $acta->estatus = $json['estatus'];
@@ -477,7 +482,8 @@ class ActaController extends Controller
                         foreach ($inputs_requisicion['insumos'] as $req_insumo) {
                             $insumos[$req_insumo['llave']] = [
                                 'cantidad_validada' => $req_insumo['pivot']['cantidad_validada'],
-                                'total_validado' => $req_insumo['pivot']['total_validado']
+                                'total_validado' => $req_insumo['pivot']['total_validado'],
+                                'proveedor_id' => $req_insumo['pivot']['proveedor_id']
                             ];
                         }
                         $inputs_requisicion['insumos'] = $insumos;
@@ -526,6 +532,11 @@ class ActaController extends Controller
                                 $insumo_import = $requisicion_import['insumos'][$insumo->llave];
                                 $nuevo_insumo['total_validado'] = $insumo_import['total_validado'];
                                 $nuevo_insumo['cantidad_validada'] = $insumo_import['cantidad_validada'];
+                                $nuevo_insumo['proveedor_id'] = $insumo_import['proveedor_id'];
+                            }else{
+                                $nuevo_insumo['total_validado'] = 0;
+                                $nuevo_insumo['cantidad_validada'] = 0;
+                                $nuevo_insumo['proveedor_id'] = null;
                             }
                             $insumos_sync[] = $nuevo_insumo;
                         }
@@ -544,6 +555,9 @@ class ActaController extends Controller
                                 $insumo_import = $requisicion_import['insumos_clues'][$insumo->llave.'.'.$insumo->pivot->clues];
                                 $nuevo_insumo['total_validado'] = $insumo_import['total_validado'];
                                 $nuevo_insumo['cantidad_validada'] = $insumo_import['cantidad_validada'];
+                            }else{
+                                $nuevo_insumo['total_validado'] = 0;
+                                $nuevo_insumo['cantidad_validada'] = 0;
                             }
                             $insumos_clues_sync[] = $nuevo_insumo;
                         }
@@ -734,12 +748,15 @@ class ActaController extends Controller
 
             DB::commit();
 
-            if($acta->estatus == 2){
-                $resultado = $this->actualizarCentral($acta->folio);
-                if(!$resultado['estatus']){
-                    return Response::json(['error' => 'Error al intentar sincronizar el acta', 'error_type' => 'data_validation', 'message'=>$resultado['message']], HttpResponse::HTTP_CONFLICT);
+            $datos_usuario = Usuario::find($usuario->get('id'));
+            if($datos_usuario->tipo_conexion){
+                if($acta->estatus == 2){
+                    $resultado = $this->actualizarCentral($acta->folio);
+                    if(!$resultado['estatus']){
+                        return Response::json(['error' => 'Error al intentar sincronizar el acta', 'error_type' => 'data_validation', 'message'=>$resultado['message']], HttpResponse::HTTP_CONFLICT);
+                    }
+                    $acta = Acta::find($id);
                 }
-                $acta = Acta::find($id);
             }
 
             $acta->load('requisiciones.insumos');
@@ -753,18 +770,24 @@ class ActaController extends Controller
 
     public function sincronizar($id){
         try {
-            $acta = Acta::find($id);
-            if(!$acta){
-                return Response::json(['error' => 'Acta no encontrada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
-            }
-            if($acta->estatus == 2){
-                $resultado = $this->actualizarCentral($acta->folio);
-                if(!$resultado['estatus']){
-                    return Response::json(['error' => 'Error al intentar sincronizar el acta', 'error_type' => 'data_validation', 'message'=>$resultado['message']], HttpResponse::HTTP_CONFLICT);
-                }
+            $usuario = JWTAuth::parseToken()->getPayload();
+            $datos_usuario = Usuario::find($usuario->get('id'));
+            if($datos_usuario->tipo_conexion){
                 $acta = Acta::find($id);
+                if(!$acta){
+                    return Response::json(['error' => 'Acta no encontrada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+                if($acta->estatus == 2){
+                    $resultado = $this->actualizarCentral($acta->folio);
+                    if(!$resultado['estatus']){
+                        return Response::json(['error' => 'Error al intentar sincronizar el acta', 'error_type' => 'data_validation', 'message'=>$resultado['message']], HttpResponse::HTTP_CONFLICT);
+                    }
+                    $acta = Acta::find($id);
+                }
+                return Response::json([ 'data' => $acta ],200);
+            }else{
+                return Response::json(['error' => 'Su usuario no esta cofigurado para realizar la sincronización', 'error_type' => 'data_validation', 'message'=>'Usuario offline'], HttpResponse::HTTP_CONFLICT);
             }
-            return Response::json([ 'data' => $acta ],200);
         } catch (\Exception $e) {
             return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
         }
