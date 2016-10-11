@@ -240,9 +240,14 @@ class PedidoController extends Controller
                     $acta->load('requisiciones.insumos');
 
                     $claves_recibidas = [];
-                    $total_cantidad_recibida = 0;
                     $claves_validadas = [];
+                    $total_cantidad_recibida = 0;
                     $total_cantidad_validada = 0;
+
+                    $claves_proveedor_recibidas = [];
+                    $total_cantidad_proveedor_recibida = 0;
+                    $claves_proveedor_validadas = [];
+                    $total_cantidad_proveedor_validada = 0;
 
                     for($i = 0, $total = count($acta->requisiciones); $i < $total; $i++) {
                         $requisicion = $acta->requisiciones[$i];
@@ -267,17 +272,32 @@ class PedidoController extends Controller
                                         $insumo_sync['cantidad_recibida'] = 0;
                                         $insumo_sync['total_recibido'] = 0;
                                     }
-                                    if(!isset($claves_validadas[$insumo->pivot->insumo_id])){
-                                        $claves_validadas[$insumo->pivot->insumo_id] = true;
+                                    if($insumo->pivot->cantidad_validada > 0){
+                                        if(!isset($claves_proveedor_validadas[$insumo->pivot->insumo_id])){
+                                            $claves_proveedor_validadas[$insumo->pivot->insumo_id] = true;
+                                        }
+                                        $total_cantidad_proveedor_validada += $insumo->pivot->cantidad_validada;
                                     }
-                                    $total_cantidad_validada += $insumo->pivot->cantidad_validada;
+                                    
                                     if(isset($cantidades_insumos[$insumo_sync['insumo_id']])){
                                         $insumo_sync['cantidad_recibida'] += $cantidades_insumos[$insumo_sync['insumo_id']];
                                         $insumo_sync['total_recibido'] += ($cantidades_insumos[$insumo_sync['insumo_id']] * $insumo->precio);
+                                    }
+                                    if($insumo_sync['cantidad_recibida'] > 0){
+                                        if(!isset($claves_proveedor_recibidas[$insumo->pivot->insumo_id])){
+                                            $claves_proveedor_recibidas[$insumo->pivot->insumo_id] = true;
+                                        }
+                                        $total_cantidad_proveedor_recibida += $insumo_sync['cantidad_recibida'];
+                                    }
+                                }
+                                if($insumo->pivot->cantidad_validada > 0){
+                                    if(!isset($claves_validadas[$insumo->pivot->insumo_id])){
+                                        $claves_validadas[$insumo->pivot->insumo_id] = true;
+                                    }
+                                    if($insumo_sync['cantidad_recibida'] > 0){
                                         if(!isset($claves_recibidas[$insumo->pivot->insumo_id])){
                                             $claves_recibidas[$insumo->pivot->insumo_id] = true;
                                         }
-                                        $total_cantidad_recibida += $insumo_sync['cantidad_recibida'];
                                     }
                                 }
                                 $requisicion_insumos_sync[] = $insumo_sync;
@@ -294,18 +314,29 @@ class PedidoController extends Controller
                             $requisicion->iva_recibido = $iva;
                             $requisicion->gran_total_recibido = $sub_total + $iva;
                             $requisicion->save();
+
+                            $total_cantidad_validada += $requisicion->insumos()->sum('cantidad_validada');
+                            $total_cantidad_recibida += $requisicion->insumos()->sum('cantidad_recibida');
                         }
                     }
 
-                    $total_claves_recibidas = count($claves_recibidas);
-                    $total_claves_validadas = count($claves_validadas);
+                    $porcentaje_claves = (count($claves_proveedor_recibidas)*100)/count($claves_proveedor_validadas);
+                    $porcentaje_cantidad = ($total_cantidad_proveedor_recibida*100)/$total_cantidad_proveedor_validada;
 
-                    $porcentaje_claves = ($total_claves_recibidas*100)/$total_claves_validadas;
-                    $porcentaje_cantidad = ($total_cantidad_recibida*100)/$total_cantidad_validada;
-
+                    $entrega->total_claves_recibidas = count($claves_proveedor_recibidas);
+                    $entrega->total_claves_validadas = count($claves_proveedor_validadas);
+                    $entrega->total_cantidad_recibida = $total_cantidad_proveedor_recibida;
+                    $entrega->total_cantidad_validada = $total_cantidad_proveedor_validada;
                     $entrega->porcentaje_claves = $porcentaje_claves;
-                    $entrega->porcentaje_total = $porcentaje_cantidad;
+                    $entrega->porcentaje_cantidad = $porcentaje_cantidad;
+
                     $entrega->save();
+
+                    $acta->total_claves_recibidas = count($claves_recibidas);
+                    $acta->total_claves_validadas = count($claves_validadas);
+                    $acta->total_cantidad_recibida = $total_cantidad_recibida;
+                    $acta->total_cantidad_validada = $total_cantidad_validada;
+                    $acta->save();
 
                     $entrega->load('stock');
                     $actualizar_stock = [];
