@@ -17,7 +17,7 @@ use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive, Exception;
 
-class PedidoController extends Controller
+class RecepcionController extends Controller
 {
     use SyncTrait;
     /**
@@ -390,7 +390,7 @@ class PedidoController extends Controller
         return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion, 'proveedores' => $proveedores],200);
     }
 
-    public function showEntrega(Request $request, $id){
+    public function showEntrada(Request $request, $id){
         $entrega = Entrega::with('stock.insumo','acta')->find($id);
 
         $proveedor_id = $entrega->proveedor_id;

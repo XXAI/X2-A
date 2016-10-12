@@ -34,7 +34,7 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::resource('requisicionesunidades',    'RequisicionesUnidadController',    ['only' => ['index', 'show', 'store','update','destroy']]);
     Route::resource('requisiciones',            'RequisicionController',            ['only' => ['index', 'show', 'store','update','destroy']]);
     Route::resource('solicitudes',              'SolicitudController',              ['only' => ['index', 'show', 'store','update','destroy']]);
-    Route::resource('pedidos',                  'PedidoController',                 ['only' => ['index', 'show', 'store']]);
+    Route::resource('recepcion',                'RecepcionController',              ['only' => ['index', 'show', 'store']]);
 
     Route::get('acta-pdf/{id}',                         'ActaController@generarActaPDF');
     Route::get('requisiciones-pdf/{id}',                'ActaController@generarRequisicionPDF');
@@ -45,8 +45,8 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('sincronizar-validacion/{id}',           'ActaController@sincronizar');
     Route::get('exportar-csv-unidad/{id}',              'RequisicionesUnidadController@generarJSON');
 
-    Route::get('sincronizar-entrega/{id}',           'PedidoController@sincronizar');
-    Route::get('ver-entrega/{id}',                   'PedidoController@showEntrega');
+    Route::get('sincronizar-entrada/{id}',           'RecepcionController@sincronizar');
+    Route::get('ver-entrada/{id}',                   'RecepcionController@showEntrada');
 
     Route::get('requisiciones-jurisdiccion-pdf','RequisicionController@generarRequisicionPDF');
     
