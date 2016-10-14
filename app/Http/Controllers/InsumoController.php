@@ -25,7 +25,7 @@ class InsumoController extends Controller {
 		$query = Input::get('query');
 		
 		$usuario = JWTAuth::parseToken()->getPayload();
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
 		$empresa = $configuracion->empresa_clave;;
 		if($query){

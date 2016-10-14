@@ -35,7 +35,7 @@ class RequisicionesUnidadController extends Controller
 
             $query = Input::get('query');
             $filtro = Input::get('filtro');
-            $recurso = Requisicion::where('clues','=', $usuario->get('id'));
+            $recurso = Requisicion::where('clues','=', $usuario->get('clues'));
 
             $recurso = $recurso->select(DB::RAW('(select max(requisiciones.acta_id)) as acta_id'),
                                         DB::RAW('(select fecha_validacion from actas where actas.id = (select max(requisiciones.acta_id))) as fecha_validacion'),
@@ -108,7 +108,7 @@ class RequisicionesUnidadController extends Controller
             DB::beginTransaction();
 
             $usuario = JWTAuth::parseToken()->getPayload();
-            $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+            $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
             if(isset($inputs['requisiciones'])){
                 if(count($inputs['requisiciones']) > 4){
@@ -171,7 +171,7 @@ class RequisicionesUnidadController extends Controller
      */
     public function show(Request $request, $id){
         $usuario = JWTAuth::parseToken()->getPayLoad();
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
         $requisicion = Requisicion::find($id);
         $requisiciones = Requisicion::where("acta_id", $requisicion->acta_id)->with("insumos")->get();
@@ -231,7 +231,7 @@ class RequisicionesUnidadController extends Controller
                 DB::beginTransaction();
 
                 $usuario = JWTAuth::parseToken()->getPayload();
-                $clues = $usuario->get('id');
+                $clues = $usuario->get('clues');
                 $configuracion = Configuracion::where('clues',$clues)->first();
 
                 $actaStore = Acta::create($acta);
@@ -298,7 +298,7 @@ class RequisicionesUnidadController extends Controller
 
                         $requisicion_auxiliar[$indice]['lotes']              = count($insumos_auxiliar);
 
-                        $requisicion_auxiliar[$indice]['clues'] = $usuario->get('id');
+                        $requisicion_auxiliar[$indice]['clues'] = $usuario->get('clues');
                         unset($requisicion_auxiliar[$indice]['insumos']);
                         $requisicion_auxiliar[$indice]['insumos_clues'] = $insumos_auxiliar;
 
@@ -434,7 +434,7 @@ class RequisicionesUnidadController extends Controller
         ];
 
         $usuario = JWTAuth::parseToken()->getPayload();
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
         $inputs = Input::all();
 

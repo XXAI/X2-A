@@ -23,7 +23,7 @@ class ConfiguracionController extends Controller
      */
     public function show(Request $request, $id){
         $usuario_token = JWTAuth::parseToken()->getPayload();
-        $configuracion = Configuracion::where('clues',$usuario_token->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario_token->get('clues'))->first();
         return Response::json([ 'data' => $configuracion ],200);
     }
 
@@ -54,11 +54,11 @@ class ConfiguracionController extends Controller
 
         try {
             $usuario = JWTAuth::parseToken()->getPayload();
-            $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+            $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
             //$configuracion = Configuracion::find(1);
-            $usuario = Usuario::find($configuracion->clues);
+            //$usuario = Usuario::find($configuracion->clues);
             $configuracion->update($inputs);
-            $usuario->update($inputs);
+            //$usuario->update($inputs);
 
             return Response::json([ 'data' => $configuracion ],200);
         } catch (\Exception $e) {

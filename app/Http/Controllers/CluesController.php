@@ -25,19 +25,19 @@ class CluesController extends Controller {
 		$query = Input::get('query');
 		
 		$usuario = JWTAuth::parseToken()->getPayload();
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
 		$empresa = $configuracion->empresa_clave;
 		if($query){
-            $unidades = Usuario::where(function($condition)use($query){
-			                $condition->where('id','LIKE','%'.$query.'%')
+            $unidades = Configuracion::where(function($condition)use($query){
+			                $condition->where('clues','LIKE','%'.$query.'%')
 			                        ->orWhere('nombre','LIKE','%'.$query.'%');
 			            });
         }else {
-			$unidades = Usuario::getModel();
+			$unidades = Configuracion::getModel();
 		}
 
-		$unidades = $unidades->select('id AS clues','nombre','municipio','localidad','jurisdiccion')
+		$unidades = $unidades->select('clues','nombre','municipio','localidad','jurisdiccion')
 						->where('empresa_clave',$empresa)
 						->get();
 

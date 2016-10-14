@@ -29,23 +29,33 @@ class RequisicionController extends Controller
         try{
             //DB::enableQueryLog();
             $usuario = JWTAuth::parseToken()->getPayload();
-            $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+            $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
             $empresa = $configuracion->empresa_clave;
 
-            if(!Input::get('catalogos')){
-                $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$usuario->get('id'))->with('insumosClues')->get();
+            /*if(!Input::get('catalogos')){
+                $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$usuario->get('clues'))->with('insumosClues')->get();
             }else{
                 $requisiciones = [];
-            }
-            
-            
-            $clues = Usuario::select('id AS clues','nombre','municipio','localidad','jurisdiccion')
+            }*/
+
+            $clues = Configuracion::select('clues','clues_nombre as nombre','municipio','localidad','jurisdiccion')
                             ->where('empresa_clave',$empresa)
                             ->where('jurisdiccion',$configuracion->jurisdiccion)
-                            ->where('tipo_usuario',1)
+                            ->whereIn('tipo_clues',[1,2])
                             ->get();
+            //Arreglo de solo las clues, para identificar los insumos, meter en un if por tipo de usuario
+            $listado_clues = $clues->lists('clues');
+
+            if(!Input::get('catalogos')){
+                $insumos = DB::table('requisicion_insumo_clues')
+                                ->leftjoin('insumos','insumos.id','=','requisicion_insumo_clues.insumo_id')
+                                ->select('insumos.*','requisicion_insumo_clues.*')
+                                ->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->get();
+            }else{
+                $insumos = [];
+            }
             
-            return Response::json(['data'=>$requisiciones, 'clues'=>$clues, 'configuracion'=>$configuracion],200);
+            return Response::json(['data'=>$insumos, 'clues'=>$clues, 'configuracion'=>$configuracion],200);
         }catch(Exception $ex){
             return Response::json(['error'=>$e->getMessage()],500);
         }
@@ -83,7 +93,8 @@ class RequisicionController extends Controller
         ];
         
         $parametros = Input::all();
-        $inputs = $parametros['requisiciones'];
+        //$inputs = $parametros['requisiciones'];
+        $inputs = $parametros['insumos'];
         $inputs_acta = null;
         $acta = null;
 
@@ -95,7 +106,8 @@ class RequisicionController extends Controller
             }
         }
 
-        if(!isset($parametros['requisiciones'])){
+        //if(!isset($parametros['requisiciones'])){
+        if(!isset($parametros['insumos'])){
             return Response::json(['error' => 'No hay datos de requisiciones para guardar', 'error_type'=>'form_validation'], HttpResponse::HTTP_CONFLICT);
         }
         
@@ -104,25 +116,71 @@ class RequisicionController extends Controller
             DB::beginTransaction();
 
             $usuario = JWTAuth::parseToken()->getPayload();
-            $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+            $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
             $empresa = $configuracion->empresa_clave;
             $clues = $configuracion->clues;
 
-            $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$clues)->get();//->with('insumosClues')
+            $clues = Configuracion::select('clues')
+                            ->where('empresa_clave',$empresa)
+                            ->where('jurisdiccion',$configuracion->jurisdiccion)
+                            ->whereIn('tipo_clues',[1,2])
+                            ->get();
+            //Arreglo de solo las clues, para identificar los insumos, meter en un if por tipo de usuario
+            $listado_clues = $clues->lists('clues');
 
+            //$requisiciones = Requisicion::whereNull('acta_id')->where('clues',$clues)->get();//->with('insumosClues')
+            $arreglo_insumos_clues = DB::table('requisicion_insumo_clues')->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->get();
+
+            /*
             $arreglo_requisiciones = [];
             foreach ($requisiciones as $requisicion) {
                 //$arreglo_requisiciones[$requisicion->pedido] = $requisicion;
                 $arreglo_requisiciones[$requisicion->tipo_requisicion] = $requisicion;
             }
-
-            if(isset($inputs)){
-                if(count($inputs) > 4){
-                    throw new \Exception("No pueden haber mas de cuatro requisiciones");
+            */
+            $insumos_guardados = [];
+            foreach ($arreglo_insumos_clues as $insumo) {
+                if(!isset($insumos_guardados[$insumo->clues])){
+                    $insumos_guardados[$insumo->clues] = [];
                 }
+                $insumos_guardados[$insumo->clues][$insumo->insumo_id] = $insumo;
+            }
 
-                $requisiciones_guardadas = [];
-                foreach ($inputs as $inputs_requisicion) {
+            //if(isset($inputs)){
+                /*if(count($inputs) > 4){
+                    throw new \Exception("No pueden haber mas de cuatro requisiciones");
+                }*/
+
+                //$requisiciones_guardadas = [];
+                //foreach ($inputs as $inputs_requisicion) {
+                $lista_insumos = [];
+                foreach ($inputs as $input_insumo) {
+                    $guardar_insumo = [];
+
+                    if(!isset($input_insumo['usuario'])){
+                        $guardar_insumo['usuario'] = $usuario->get('id');
+                    }
+
+                    if(isset($insumos_guardados[$input_insumo['clues']])){
+                        if(isset($insumos_guardados[$input_insumo['clues']][$input_insumo['insumo_id']])){
+                            $insumo_base = $insumos_guardados[$input_insumo['clues']][$input_insumo['insumo_id']];
+                            $guardar_insumo['insumo_id'] = $insumo_base->insumo_id;
+                            $guardar_insumo['clues'] = $insumo_base->clues;
+                            $guardar_insumo['cantidad'] = $insumo_base->cantidad;
+                            $guardar_insumo['total'] = $insumo_base->total;
+                            $guardar_insumo['usuario'] = $insumo_base->usuario;
+                        }
+                    }
+
+                    $guardar_insumo['insumo_id'] = $input_insumo['insumo_id'];
+                    $guardar_insumo['clues'] = $input_insumo['clues'];
+                    $guardar_insumo['cantidad'] = $input_insumo['cantidad'];
+                    $guardar_insumo['total'] = $input_insumo['total'];
+                    //$guardar_insumo['usuario'] = $input_insumo['usuario'];
+
+                    $lista_insumos[] = $guardar_insumo;
+                    
+                    /*
                     $inputs_requisicion['dias_surtimiento'] = 15;
                     $inputs_requisicion['empresa'] = $empresa;
                     $inputs_requisicion['clues'] = $clues;
@@ -130,7 +188,9 @@ class RequisicionController extends Controller
                     $inputs_requisicion['sub_total'] = 0;
                     $inputs_requisicion['gran_total'] = 0;
                     $inputs_requisicion['iva'] = 0;
-                    
+                    */
+
+                    /*
                     if(isset($arreglo_requisiciones[$inputs_requisicion['tipo_requisicion']])){
                         $requisicion = $arreglo_requisiciones[$inputs_requisicion['tipo_requisicion']];
                         $requisicion->update($inputs_requisicion);
@@ -140,8 +200,10 @@ class RequisicionController extends Controller
                         $requisiciones[] = $requisicion;
                     }
                     $requisiciones_guardadas[$requisicion->id] = true;
+                    */
 
-                    if(isset($inputs_requisicion['insumos'])){
+                    //if(isset($inputs_requisicion['insumos'])){
+                    /*
                         $insumos = [];
                         $lotes = [];
                         foreach ($inputs_requisicion['insumos'] as $req_insumo) {
@@ -177,9 +239,12 @@ class RequisicionController extends Controller
                         $requisicion->gran_total = 0;
                         $requisicion->lotes = 0;
                         $requisicion->save();
-                    }
+                    }*/
                 }
 
+                DB::table('requisicion_insumo_clues')->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->delete();
+                DB::table('requisicion_insumo_clues')->insert($lista_insumos);
+                /*
                 $eliminar_requisiciones = [];
                 foreach ($requisiciones as $requisicion) {
                     if(!isset($requisiciones_guardadas[$requisicion->id])){
@@ -190,7 +255,8 @@ class RequisicionController extends Controller
                 if(count($eliminar_requisiciones)){
                     Requisicion::whereIn('id',$eliminar_requisiciones)->delete();
                 }
-            }
+                */
+            //}
 
             if($inputs_acta){
                 $max_acta = Acta::where('folio','like',$clues.'/%')->max('numero');
@@ -251,7 +317,8 @@ class RequisicionController extends Controller
                 }
             }
             
-            return Response::json([ 'data' => $requisiciones ,'acta' => $acta ],200);
+            //return Response::json([ 'data' => $requisiciones ,'acta' => $acta ],200);
+            return Response::json([ 'data' => $lista_insumos ,'acta' => $acta ],200);
         } catch (\Exception $e) {
             DB::rollBack();
             return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
@@ -263,10 +330,10 @@ class RequisicionController extends Controller
         $data = [];
 
         $usuario = JWTAuth::parseToken()->getPayload();
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
         $data['acta'] = new Acta;
-        $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$usuario->get('id'))->with('insumosClues')->get();
+        $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$usuario->get('clues'))->with('insumosClues')->get();
 
         $data['acta']->folio = $configuracion->clues . '/'.'00'.'/' . date('Y');
         $data['acta']->estatus = 1;

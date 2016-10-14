@@ -28,7 +28,6 @@ class AutenticacionController extends Controller
         }
         */
         //$pass= Hash::make('hospitaldelamujertuxtla');
-        //Usuario::saveMany($usuarios);
 
         try {
             $usuario = Usuario::where('id',$credentials['id'])->first();
@@ -41,7 +40,8 @@ class AutenticacionController extends Controller
 
                 $claims = [
                     "sub" => 1,
-                    "id" => $usuario->id
+                    "id" => $usuario->id,
+                    "clues" => $usuario->clues
                 ];
                 
                 $permisos_unidad = [
@@ -76,43 +76,12 @@ class AutenticacionController extends Controller
                                 '721A42C7F4693' //Recepción de pedidos
                             ];
                             
-                $configuracion = Configuracion::where('clues',$usuario->id)->first();
+                $configuracion = Configuracion::where('clues',$usuario->clues)->first();
+                
                 if(!$configuracion){
-                    $configuracion = new Configuracion();
+                    return response()->json(['error' => 'Error al iniciar sesión, datos de configuración no encontrados para este usuario.'], 401); 
                 }
                 
-
-                if($configuracion->clues != $usuario->id){
-                    $empresas = [
-                        'disur'=> 'DISTRIBUIDORA DISUR, S.A. DE C.V.',
-                        'exfarma'=> 'EXFARMA, S.A. DE C.V.'
-                    ];
-
-                    $configuracion->clues                       = $usuario->id;
-                    $configuracion->clues_nombre                = $usuario->nombre;
-                    $configuracion->jurisdiccion                = $usuario->jurisdiccion;
-                    $configuracion->municipio                   = $usuario->municipio;
-                    $configuracion->localidad                   = $usuario->localidad;
-                    $configuracion->tipologia                   = $usuario->tipologia;
-                    $configuracion->empresa_clave               = $usuario->empresa_clave;
-                    $configuracion->empresa_nombre              = $empresas[$usuario->empresa_clave];
-                    $configuracion->director_unidad             = $usuario->director_unidad;
-                    $configuracion->administrador               = $usuario->administrador;
-                    $configuracion->encargado_almacen           = $usuario->encargado_almacen;
-                    $configuracion->coordinador_comision_abasto = $usuario->coordinador_comision_abasto;
-                    $configuracion->lugar_entrega               = $usuario->lugar_entrega;
-
-                    if(!$configuracion->save()){
-                        return response()->json(['error' => 'Error al iniciar sesión, por favor intente de nuevo.'], 401); 
-                    }
-                }
-                //$roles = $usuario->roles()->lists('id');
-                //$roles = Rol::whereIn('id',$roles)->with('permisos')->get();
-                /*foreach ($roles as $rol) {
-                    foreach ($rol->permisos as $permiso) {
-                        $permisos[] = $permiso->id;
-                    }
-                }*/
                 if($usuario->tipo_usuario == 1){
                     $permisos = $permisos_unidad;
                 }elseif($usuario->tipo_usuario == 2){
@@ -120,6 +89,7 @@ class AutenticacionController extends Controller
                 }else{
                     $permisos = $permisos_hospital;
                 }
+                $usuario->password = null;
 
                 $payload = JWTFactory::make($claims);
                 $token = JWTAuth::encode($payload);

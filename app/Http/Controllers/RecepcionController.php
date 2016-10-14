@@ -13,6 +13,7 @@ use App\Models\StockInsumo;
 use App\Models\Proveedor;
 use App\Models\Requisicion;
 use App\Models\Configuracion;
+use App\Models\Usuario;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive, Exception;
@@ -39,7 +40,7 @@ class RecepcionController extends Controller
             $query = Input::get('query');
             $filtro = Input::get('filtro');
 
-            $recurso = Acta::where('folio','like',$usuario->get('id').'/%')
+            $recurso = Acta::where('folio','like',$usuario->get('clues').'/%')
                             ->where('estatus',4);
 
             if($query){
@@ -122,7 +123,7 @@ class RecepcionController extends Controller
 
             //$max_acta = Acta::max('id');
             $usuario = JWTAuth::parseToken()->getPayload();
-            $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+            $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
             $proveedor_id = $inputs['proveedor_id'];
 
@@ -353,12 +354,16 @@ class RecepcionController extends Controller
 
             DB::commit();
 
+            $datos_usuario = Usuario::find($usuario->get('id'));
+
             if($entrega->estatus == 2){
-                $resultado = $this->actualizarEntregaCentral($entrega->id);
-                $entrega = Entrega::find($entrega->id);
-                if(!$resultado['estatus']){
-                    return Response::json(['error' => 'Error al intentar sincronizar la entrega del pedido', 'error_type' => 'data_validation', 'message'=>$resultado['message'], 'data'=>$entrega], HttpResponse::HTTP_CONFLICT);
+                if($datos_usuario->tipo_conexion){
+                    $resultado = $this->actualizarEntregaCentral($entrega->id);
+                    if(!$resultado['estatus']){
+                        return Response::json(['error' => 'Error al intentar sincronizar la entrega del pedido', 'error_type' => 'data_validation', 'message'=>$resultado['message'], 'data'=>$entrega], HttpResponse::HTTP_CONFLICT);
+                    }
                 }
+                $entrega = Entrega::find($entrega->id);
             }
             return Response::json([ 'data' => $entrega ],200);
 
@@ -383,7 +388,7 @@ class RecepcionController extends Controller
             },'entregas.stock'])->find($id);
 
         $usuario = JWTAuth::parseToken()->getPayload();
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
         $proveedores = Proveedor::all()->lists('nombre','id');
 
@@ -400,7 +405,7 @@ class RecepcionController extends Controller
         }]);
 
         $usuario = JWTAuth::parseToken()->getPayload();
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
         $proveedor = Proveedor::find($proveedor_id);
 
@@ -409,20 +414,26 @@ class RecepcionController extends Controller
     
     public function sincronizar($id){
         try {
-            $entrega = Entrega::find($id);
-            if(!$entrega){
-                return Response::json(['error' => 'Entrega no encontrada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
-            }
-            if($entrega->estatus == 2){
-                $resultado = $this->actualizarEntregaCentral($id);
-                if(!$resultado['estatus']){
-                    return Response::json(['error' => 'Error al intentar sincronizar la entrega', 'error_type' => 'data_validation', 'message'=>$resultado['message'],'line'=>$resultado['line'],'extra_data'=>$resultado['extra_data']], HttpResponse::HTTP_CONFLICT);
-                }
+            $usuario = JWTAuth::parseToken()->getPayload();
+            $datos_usuario = Usuario::find($usuario->get('id'));
+            if($datos_usuario->tipo_conexion){
                 $entrega = Entrega::find($id);
+                if(!$entrega){
+                    return Response::json(['error' => 'Entrega no encontrada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+                if($entrega->estatus == 2){
+                    $resultado = $this->actualizarEntregaCentral($id);
+                    if(!$resultado['estatus']){
+                        return Response::json(['error' => 'Error al intentar sincronizar la entrega', 'error_type' => 'data_validation', 'message'=>$resultado['message'],'line'=>$resultado['line'],'extra_data'=>$resultado['extra_data']], HttpResponse::HTTP_CONFLICT);
+                    }
+                    $entrega = Entrega::find($id);
+                }else{
+                    return Response::json(['error' => 'La entrega no esta lista para ser enviada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+                return Response::json([ 'data' => $entrega ],200);
             }else{
-                return Response::json(['error' => 'La entrega no esta lista para ser enviada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
+                return Response::json(['error' => 'Su usuario no esta cofigurado para realizar la sincronización', 'error_type' => 'data_validation', 'message'=>'Usuario offline'], HttpResponse::HTTP_CONFLICT);
             }
-            return Response::json([ 'data' => $entrega ],200);
         } catch (\Exception $e) {
             return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
         }

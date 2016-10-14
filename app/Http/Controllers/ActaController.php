@@ -37,7 +37,7 @@ class ActaController extends Controller
             $query = Input::get('query');
             $filtro = Input::get('filtro');
 
-            $recurso = Acta::where('folio','like',$usuario->get('id').'/%');
+            $recurso = Acta::where('folio','like',$usuario->get('clues').'/%');
 
             if($query){
                 $recurso = $recurso->where(function($condition)use($query){
@@ -127,7 +127,7 @@ class ActaController extends Controller
 
             //$max_acta = Acta::max('id');
             $usuario = JWTAuth::parseToken()->getPayload();
-            $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+            $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
             $inputs['folio'] = $configuracion->clues . '/'.'00'.'/' . date('Y');
             $inputs['estatus'] = 1;
@@ -210,15 +210,15 @@ class ActaController extends Controller
      */
     public function show(Request $request, $id){
 		$usuario = JWTAuth::parseToken()->getPayLoad();
-		$configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+		$configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
         $acta = Acta::with([
-                    'requisiciones'=>function($query){ 
-                        $query->orderBy('tipo_requisicion'); 
-                    },
-                    'requisiciones.insumos'=>function($query){
-                        $query->orderBy('lote'); 
-                    }
-                ])->find($id);
+                'requisiciones'=>function($query){ 
+                    $query->orderBy('tipo_requisicion'); 
+                },
+                'requisiciones.insumos'=>function($query){
+                    $query->orderBy('lote'); 
+                }
+            ])->find($id);
         return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion ], 200);
     }
 
@@ -238,7 +238,7 @@ class ActaController extends Controller
         $usuario = JWTAuth::parseToken()->getPayload();
 
         $datos_usuario = Usuario::find($usuario->get('id'));
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
         /*if($data['acta']->estatus != 2){
             return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
@@ -302,7 +302,7 @@ class ActaController extends Controller
         }
 
         $usuario = JWTAuth::parseToken()->getPayload();
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
         $fecha = explode('-',$data['acta']->fecha);
         $fecha[1] = $meses[$fecha[1]];
@@ -622,7 +622,7 @@ class ActaController extends Controller
         ];
 
         $usuario = JWTAuth::parseToken()->getPayload();
-        $configuracion = Configuracion::where('clues',$usuario->get('id'))->first();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
         $inputs = Input::all();
         //$inputs = Input::only('id','servidor_id','password','nombre', 'apellidos');

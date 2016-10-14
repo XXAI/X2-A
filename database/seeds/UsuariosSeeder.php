@@ -25,7 +25,19 @@ class UsuariosSeeder extends Seeder
             ESCAPED BY '\"' 
             LINES TERMINATED BY '\\n' 
             IGNORE 1 LINES
-            (id,password,nombre,jurisdiccion,municipio,localidad,tipologia,empresa_clave,tipo_usuario)", addslashes($csv));
+            (id,password,clues,nombre,tipo_usuario,tipo_conexion)", addslashes($csv));
+        DB::connection()->getpdo()->exec($query);
+
+        $csv = storage_path().'/app/seeds/configuracion.csv';
+        $query = sprintf("
+            LOAD DATA local INFILE '%s' 
+            INTO TABLE configuracion 
+            FIELDS TERMINATED BY ',' 
+            OPTIONALLY ENCLOSED BY '\"' 
+            ESCAPED BY '\"' 
+            LINES TERMINATED BY '\\n' 
+            IGNORE 1 LINES
+            (clues,clues_nombre,jurisdiccion,municipio,localidad,tipologia,empresa_clave,tipo_clues,empresa_nombre,director_unidad,administrador,encargado_almacen,coordinador_comision_abasto,lugar_entrega)", addslashes($csv));
         DB::connection()->getpdo()->exec($query);
     }
 }
