@@ -50,7 +50,10 @@ class RequisicionController extends Controller
                 $insumos = DB::table('requisicion_insumo_clues')
                                 ->leftjoin('insumos','insumos.id','=','requisicion_insumo_clues.insumo_id')
                                 ->select('insumos.*','requisicion_insumo_clues.*')
-                                ->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->get();
+                                ->whereNull('requisicion_id')
+                                ->whereIn('clues',$listado_clues)
+                                ->where('usuario',$usuario->get('id'))
+                                ->get();
             }else{
                 $insumos = [];
             }
@@ -120,24 +123,19 @@ class RequisicionController extends Controller
             $empresa = $configuracion->empresa_clave;
             $clues = $configuracion->clues;
 
-            $clues = Configuracion::select('clues')
+            $listado_clues = Configuracion::select('clues')
                             ->where('empresa_clave',$empresa)
                             ->where('jurisdiccion',$configuracion->jurisdiccion)
                             ->whereIn('tipo_clues',[1,2])
                             ->get();
             //Arreglo de solo las clues, para identificar los insumos, meter en un if por tipo de usuario
-            $listado_clues = $clues->lists('clues');
+            $listado_clues = $listado_clues->lists('clues');
 
-            //$requisiciones = Requisicion::whereNull('acta_id')->where('clues',$clues)->get();//->with('insumosClues')
-            $arreglo_insumos_clues = DB::table('requisicion_insumo_clues')->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->get();
+            $arreglo_insumos_clues = DB::table('requisicion_insumo_clues')
+                                        ->whereNull('requisicion_id')
+                                        ->whereIn('clues',$listado_clues)
+                                        ->get();
 
-            /*
-            $arreglo_requisiciones = [];
-            foreach ($requisiciones as $requisicion) {
-                //$arreglo_requisiciones[$requisicion->pedido] = $requisicion;
-                $arreglo_requisiciones[$requisicion->tipo_requisicion] = $requisicion;
-            }
-            */
             $insumos_guardados = [];
             foreach ($arreglo_insumos_clues as $insumo) {
                 if(!isset($insumos_guardados[$insumo->clues])){
@@ -146,117 +144,52 @@ class RequisicionController extends Controller
                 $insumos_guardados[$insumo->clues][$insumo->insumo_id] = $insumo;
             }
 
-            //if(isset($inputs)){
-                /*if(count($inputs) > 4){
-                    throw new \Exception("No pueden haber mas de cuatro requisiciones");
-                }*/
+            $lista_insumos = [];
+            $insumos_repetidos = [];
+            foreach ($inputs as $input_insumo) {
+                $guardar_insumo = [];
 
-                //$requisiciones_guardadas = [];
-                //foreach ($inputs as $inputs_requisicion) {
-                $lista_insumos = [];
-                foreach ($inputs as $input_insumo) {
-                    $guardar_insumo = [];
+                if(!isset($input_insumo['usuario'])){
+                    $guardar_insumo['usuario'] = $usuario->get('id');
+                }else{
+                    $guardar_insumo['usuario'] = $input_insumo['usuario'];
+                }
 
-                    if(!isset($input_insumo['usuario'])){
-                        $guardar_insumo['usuario'] = $usuario->get('id');
-                    }
+                if(isset($insumos_guardados[$input_insumo['clues']])){
+                    if(isset($insumos_guardados[$input_insumo['clues']][$input_insumo['insumo_id']])){
+                        $insumo_base = $insumos_guardados[$input_insumo['clues']][$input_insumo['insumo_id']];
 
-                    if(isset($insumos_guardados[$input_insumo['clues']])){
-                        if(isset($insumos_guardados[$input_insumo['clues']][$input_insumo['insumo_id']])){
-                            $insumo_base = $insumos_guardados[$input_insumo['clues']][$input_insumo['insumo_id']];
+                        if($insumo_base->usuario == $usuario->get('id')){
                             $guardar_insumo['insumo_id'] = $insumo_base->insumo_id;
                             $guardar_insumo['clues'] = $insumo_base->clues;
                             $guardar_insumo['cantidad'] = $insumo_base->cantidad;
                             $guardar_insumo['total'] = $insumo_base->total;
                             $guardar_insumo['usuario'] = $insumo_base->usuario;
-                        }
-                    }
-
-                    $guardar_insumo['insumo_id'] = $input_insumo['insumo_id'];
-                    $guardar_insumo['clues'] = $input_insumo['clues'];
-                    $guardar_insumo['cantidad'] = $input_insumo['cantidad'];
-                    $guardar_insumo['total'] = $input_insumo['total'];
-                    //$guardar_insumo['usuario'] = $input_insumo['usuario'];
-
-                    $lista_insumos[] = $guardar_insumo;
-                    
-                    /*
-                    $inputs_requisicion['dias_surtimiento'] = 15;
-                    $inputs_requisicion['empresa'] = $empresa;
-                    $inputs_requisicion['clues'] = $clues;
-                    $inputs_requisicion['lotes'] = 0;
-                    $inputs_requisicion['sub_total'] = 0;
-                    $inputs_requisicion['gran_total'] = 0;
-                    $inputs_requisicion['iva'] = 0;
-                    */
-
-                    /*
-                    if(isset($arreglo_requisiciones[$inputs_requisicion['tipo_requisicion']])){
-                        $requisicion = $arreglo_requisiciones[$inputs_requisicion['tipo_requisicion']];
-                        $requisicion->update($inputs_requisicion);
-                        //$requisiciones_guardadas[$requisicion->id] = true;
-                    }else{
-                        $requisicion = Requisicion::create($inputs_requisicion);
-                        $requisiciones[] = $requisicion;
-                    }
-                    $requisiciones_guardadas[$requisicion->id] = true;
-                    */
-
-                    //if(isset($inputs_requisicion['insumos'])){
-                    /*
-                        $insumos = [];
-                        $lotes = [];
-                        foreach ($inputs_requisicion['insumos'] as $req_insumo) {
-                            if(!isset($lotes[$req_insumo['lote']])){
-                                $lotes[$req_insumo['lote']] = true;
-                            }
-                            $insumos[] = [
-                                'insumo_id' => $req_insumo['insumo_id'],
-                                'cantidad' => $req_insumo['cantidad'],
-                                'total' => $req_insumo['total'],
-                                'clues' => $req_insumo['clues']
-                            ];
-                        }
-                        $requisicion->insumosClues()->sync([]);
-                        $requisicion->insumosClues()->sync($insumos);
-
-                        $sub_total = $requisicion->insumosClues()->sum('total');
-
-                        $requisicion->lotes = count($lotes);
-                        $requisicion->sub_total = $sub_total;
-
-                        if($requisicion->tipo_requisicion == 3){
-                            $requisicion->iva = $sub_total*16/100;
                         }else{
-                            $requisicion->iva = 0;
+                            if(!isset($insumos_repetidos[$input_insumo['clues']])){
+                                $insumos_repetidos[$input_insumo['clues']]=[];
+                            }
+                            $insumos_repetidos[$input_insumo['clues']][] = $input_insumo['insumo_id'];
+                            continue;
                         }
-                        $requisicion->gran_total = $sub_total + $requisicion->iva;
-                        $requisicion->save();
-                    }else{
-                        $requisicion->insumosClues()->sync([]);
-                        $requisicion->sub_total = 0;
-                        $requisicion->iva = 0;
-                        $requisicion->gran_total = 0;
-                        $requisicion->lotes = 0;
-                        $requisicion->save();
-                    }*/
-                }
-
-                DB::table('requisicion_insumo_clues')->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->delete();
-                DB::table('requisicion_insumo_clues')->insert($lista_insumos);
-                /*
-                $eliminar_requisiciones = [];
-                foreach ($requisiciones as $requisicion) {
-                    if(!isset($requisiciones_guardadas[$requisicion->id])){
-                        $eliminar_requisiciones[] = $requisicion->id;
-                        $requisicion->insumosClues()->sync([]);
                     }
                 }
-                if(count($eliminar_requisiciones)){
-                    Requisicion::whereIn('id',$eliminar_requisiciones)->delete();
-                }
-                */
-            //}
+
+                $guardar_insumo['insumo_id'] = $input_insumo['insumo_id'];
+                $guardar_insumo['clues'] = $input_insumo['clues'];
+                $guardar_insumo['cantidad'] = $input_insumo['cantidad'];
+                $guardar_insumo['total'] = $input_insumo['total'];
+                //$guardar_insumo['usuario'] = $input_insumo['usuario'];
+
+                $lista_insumos[] = $guardar_insumo;
+            }
+
+            DB::table('requisicion_insumo_clues')
+                ->whereNull('requisicion_id')
+                ->whereIn('clues',$listado_clues)
+                ->where('usuario',$usuario->get('id'))
+                ->delete();
+            DB::table('requisicion_insumo_clues')->insert($lista_insumos);
 
             if($inputs_acta){
                 $max_acta = Acta::where('folio','like',$clues.'/%')->max('numero');
@@ -280,17 +213,79 @@ class RequisicionController extends Controller
                 }
                 
                 $acta = Acta::create($inputs_acta);
-                /*
-                $actas = Acta::where('folio','like',$configuracion->clues.'/%')->lists('id');
-                $max_requisicion = Requisicion::whereIn('acta_id',$actas)->max('numero');
-                if(!$max_requisicion){
-                    $max_requisicion = 0;
+                
+                $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$clues)->get();//->with('insumosClues')
+
+                $insumos_guardados = DB::table('requisicion_insumo_clues')
+                                ->leftjoin('insumos','insumos.id','=','requisicion_insumo_clues.insumo_id')
+                                ->select('insumos.*','requisicion_insumo_clues.*')
+                                ->whereNull('requisicion_id')->whereIn('clues',$listado_clues)
+                                //->groupBy('insumos.cause','insumos.tipo','insumos.controlado')
+                                ->get();
+
+                $arreglo_requisiciones = [];
+                foreach ($requisiciones as $requisicion) {
+                    $arreglo_requisiciones[$requisicion->tipo_requisicion] = $requisicion;
                 }
-                */
+
+                $requisiciones_guardadas = [];
+                $tipo_requisicion_guardada = [];
+                $lotes_requisicion = [];
+                $requisicion_insumos_sync = [];
+                foreach ($insumos_guardados as $insumo) {
+                    $inputs_requisicion = [];
+                    $guardar_insumo = [];
+                    $tipo_requisicion = 0;
+                    if($insumo->tipo == 1 && $insumo->cause == 1 && $insumo->controlado == 0){
+                        $tipo_requisicion = 1;
+                    }else if($insumo->tipo == 1 && $insumo->cause == 0){
+                        $tipo_requisicion = 2;
+                    }else if($insumo->tipo == 2 && $insumo->cause == 0){
+                        $tipo_requisicion = 3;
+                    }else if($insumo->tipo == 1 && $insumo->cause == 1 && $insumo->controlado == 1){
+                        $tipo_requisicion = 4;
+                    }
+
+                    if($tipo_requisicion && !isset($tipo_requisicion_guardada[$tipo_requisicion])){
+                        $inputs_requisicion['dias_surtimiento'] = 15;
+                        $inputs_requisicion['empresa'] = $empresa;
+                        $inputs_requisicion['clues'] = $clues;
+                        $inputs_requisicion['tipo_requisicion'] = $tipo_requisicion;
+                        $inputs_requisicion['pedido'] = $insumo->pedido;
+                        $inputs_requisicion['lotes'] = 0;
+                        $inputs_requisicion['sub_total'] = 0;
+                        $inputs_requisicion['gran_total'] = 0;
+                        $inputs_requisicion['iva'] = 0;
+                        if(isset($arreglo_requisiciones[$tipo_requisicion])){
+                            $requisicion = $arreglo_requisiciones[$tipo_requisicion];
+                            $requisicion->update($inputs_requisicion);
+                        }else{
+                            $requisicion = Requisicion::create($inputs_requisicion);
+                            $requisiciones[] = $requisicion;
+                            $arreglo_requisiciones[$requisicion->tipo_requisicion] = $requisicion;
+                        }
+                        $requisiciones_guardadas[$requisicion->id] = true;
+                        $tipo_requisicion_guardada[$tipo_requisicion] = $requisicion->id;
+                    }
+
+                    $guardar_insumo['requisicion_id'] = $tipo_requisicion_guardada[$tipo_requisicion];
+                    $guardar_insumo['insumo_id'] = $insumo->insumo_id;
+                    $guardar_insumo['clues'] = $insumo->clues;
+                    $guardar_insumo['cantidad'] = $insumo->cantidad;
+                    $guardar_insumo['total'] = $insumo->total;
+                    $guardar_insumo['usuario'] = $insumo->usuario;
+
+                    $requisicion_insumos_sync[] = $guardar_insumo;
+                }
+
+                if(count($requisiciones) > 4){
+                    throw new \Exception("No pueden haber mas de cuatro requisiciones");
+                }
+
+                DB::table('requisicion_insumo_clues')->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->delete();
+                DB::table('requisicion_insumo_clues')->insert($requisicion_insumos_sync);
 
                 foreach ($requisiciones as $index => $requisicion) {
-                    //$max_requisicion += 1;
-                    //$requisiciones[$index]->numero = $max_requisicion;
                     $requisicion_insumos = [];
                     foreach ($requisicion->insumosClues as $insumo) {
                         if(!isset($requisicion_insumos[$insumo->pivot->insumo_id])){
@@ -303,14 +298,27 @@ class RequisicionController extends Controller
                         $requisicion_insumos[$insumo->pivot->insumo_id]['cantidad'] += $insumo->pivot->cantidad;
                         $requisicion_insumos[$insumo->pivot->insumo_id]['total'] += $insumo->pivot->total;
                     }
+                    $requisiciones[$index]->insumos()->sync([]);
                     $requisiciones[$index]->insumos()->sync($requisicion_insumos);
-                }
 
+                    $total = $requisiciones[$index]->insumos()->sum('total');
+                    $iva = 0;
+
+                    $requisiciones[$index]->lotes = count($requisicion_insumos);
+                    $requisiciones[$index]->sub_total = $total;
+
+                    if($requisiciones[$index]->tipo_requisicion == 3){
+                        $iva = $total*16/100;
+                    }
+
+                    $requisiciones[$index]->iva = $iva;
+                    $requisiciones[$index]->gran_total = $total + $iva;
+                }
                 $acta->requisiciones()->saveMany($requisiciones);
             }
 
             DB::commit();
-
+            
             if($acta){
                 if($acta->estatus == 2){
                     $resultado = $this->actualizarCentral($acta->folio);
@@ -318,7 +326,7 @@ class RequisicionController extends Controller
             }
             
             //return Response::json([ 'data' => $requisiciones ,'acta' => $acta ],200);
-            return Response::json([ 'data' => $lista_insumos ,'acta' => $acta ],200);
+            return Response::json([ 'data' => $lista_insumos ,'acta' => $acta, 'insumos_repetidos'=>$insumos_repetidos ],200);
         } catch (\Exception $e) {
             DB::rollBack();
             return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);

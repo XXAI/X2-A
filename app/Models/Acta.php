@@ -12,10 +12,10 @@ class Acta extends Model {
 	public function requisiciones(){
         return $this->hasMany('App\Models\Requisicion','acta_id');
     }
-    public function entregas(){
-    	return $this->hasMany('App\Models\Entrega','acta_id')->orderBy('fecha_entrega','desc')->orderBy('hora_entrega','desc');
+    public function entradas(){
+    	return $this->hasMany('App\Models\Entrada','acta_id')->orderBy('fecha_recibe','desc')->orderBy('hora_recibe','desc');
     }
-    public function ultimaEntrega(){
-    	return $this->hasOne('App\Models\Entrega','id','acta_id')->orderBy('fecha_entrega','desc')->orderBy('hora_entrega','desc');
+    public function ultimaEntrada(){
+    	return $this->hasOne('App\Models\Entrada','id','acta_id')->orderBy('fecha_recibe','desc')->orderBy('hora_recibe','desc');
     }
 }

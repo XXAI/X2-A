@@ -8,7 +8,7 @@ use Illuminate\Http\Response as HttpResponse;
 use App\Http\Traits\SyncTrait;
 use App\Http\Requests;
 use App\Models\Acta;
-use App\Models\Entrega;
+use App\Models\Entrada;
 use App\Models\StockInsumo;
 use App\Models\Proveedor;
 use App\Models\Requisicion;
@@ -95,8 +95,8 @@ class RecepcionController extends Controller
 
         $reglas_entrega = [
             'proveedor_id'              =>'required',
-            'fecha_entrega'             =>'required',
-            'hora_entrega'              =>'required',
+            'fecha_recibe'             =>'required',
+            'hora_recibe'              =>'required',
             'nombre_recibe'             =>'required_if:estatus,2',
             'nombre_entrega'            =>'required_if:estatus,2'
         ];
@@ -129,7 +129,7 @@ class RecepcionController extends Controller
 
             //Se obtiene el acta con la entrega abierta del proveedor a guardar
             $acta = Acta::with([
-                        'entregas'=>function($query)use($proveedor_id){
+                        'entradas'=>function($query)use($proveedor_id){
                             $query->where('proveedor_id',$proveedor_id)->where('estatus','<',3);
                         },
                         'requisiciones.insumos'=>function($query)use($proveedor_id){
@@ -139,41 +139,41 @@ class RecepcionController extends Controller
 
             //Checamos si son necesarias mas entregas.
             $suma_pedido = 0;
-            $suma_entregado = 0;
+            $suma_recibido = 0;
             foreach ($acta->requisiciones as $requisicion) {
                 foreach ($requisicion->insumos as $insumo) {
                     $suma_pedido += $insumo->pivot->cantidad_validada;
-                    $suma_entregado += $insumo->pivot->cantidad_recibida;
+                    $suma_recibido += $insumo->pivot->cantidad_recibida;
                 }
             }
 
-            if($suma_entregado >= $suma_pedido){
+            if($suma_recibido >= $suma_pedido){
                 return Response::json(['error' =>'Este proveedor ya ha entregado la totalidad de los insumos', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
             }
 
             //Si la entrega existe se prepara para modificar de lo contrario se crea una nueva
-            if(count($acta->entregas)){
-                $entrega = $acta->entregas[0];
+            if(count($acta->entradas)){
+                $entrada = $acta->entradas[0];
             }else{
-                $entrega = new Entrega();
+                $entrada = new Entrada();
             }
 
-            $entrega->proveedor_id          = $proveedor_id;
-            $entrega->fecha_entrega         = $inputs['fecha_entrega'];
-            $entrega->hora_entrega          = $inputs['hora_entrega'];
+            $entrada->proveedor_id          = $proveedor_id;
+            $entrada->fecha_recibe          = $inputs['fecha_recibe'];
+            $entrada->hora_recibe           = $inputs['hora_recibe'];
             if($inputs['estatus'] > 1){
-                $entrega->nombre_recibe         = $inputs['nombre_recibe'];
-                $entrega->nombre_entrega        = $inputs['nombre_entrega'];
+                $entrada->nombre_recibe         = $inputs['nombre_recibe'];
+                $entrada->nombre_entrega        = $inputs['nombre_entrega'];
                 if(isset($inputs['observaciones'])){
-                    $entrega->observaciones         = $inputs['observaciones'];
+                    $entrada->observaciones         = $inputs['observaciones'];
                 }
             }
-            $entrega->estatus               = $inputs['estatus'];
+            $entrada->estatus               = $inputs['estatus'];
 
-            if($acta->entregas()->save($entrega)){
-                $entrega->load('stock');
+            if($acta->entradas()->save($entrada)){
+                $entrada->load('stock');
                 $stock_guardado = [];
-                foreach ($entrega->stock as $stock) {
+                foreach ($entrada->stock as $stock) {
                     if(!isset($stock_guardado[$stock->insumo_id])){
                         $stock_guardado[$stock->insumo_id] = [];
                     }
@@ -207,7 +207,7 @@ class RecepcionController extends Controller
                             $nuevo_ingreso->insumo_id           = $insumo_id;
                             $nuevo_ingreso->lote                = $ingreso['lotes'][$i]['lote'];
                             $nuevo_ingreso->fecha_caducidad     = $ingreso['lotes'][$i]['fecha_caducidad'];
-                            $nuevo_ingreso->cantidad_entregada  = $ingreso['lotes'][$i]['cantidad'];
+                            $nuevo_ingreso->cantidad_recibida   = $ingreso['lotes'][$i]['cantidad'];
 
                             $guardar_stock[] = $nuevo_ingreso;
                         }
@@ -222,7 +222,7 @@ class RecepcionController extends Controller
                                 $nuevo_ingreso->insumo_id           = $insumo_id;
                                 $nuevo_ingreso->lote                = $ingreso['lotes'][$i]['lote'];
                                 $nuevo_ingreso->fecha_caducidad     = $ingreso['lotes'][$i]['fecha_caducidad'];
-                                $nuevo_ingreso->cantidad_entregada  = $ingreso['lotes'][$i]['cantidad'];
+                                $nuevo_ingreso->cantidad_recibida   = $ingreso['lotes'][$i]['cantidad'];
 
                                 $guardar_stock[] = $nuevo_ingreso;
                             }
@@ -234,10 +234,10 @@ class RecepcionController extends Controller
                     StockInsumo::whereIn('id',$eliminar_stock)->delete();
                 }
                 if(count($guardar_stock)){
-                    $entrega->stock()->saveMany($guardar_stock);
+                    $entrada->stock()->saveMany($guardar_stock);
                 }
 
-                if($entrega->estatus == 2){
+                if($entrada->estatus == 2){
                     $acta->load('requisiciones.insumos');
 
                     $claves_recibidas = [];
@@ -324,14 +324,14 @@ class RecepcionController extends Controller
                     $porcentaje_claves = (count($claves_proveedor_recibidas)*100)/count($claves_proveedor_validadas);
                     $porcentaje_cantidad = ($total_cantidad_proveedor_recibida*100)/$total_cantidad_proveedor_validada;
 
-                    $entrega->total_claves_recibidas = count($claves_proveedor_recibidas);
-                    $entrega->total_claves_validadas = count($claves_proveedor_validadas);
-                    $entrega->total_cantidad_recibida = $total_cantidad_proveedor_recibida;
-                    $entrega->total_cantidad_validada = $total_cantidad_proveedor_validada;
-                    $entrega->porcentaje_claves = $porcentaje_claves;
-                    $entrega->porcentaje_cantidad = $porcentaje_cantidad;
+                    $entrada->total_claves_recibidas = count($claves_proveedor_recibidas);
+                    $entrada->total_claves_validadas = count($claves_proveedor_validadas);
+                    $entrada->total_cantidad_recibida = $total_cantidad_proveedor_recibida;
+                    $entrada->total_cantidad_validada = $total_cantidad_proveedor_validada;
+                    $entrada->porcentaje_claves = $porcentaje_claves;
+                    $entrada->porcentaje_cantidad = $porcentaje_cantidad;
 
-                    $entrega->save();
+                    $entrada->save();
 
                     $acta->total_claves_recibidas = count($claves_recibidas);
                     $acta->total_claves_validadas = count($claves_validadas);
@@ -339,16 +339,16 @@ class RecepcionController extends Controller
                     $acta->total_cantidad_validada = $total_cantidad_validada;
                     $acta->save();
 
-                    $entrega->load('stock');
+                    $entrada->load('stock');
                     $actualizar_stock = [];
-                    for($i = 0, $total = count($entrega->stock); $i < $total; $i++) {
-                        $insumo = $entrega->stock[$i];
+                    for($i = 0, $total = count($entrada->stock); $i < $total; $i++) {
+                        $insumo = $entrada->stock[$i];
                         $insumo->stock = 1; //Stock activo = 1, inactivo = null
                         $insumo->usado = 0;
-                        $insumo->disponible = $insumo->cantidad_entregada;
+                        $insumo->disponible = $insumo->cantidad_recibida;
                         $actualizar_stock[] = $insumo;
                     }
-                    $entrega->stock()->saveMany($actualizar_stock);
+                    $entrada->stock()->saveMany($actualizar_stock);
                 }
             }
 
@@ -356,16 +356,16 @@ class RecepcionController extends Controller
 
             $datos_usuario = Usuario::find($usuario->get('id'));
 
-            if($entrega->estatus == 2){
+            if($entrada->estatus == 2){
                 if($datos_usuario->tipo_conexion){
-                    $resultado = $this->actualizarEntregaCentral($entrega->id);
+                    $resultado = $this->actualizarEntradaCentral($entrada->id);
                     if(!$resultado['estatus']){
-                        return Response::json(['error' => 'Error al intentar sincronizar la entrega del pedido', 'error_type' => 'data_validation', 'message'=>$resultado['message'], 'data'=>$entrega], HttpResponse::HTTP_CONFLICT);
+                        return Response::json(['error' => 'Error al intentar sincronizar la recepción del pedido', 'error_type' => 'data_validation', 'message'=>$resultado['message'], 'data'=>$entrada], HttpResponse::HTTP_CONFLICT);
                     }
                 }
-                $entrega = Entrega::find($entrega->id);
+                $entrada = Entrada::find($entrada->id);
             }
-            return Response::json([ 'data' => $entrega ],200);
+            return Response::json([ 'data' => $entrada ],200);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -385,7 +385,7 @@ class RecepcionController extends Controller
                 $query->orderBy('tipo_requisicion');
             },'requisiciones.insumos'=>function($query){
                 $query->where('cantidad_validada','>',0)->orderBy('lote');
-            },'entregas.stock'])->find($id);
+            },'entradas.stock'])->find($id);
 
         $usuario = JWTAuth::parseToken()->getPayload();
         $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
@@ -396,11 +396,11 @@ class RecepcionController extends Controller
     }
 
     public function showEntrada(Request $request, $id){
-        $entrega = Entrega::with('stock.insumo','acta')->find($id);
+        $entrada = Entrada::with('stock.insumo','acta')->find($id);
 
-        $proveedor_id = $entrega->proveedor_id;
+        $proveedor_id = $entrada->proveedor_id;
 
-        $entrega->acta->load(['requisiciones.insumos'=>function($query)use($proveedor_id){
+        $entrada->acta->load(['requisiciones.insumos'=>function($query)use($proveedor_id){
             $query->select('id')->wherePivot('cantidad_recibida','>',0)->wherePivot('proveedor_id',$proveedor_id);
         }]);
 
@@ -409,7 +409,7 @@ class RecepcionController extends Controller
 
         $proveedor = Proveedor::find($proveedor_id);
 
-        return Response::json([ 'data' => $entrega, 'configuracion'=>$configuracion, 'proveedor' => $proveedor],200);
+        return Response::json([ 'data' => $entrada, 'configuracion'=>$configuracion, 'proveedor' => $proveedor],200);
     }
     
     public function sincronizar($id){
@@ -417,20 +417,20 @@ class RecepcionController extends Controller
             $usuario = JWTAuth::parseToken()->getPayload();
             $datos_usuario = Usuario::find($usuario->get('id'));
             if($datos_usuario->tipo_conexion){
-                $entrega = Entrega::find($id);
-                if(!$entrega){
-                    return Response::json(['error' => 'Entrega no encontrada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
+                $entrada = Entrada::find($id);
+                if(!$entrada){
+                    return Response::json(['error' => 'Entrada no encontrada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
                 }
-                if($entrega->estatus == 2){
-                    $resultado = $this->actualizarEntregaCentral($id);
+                if($entrada->estatus == 2){
+                    $resultado = $this->actualizarEntradaCentral($id);
                     if(!$resultado['estatus']){
-                        return Response::json(['error' => 'Error al intentar sincronizar la entrega', 'error_type' => 'data_validation', 'message'=>$resultado['message'],'line'=>$resultado['line'],'extra_data'=>$resultado['extra_data']], HttpResponse::HTTP_CONFLICT);
+                        return Response::json(['error' => 'Error al intentar sincronizar la entrada', 'error_type' => 'data_validation', 'message'=>$resultado['message'],'line'=>$resultado['line'],'extra_data'=>$resultado['extra_data']], HttpResponse::HTTP_CONFLICT);
                     }
-                    $entrega = Entrega::find($id);
+                    $entrada = Entrada::find($id);
                 }else{
-                    return Response::json(['error' => 'La entrega no esta lista para ser enviada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
+                    return Response::json(['error' => 'La entrada no esta lista para ser enviada.', 'error_type' => 'data_validation'], HttpResponse::HTTP_CONFLICT);
                 }
-                return Response::json([ 'data' => $entrega ],200);
+                return Response::json([ 'data' => $entrada ],200);
             }else{
                 return Response::json(['error' => 'Su usuario no esta cofigurado para realizar la sincronización', 'error_type' => 'data_validation', 'message'=>'Usuario offline'], HttpResponse::HTTP_CONFLICT);
             }

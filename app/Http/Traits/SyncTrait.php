@@ -2,16 +2,16 @@
 namespace App\Http\Traits;
 
 use App\Models\Acta;
-use App\Models\Entrega;
+use App\Models\Entrada;
 use App\Models\StockInsumo;
 use App\Models\Requisicion;
 use DB, Exception;
 
 trait SyncTrait{
-    public function actualizarEntregaCentral($entrega_id){
+    public function actualizarEntradaCentral($entrada_id){
         try{
-            $entrega_local = Entrega::with('stock')->find($entrega_id);
-            $acta_local = Acta::find($entrega_local->acta_id);
+            $entrada_local = Entrada::with('stock')->find($entrada_id);
+            $acta_local = Acta::find($entrada_local->acta_id);
 
             $default = DB::getPdo(); // Default conn
             $secondary = DB::connection('mysql_sync')->getPdo();
@@ -26,38 +26,46 @@ trait SyncTrait{
                 throw new Exception('El acta no se encuentra en el servidor central', 1);
             }
 
-            $entrega_central = new Entrega();
-            $entrega_central->proveedor_id          = $entrega_local->proveedor_id;
-            $entrega_central->fecha_entrega         = $entrega_local->fecha_entrega;
-            $entrega_central->hora_entrega          = $entrega_local->hora_entrega;
-            $entrega_central->observaciones         = $entrega_local->observaciones;
-            $entrega_central->nombre_recibe         = $entrega_local->nombre_recibe;
-            $entrega_central->nombre_entrega        = $entrega_local->nombre_entrega;
-            $entrega_central->estatus               = 3;
+            $entrada_central = new Entrada();
+            $entrada_central->proveedor_id              = $entrada_local->proveedor_id;
+            $entrada_central->fecha_recibe              = $entrada_local->fecha_recibe;
+            $entrada_central->hora_recibe               = $entrada_local->hora_recibe;
+            $entrada_central->observaciones             = $entrada_local->observaciones;
+            $entrada_central->nombre_recibe             = $entrada_local->nombre_recibe;
+            $entrada_central->nombre_entrega            = $entrada_local->nombre_entrega;
+            
+            $entrada_central->total_cantidad_recibida   = $entrada_local->total_cantidad_recibida;
+            $entrada_central->total_cantidad_validada   = $entrada_local->total_cantidad_validada;
+            $entrada_central->total_claves_recibidas    = $entrada_local->total_claves_recibidas;
+            $entrada_central->total_claves_validadas    = $entrada_local->total_claves_validadas;
 
-            if($acta_central->entregas()->save($entrega_central)){
+            $entrada_central->porcentaje_cantidad       = $entrada_local->porcentaje_cantidad;
+            $entrada_central->porcentaje_claves         = $entrada_local->porcentaje_claves;
+            $entrada_central->estatus                   = 3;
+
+            if($acta_central->entradas()->save($entrada_central)){
                 $guardar_stock = [];
                 $cantidades_insumos = [];
                 //Se agrega el stock entregado
-                foreach ($entrega_local->stock as $ingreso) {
+                foreach ($entrada_local->stock as $ingreso) {
                     $nuevo_ingreso = new StockInsumo();
 
                     $nuevo_ingreso->clues               = $ingreso->clues;
                     $nuevo_ingreso->insumo_id           = $ingreso->insumo_id;
                     $nuevo_ingreso->lote                = $ingreso->lote;
                     $nuevo_ingreso->fecha_caducidad     = $ingreso->fecha_caducidad;
-                    $nuevo_ingreso->cantidad_entregada  = $ingreso->cantidad_entregada;
+                    $nuevo_ingreso->cantidad_recibida   = $ingreso->cantidad_recibida;
                     $nuevo_ingreso->stock               = $ingreso->stock;
                     $nuevo_ingreso->usado               = $ingreso->usado;
                     $nuevo_ingreso->disponible          = $ingreso->disponible;
 
-                    $cantidades_insumos[$nuevo_ingreso->insumo_id] = $nuevo_ingreso->cantidad_entregada;
+                    $cantidades_insumos[$nuevo_ingreso->insumo_id] = $nuevo_ingreso->cantidad_recibida;
 
                     $guardar_stock[] = $nuevo_ingreso;
                 }
-                $entrega_central->stock()->saveMany($guardar_stock);
+                $entrada_central->stock()->saveMany($guardar_stock);
 
-                $proveedor_id = $entrega_central->proveedor_id;
+                $proveedor_id = $entrada_central->proveedor_id;
                 //Se actualizan las requisiciones y los insumos entregados en el acta.
                 for($i = 0, $total = count($acta_central->requisiciones); $i < $total; $i++) {
                     $requisicion = $acta_central->requisiciones[$i];
@@ -107,8 +115,8 @@ trait SyncTrait{
             DB::commit();
             DB::setPdo($default);
 
-            $entrega_local->estatus = 3;
-            $entrega_local->save();
+            $entrada_local->estatus = 3;
+            $entrada_local->save();
 
             return ['estatus'=>true];
 
@@ -116,7 +124,7 @@ trait SyncTrait{
             //$conexion_remota->rollback();
             $queries = DB::getQueryLog();
             $last_query = end($queries);
-
+            
             DB::rollBack();
             DB::setPdo($default);
             return ['estatus'=>false,'message'=>$e->getMessage(),'line'=>$e->getLine(),'extra_data'=>$last_query];
