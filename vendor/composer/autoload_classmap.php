@@ -11,6 +11,7 @@ return array(
     'ActualizarTablaActas' => $baseDir . '/database/migrations/2016_08_24_101720_actualizar_tabla_actas.php',
     'ActualizarTablaActasAgregarDatosPorcentajes' => $baseDir . '/database/migrations/2016_10_10_100232_actualizar_tabla_actas_agregar_datos_porcentajes.php',
     'ActualizarTablaActasIndices' => $baseDir . '/database/migrations/2016_08_29_100848_actualizar_tabla_actas_indices.php',
+    'ActualizarTablaConfiguracionAgregarCampoCaravanaRegion' => $baseDir . '/database/migrations/2016_10_19_173612_actualizar_tabla_configuracion_agregar_campo_caravana_region.php',
     'ActualizarTablaInsumosAgregarCampoControlado' => $baseDir . '/database/migrations/2016_08_30_144316_actualizar_tabla_insumos_agregar_campo_controlado.php',
     'ActualizarTablaInsumosAgregarCampoSurfactante' => $baseDir . '/database/migrations/2016_10_18_145904_actualizar_tabla_insumos_agregar_campo_surfactante.php',
     'ActualizarTablaPivoteRequisicionInsumo' => $baseDir . '/database/migrations/2016_08_18_133718_actualizar_tabla_pivote_requisicion_insumo.php',

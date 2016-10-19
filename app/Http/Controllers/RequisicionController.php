@@ -39,10 +39,17 @@ class RequisicionController extends Controller
             }*/
 
             $clues = Configuracion::select('clues','clues_nombre as nombre','municipio','localidad','jurisdiccion')
-                            ->where('empresa_clave',$empresa)
-                            ->where('jurisdiccion',$configuracion->jurisdiccion)
-                            ->whereIn('tipo_clues',[1,2])
-                            ->get();
+                            //->where('empresa_clave',$empresa)
+                            ->whereIn('tipo_clues',[1,2]);
+
+            if($configuracion->caravana_region){
+                $clues = $clues->where('caravana_region',$configuracion->caravana_region);
+            }else{
+                $clues = $clues->where('jurisdiccion',$configuracion->jurisdiccion);
+            }
+
+            $clues = $clues->get();
+
             //Arreglo de solo las clues, para identificar los insumos, meter en un if por tipo de usuario
             $listado_clues = $clues->lists('clues');
 
