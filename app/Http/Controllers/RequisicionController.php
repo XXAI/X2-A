@@ -45,7 +45,7 @@ class RequisicionController extends Controller
             if($configuracion->caravana_region){
                 $clues = $clues->where('caravana_region',$configuracion->caravana_region);
             }else{
-                $clues = $clues->where('jurisdiccion',$configuracion->jurisdiccion);
+                $clues = $clues->where('jurisdiccion',$configuracion->jurisdiccion)->whereNull('caravana_region');
             }
 
             $clues = $clues->get();
