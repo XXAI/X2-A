@@ -39,7 +39,7 @@ class InsumoController extends Controller {
 		}
 
 		$insumos = $insumos->select('id','pedido','requisicion','lote','clave','descripcion',
-						'marca','unidad','cantidad','precio','tipo','cause','controlado')
+						'marca','unidad','cantidad','precio','tipo','cause','controlado','surfactante')
 						->where('proveedor',$empresa)
 						->orderBy('tipo')
 						->orderBy('precio')

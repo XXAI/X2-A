@@ -140,9 +140,9 @@ class ActaController extends Controller
             $acta = Acta::create($inputs);
 
             if(isset($inputs['requisiciones'])){
-                if(count($inputs['requisiciones']) > 4){
+                if(count($inputs['requisiciones']) > 6){
                     DB::rollBack();
-                    throw new \Exception("No pueden haber mas de cuatro requesiciones por acta");
+                    throw new \Exception("No pueden haber mas de seis requesiciones por acta");
                 }
 
                 foreach ($inputs['requisiciones'] as $inputs_requisicion) {
@@ -667,8 +667,8 @@ class ActaController extends Controller
             $acta->update($inputs);
 
             if(isset($inputs['requisiciones'])){
-                if(count($inputs['requisiciones']) > 4){
-                    throw new \Exception("No pueden haber mas de cuatro requesiciones por acta");
+                if(count($inputs['requisiciones']) > 6){
+                    throw new \Exception("No pueden haber mas de seis requesiciones por acta");
                 }
 
                 $acta->load('requisiciones');

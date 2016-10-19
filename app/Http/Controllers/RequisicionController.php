@@ -128,7 +128,7 @@ class RequisicionController extends Controller
                             ->where('jurisdiccion',$configuracion->jurisdiccion)
                             ->whereIn('tipo_clues',[1,2])
                             ->get();
-            //Arreglo de solo las clues, para identificar los insumos, meter en un if por tipo de usuario
+            
             $listado_clues = $listado_clues->lists('clues');
 
             $arreglo_insumos_clues = DB::table('requisicion_insumo_clues')
@@ -236,7 +236,12 @@ class RequisicionController extends Controller
                     $inputs_requisicion = [];
                     $guardar_insumo = [];
                     $tipo_requisicion = 0;
-                    if($insumo->tipo == 1 && $insumo->cause == 1 && $insumo->controlado == 0){
+
+                    if($insumo->tipo == 1 && $insumo->cause == 1 && $insumo->surfactante == 1){
+                        $tipo_requisicion = 5;
+                    }else if($insumo->tipo == 1 && $insumo->cause == 0 && $insumo->surfactante == 1){
+                        $tipo_requisicion = 6;
+                    }else if($insumo->tipo == 1 && $insumo->cause == 1 && $insumo->controlado == 0){
                         $tipo_requisicion = 1;
                     }else if($insumo->tipo == 1 && $insumo->cause == 0){
                         $tipo_requisicion = 2;
@@ -278,8 +283,8 @@ class RequisicionController extends Controller
                     $requisicion_insumos_sync[] = $guardar_insumo;
                 }
 
-                if(count($requisiciones) > 4){
-                    throw new \Exception("No pueden haber mas de cuatro requisiciones");
+                if(count($requisiciones) > 6){
+                    throw new \Exception("No pueden haber mas de seis requisiciones");
                 }
 
                 DB::table('requisicion_insumo_clues')->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->delete();

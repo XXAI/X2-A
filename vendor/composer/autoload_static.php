@@ -384,6 +384,7 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         'ActualizarTablaActasAgregarDatosPorcentajes' => __DIR__ . '/../..' . '/database/migrations/2016_10_10_100232_actualizar_tabla_actas_agregar_datos_porcentajes.php',
         'ActualizarTablaActasIndices' => __DIR__ . '/../..' . '/database/migrations/2016_08_29_100848_actualizar_tabla_actas_indices.php',
         'ActualizarTablaInsumosAgregarCampoControlado' => __DIR__ . '/../..' . '/database/migrations/2016_08_30_144316_actualizar_tabla_insumos_agregar_campo_controlado.php',
+        'ActualizarTablaInsumosAgregarCampoSurfactante' => __DIR__ . '/../..' . '/database/migrations/2016_10_18_145904_actualizar_tabla_insumos_agregar_campo_surfactante.php',
         'ActualizarTablaPivoteRequisicionInsumo' => __DIR__ . '/../..' . '/database/migrations/2016_08_18_133718_actualizar_tabla_pivote_requisicion_insumo.php',
         'ActualizarTablaPivoteRequisicionInsumoAgregarProveedorId' => __DIR__ . '/../..' . '/database/migrations/2016_09_05_195009_actualizar_tabla_pivote_requisicion_insumo_agregar_proveedor_id.php',
         'ActualizarTablaRequisiciones' => __DIR__ . '/../..' . '/database/migrations/2016_08_18_121215_actualizar_tabla_requisiciones.php',
