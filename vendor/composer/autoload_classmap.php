@@ -37,6 +37,7 @@ return array(
     'CrearTablaActas' => $baseDir . '/database/migrations/2016_08_01_163008_crear_tabla_actas.php',
     'CrearTablaActualizacionesCatalogos' => $baseDir . '/database/migrations/2016_07_19_172058_crear_tabla_actualizaciones_catalogos.php',
     'CrearTablaConfiguracion' => $baseDir . '/database/migrations/2016_08_07_110342_crear_tabla_configuracion.php',
+    'CrearTablaConfiguracionAplicacion' => $baseDir . '/database/migrations/2016_10_21_142054_crear_tabla_configuracion_aplicacion.php',
     'CrearTablaEntradas' => $baseDir . '/database/migrations/2016_09_15_181940_crear_tabla_entradas.php',
     'CrearTablaInsumos' => $baseDir . '/database/migrations/2016_08_04_112148_crear_tabla_insumos.php',
     'CrearTablaPermisos' => $baseDir . '/database/migrations/2016_07_14_030833_crear_tabla_permisos.php',

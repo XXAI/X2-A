@@ -409,6 +409,7 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         'CrearTablaActas' => __DIR__ . '/../..' . '/database/migrations/2016_08_01_163008_crear_tabla_actas.php',
         'CrearTablaActualizacionesCatalogos' => __DIR__ . '/../..' . '/database/migrations/2016_07_19_172058_crear_tabla_actualizaciones_catalogos.php',
         'CrearTablaConfiguracion' => __DIR__ . '/../..' . '/database/migrations/2016_08_07_110342_crear_tabla_configuracion.php',
+        'CrearTablaConfiguracionAplicacion' => __DIR__ . '/../..' . '/database/migrations/2016_10_21_142054_crear_tabla_configuracion_aplicacion.php',
         'CrearTablaEntradas' => __DIR__ . '/../..' . '/database/migrations/2016_09_15_181940_crear_tabla_entradas.php',
         'CrearTablaInsumos' => __DIR__ . '/../..' . '/database/migrations/2016_08_04_112148_crear_tabla_insumos.php',
         'CrearTablaPermisos' => __DIR__ . '/../..' . '/database/migrations/2016_07_14_030833_crear_tabla_permisos.php',
