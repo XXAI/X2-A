@@ -28,7 +28,7 @@ class RecepcionController extends Controller
      */
     public function index(Request $request){
         try{
-            //DB::enableQueryLog();
+            DB::enableQueryLog();
             $usuario = JWTAuth::parseToken()->getPayload();
 
             $elementos_por_pagina = 50;
@@ -44,22 +44,29 @@ class RecepcionController extends Controller
                             ->where('estatus',4);
 
             if($query){
-                $recurso = $recurso->where(function($condition)use($query){
-                    $condition->where('folio','LIKE','%'.$query.'%')
-                            ->orWhere('lugar_reunion','LIKE','%'.$query.'%')
-                            ->orWhere('ciudad','LIKE','%'.$query.'%');
-                });
+                if(is_numeric($query)){
+                    $actas = Requisicion::where ('numero',intval($query))->lists('acta_id');
+                    $recurso = $recurso->whereIn('id',$actas);
+                }else{
+                    $recurso = $recurso->where(function($condition)use($query){
+                        $condition->where('folio','LIKE','%'.$query.'%')
+                                ->orWhere('lugar_reunion','LIKE','%'.$query.'%')
+                                ->orWhere('ciudad','LIKE','%'.$query.'%');
+                    });
+                }
             }
 
-            /*if($filtro){
+            if($filtro){
                 if(isset($filtro['estatus'])){
-                    if($filtro['estatus'] == 'validados'){
-                        $recurso = $recurso->where('estatus','3');
-                    }else if($filtro['estatus'] == 'enviados'){
-                        $recurso = $recurso->where('estatus','2');
+                    if($filtro['estatus'] == 'nuevos'){
+                        $recurso = $recurso->whereNull('total_claves_recibidas');
+                    }else if($filtro['estatus'] == 'incompletos'){
+                        $recurso = $recurso->whereRaw('total_claves_recibidas < total_claves_validadas');
+                    }else if($filtro['estatus'] == 'completos'){
+                        $recurso = $recurso->whereRaw('total_claves_validadas = total_claves_recibidas');
                     }
                 }
-            }*/
+            }
 
             $totales = $recurso->count();
             
@@ -69,11 +76,11 @@ class RecepcionController extends Controller
                                 ->orderBy('created_at','desc')
                                 ->get();
 
-            //$queries = DB::getQueryLog();
-            //$last_query = end($queries);
-            return Response::json(['data'=>$recurso,'totales'=>$totales],200);
+            $queries = DB::getQueryLog();
+            $last_query = end($queries);
+            return Response::json(['data'=>$recurso,'totales'=>$totales,'las'=>$last_query],200);
         }catch(Exception $ex){
-            return Response::json(['error'=>$e->getMessage()],500);
+            return Response::json(['error'=>$ex->getMessage()],500);
         }
     }
 

@@ -61,7 +61,7 @@ class AutenticacionController extends Controller
                                 'AC634E145647F', //Editar actas
                                 'F4CA88791CD94', //Exportar actas
                                 'FF915DEC2F235', //Eliminar actas
-                                //'97728B3AD53DB', //Ver pedidos
+                                '97728B3AD53DB', //Ver pedidos
                                 '721A42C7F4693' //Recepción de pedidos
                             ];
                 $permisos_jurisdiccion = [
