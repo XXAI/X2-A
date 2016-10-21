@@ -72,7 +72,7 @@ class AutenticacionController extends Controller
                                 '4E4D8E11F6E4A', //Ver Requisiciones
                                 '2438B88CD5ECC', //Guardar Requisiciones
                                 'FF915DEC2F235', //Eliminar actas
-                                //'97728B3AD53DB', //Ver pedidos
+                                '97728B3AD53DB', //Ver pedidos
                                 '721A42C7F4693' //Recepción de pedidos
                             ];
                             

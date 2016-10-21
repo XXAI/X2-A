@@ -110,6 +110,12 @@ trait SyncTrait{
                         $requisicion->save();
                     }
                 }
+
+                $acta_central->total_claves_recibidas = $acta_local->total_claves_recibidas;
+                $acta_central->total_claves_validadas = $acta_local->total_claves_validadas;
+                $acta_central->total_cantidad_recibida = $acta_local->total_cantidad_recibida;
+                $acta_central->total_cantidad_validada = $acta_local->total_cantidad_validada;
+                $acta_central->save();
             }
             
             DB::commit();
