@@ -11,6 +11,7 @@ use App\Models\Acta;
 use App\Models\Requisicion;
 use App\Models\Configuracion;
 use App\Models\Usuario;
+use App\Models\ConfiguracionAplicacion;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive, Exception;
@@ -69,7 +70,7 @@ class ActaController extends Controller
             //$last_query = end($queries);
             return Response::json(['data'=>$recurso,'totales'=>$totales],200);
         }catch(Exception $ex){
-            return Response::json(['error'=>$e->getMessage()],500);
+            return Response::json(['error'=>$ex->getMessage()],500);
         }
     }
 
@@ -209,17 +210,25 @@ class ActaController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show(Request $request, $id){
-		$usuario = JWTAuth::parseToken()->getPayLoad();
-		$configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
-        $acta = Acta::with([
-                'requisiciones'=>function($query){ 
-                    $query->orderBy('tipo_requisicion'); 
-                },
-                'requisiciones.insumos'=>function($query){
-                    $query->orderBy('lote'); 
-                }
-            ])->find($id);
-        return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion ], 200);
+        try{
+    		$usuario = JWTAuth::parseToken()->getPayLoad();
+
+            $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+
+    		$configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
+
+            $acta = Acta::with([
+                    'requisiciones'=>function($query){ 
+                        $query->orderBy('tipo_requisicion'); 
+                    },
+                    'requisiciones.insumos'=>function($query){
+                        $query->orderBy('lote'); 
+                    }
+                ])->find($id);
+            return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion, 'captura_habilitada'=>$captura_habilitada->valor ], 200);
+        }catch(Exception $ex){
+            return Response::json(['error'=>$ex->getMessage()],500);
+        }
     }
 
     public function generarActaPDF($id){
@@ -650,6 +659,14 @@ class ActaController extends Controller
             $inputs['coordinador_comision_abasto'] = $configuracion->coordinador_comision_abasto;
 
             if($inputs['estatus'] == 2 && $acta->estatus != 2){
+                //Cargamos la configuracion de la acplicacion, para ver si esta displonible la captura de actas
+                $habilitar_captura = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+                
+                if(!$habilitar_captura->valor){
+                    DB::rollBack();
+                    return Response::json(['error' => 'Esta opción no esta disponible por el momento.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+                
                 $max_acta = Acta::where('folio','like',$configuracion->clues.'/%')->max('numero');
                 if(!$max_acta){
                     $max_acta = 0;

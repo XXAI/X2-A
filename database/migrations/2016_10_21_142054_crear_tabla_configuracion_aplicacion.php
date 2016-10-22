@@ -16,7 +16,6 @@ class CrearTablaConfiguracionAplicacion extends Migration
             $table->increments('id');
             $table->string('variable',255);
             $table->string('valor',255);
-            $table->timestamps();
         });
     }
 

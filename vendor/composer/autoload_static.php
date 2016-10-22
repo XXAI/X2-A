@@ -406,6 +406,7 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         'Canvas_Factory' => __DIR__ . '/..' . '/dompdf/dompdf/include/canvas_factory.cls.php',
         'CatalogosSeeder' => __DIR__ . '/../..' . '/database/seeds/CatalogosSeeder.php',
         'Cellmap' => __DIR__ . '/..' . '/dompdf/dompdf/include/cellmap.cls.php',
+        'ConfiguracionAplicacionSeeder' => __DIR__ . '/../..' . '/database/seeds/ConfiguracionAplicacionSeeder.php',
         'CrearTablaActas' => __DIR__ . '/../..' . '/database/migrations/2016_08_01_163008_crear_tabla_actas.php',
         'CrearTablaActualizacionesCatalogos' => __DIR__ . '/../..' . '/database/migrations/2016_07_19_172058_crear_tabla_actualizaciones_catalogos.php',
         'CrearTablaConfiguracion' => __DIR__ . '/../..' . '/database/migrations/2016_08_07_110342_crear_tabla_configuracion.php',

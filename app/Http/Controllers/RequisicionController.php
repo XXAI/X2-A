@@ -12,6 +12,7 @@ use App\Models\Requisicion;
 use App\Models\Configuracion;
 use App\Models\Insumo;
 use App\Models\Usuario;
+use App\Models\ConfiguracionAplicacion;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive;
@@ -64,8 +65,10 @@ class RequisicionController extends Controller
             }else{
                 $insumos = [];
             }
+
+            $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
             
-            return Response::json(['data'=>$insumos, 'clues'=>$clues, 'configuracion'=>$configuracion],200);
+            return Response::json(['data'=>$insumos, 'clues'=>$clues, 'configuracion'=>$configuracion, 'captura_habilitada'=>$captura_habilitada->valor],200);
         }catch(Exception $ex){
             return Response::json(['error'=>$e->getMessage()],500);
         }
@@ -199,6 +202,13 @@ class RequisicionController extends Controller
             DB::table('requisicion_insumo_clues')->insert($lista_insumos);
 
             if($inputs_acta){
+                $habilitar_captura = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+                
+                if(!$habilitar_captura->valor){
+                    DB::rollBack();
+                    return Response::json(['error' => 'Esta opción no esta disponible por el momento.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+
                 $max_acta = Acta::where('folio','like',$clues.'/%')->max('numero');
                 if(!$max_acta){
                     $max_acta = 0;

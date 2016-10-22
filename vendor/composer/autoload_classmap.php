@@ -34,6 +34,7 @@ return array(
     'Canvas_Factory' => $vendorDir . '/dompdf/dompdf/include/canvas_factory.cls.php',
     'CatalogosSeeder' => $baseDir . '/database/seeds/CatalogosSeeder.php',
     'Cellmap' => $vendorDir . '/dompdf/dompdf/include/cellmap.cls.php',
+    'ConfiguracionAplicacionSeeder' => $baseDir . '/database/seeds/ConfiguracionAplicacionSeeder.php',
     'CrearTablaActas' => $baseDir . '/database/migrations/2016_08_01_163008_crear_tabla_actas.php',
     'CrearTablaActualizacionesCatalogos' => $baseDir . '/database/migrations/2016_07_19_172058_crear_tabla_actualizaciones_catalogos.php',
     'CrearTablaConfiguracion' => $baseDir . '/database/migrations/2016_08_07_110342_crear_tabla_configuracion.php',
