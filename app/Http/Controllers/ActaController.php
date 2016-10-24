@@ -397,7 +397,7 @@ class ActaController extends Controller
                     case 3: $tipo = "MATERIAL DE CURACION"; break;
                     case 4: $tipo = "MEDICAMENTOS CONTROLADOS"; break;
                     case 5: $tipo = "FACTOR SURFACTANTE (CAUSES)"; break;
-                    case 6: $tipo = "FACTOR SURFACTANTE (CAUSES)"; break;
+                    case 6: $tipo = "FACTOR SURFACTANTE (NO CAUSES)"; break;
                     
                 }
                 
