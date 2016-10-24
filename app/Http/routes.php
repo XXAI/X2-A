@@ -45,6 +45,9 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('sincronizar-validacion/{id}',           'ActaController@sincronizar');
     Route::get('exportar-csv-unidad/{id}',              'RequisicionesUnidadController@generarJSON');
 
+    //Excel
+    Route::get('acta-excel/{id}',                       'ActaController@generarExcel');
+
     Route::get('sincronizar-entrada/{id}',           'RecepcionController@sincronizar');
     Route::get('ver-entrada/{id}',                   'RecepcionController@showEntrada');
 

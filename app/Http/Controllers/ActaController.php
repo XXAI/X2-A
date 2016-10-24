@@ -15,6 +15,7 @@ use App\Models\ConfiguracionAplicacion;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive, Exception;
+use \Excel;
 
 class ActaController extends Controller
 {
@@ -334,6 +335,568 @@ class ActaController extends Controller
         $canvas->page_text(($w/2)-10, ($h-40), "{PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
 
         return $pdf->stream($data['acta']->folio.'Requisiciones.pdf');
+    }
+
+    public function generarExcel($id) {
+        $meses = ['01'=>'ENERO','02'=>'FEBRERO','03'=>'MARZO','04'=>'ABRIL','05'=>'MAYO','06'=>'JUNIO','07'=>'JULIO','08'=>'AGOSTO','09'=>'SEPTIEMBRE','10'=>'OCTUBRE','11'=>'NOVIEMBRE','12'=>'DICIEMBRE'];
+        $data = [];
+        $data['acta'] = Acta::find($id);
+
+        if($data['acta']->estatus > 2){
+            $data['acta']->load([
+                'requisiciones'=>function($query){
+                    $query->where('gran_total_validado','>',0);
+                },'requisiciones.insumos'=>function($query){
+                    $query->wherePivot('total_validado','>',0)
+                        ->orderBy('lote');
+                }
+            ]);
+        }else{
+            $data['acta']->load(['requisiciones.insumos'=>function($query){
+                $query->orderBy('lote');
+            }]);
+        }
+
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
+
+        $fecha = explode('-',$data['acta']->fecha);
+        $fecha[1] = $meses[$fecha[1]];
+        $data['acta']->fecha = $fecha;
+
+        /*if($data['acta']->estatus != 2){
+            return Response::json(['error' => 'No se puede generar el archivo por que el acta no se encuentra finalizada'], HttpResponse::HTTP_CONFLICT);
+        }*/
+
+        $data['unidad'] = mb_strtoupper($configuracion->clues_nombre,'UTF-8');
+        $data['empresa'] = $configuracion->empresa_nombre;
+        $data['empresa_clave'] = $configuracion->empresa_clave;
+/*
+        $pdf = PDF::loadView('pdf.requisiciones', $data);
+        $pdf->output();
+        $dom_pdf = $pdf->getDomPDF();
+        $canvas = $dom_pdf->get_canvas();
+        $w = $canvas->get_width();
+        $h = $canvas->get_height();
+        $canvas->page_text(($w/2)-10, ($h-40), "{PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
+
+        return $pdf->stream($data['acta']->folio.'Requisiciones.pdf');*/
+
+        $nombre_archivo = str_replace("/","-",$data['acta']->folio);  
+
+        Excel::create($nombre_archivo, function($excel) use($data) {
+            $unidad = $data['unidad'];
+            $acta = $data['acta'];
+            $requisiciones = $acta->requisiciones;
+
+            foreach($requisiciones as $index => $requisicion) {
+                $tipo  = '';
+                switch($requisicion->tipo_requisicion) {
+                    case 1: $tipo = "MEDICAMENTOS CAUSES"; break;
+                    case 2: $tipo = "MEDICAMENTOS NO CAUSES"; break;
+                    case 3: $tipo = "MATERIAL DE CURACION"; break;
+                    case 4: $tipo = "MEDICAMENTOS CONTROLADOS"; break;
+                    case 5: $tipo = "FACTOR SURFACTANTE (CAUSES)"; break;
+                    case 6: $tipo = "FACTOR SURFACTANTE (CAUSES)"; break;
+                    
+                }
+                
+                $excel->sheet($tipo, function($sheet) use($requisicion,$acta,$unidad) {
+                            $sin_validar = '';
+                            if($acta->estatus < 3 ) {$sin_validar = " (SIN VALIDAR)";}
+                            $sheet->setAutoSize(true);
+
+                            $sheet->mergeCells('A1:G1');
+                            $sheet->row(1, array('ACTA: '.$acta->folio.$sin_validar));
+                            //$sheet->row(1, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($pedido_proveedor['proveedor'],'UTF-8')));
+
+                            $sheet->mergeCells('A2:G2'); 
+                            $sheet->row(2, array('UNIDAD: '.$unidad));
+                            //$sheet->row(2, array('REQUISICIÓN NO.: '.$requisicion->numero));
+
+                            $sheet->mergeCells('A3:G3'); 
+                            $sheet->row(3, array('PEDIDO: '.$requisicion->pedido));
+
+                            $sheet->mergeCells('A4:G4'); 
+                            $sheet->row(4, array('No. DE REQUISICIÓN: '.$requisicion->numero));
+                            
+
+                            $sheet->mergeCells('A5:G5'); 
+                            $sheet->row(5, array('FECHA: '.$acta->fecha[2]." DE ".$acta->fecha[1]." DEL ".$acta->fecha[0]));
+
+                            $sheet->mergeCells('A6:G6');
+                            $sheet->row(6, array(''));
+
+                            $sheet->row(7, array(
+                                'No. DE LOTE', 'CLAVE','DESCRIPCIÓN DE LOS INSUMOS','CANTIDAD','UNIDAD DE MEDIDA','PRECIO UNITARIO','PRECIO TOTAL'
+                            ));
+                            $sheet->row(1, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(16);
+                            });
+
+                            $sheet->row(2, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(3, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(4, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(5, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(6, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(7, function($row) {
+                                // call cell manipulation methods
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+
+                            });
+
+                            $contador_filas = 7;
+                            foreach($requisicion->insumos as $indice => $insumo){
+                            
+                              if($acta->estatus < 3){
+                                    $sheet->appendRow(array(
+                                        $insumo['lote'], 
+                                        $insumo['clave'],
+                                        $insumo['descripcion'],
+                                        $insumo['pivot']['cantidad'],
+                                        $insumo['unidad'],
+                                        $insumo['precio'],
+                                        $insumo['pivot']['total']
+                                    ));
+                              } else{
+                                    $sheet->appendRow(array(
+                                        $insumo['lote'], 
+                                        $insumo['clave'],
+                                        $insumo['descripcion'],
+                                        $insumo['pivot']['cantidad_validada'],
+                                        $insumo['unidad'],
+                                        $insumo['precio'],
+                                        $insumo['pivot']['total_validado']
+                                    ));
+                              }
+				
+                                
+                                $contador_filas += 1;
+                            }
+                            if($acta->estatus < 3){
+                                $sheet->appendRow(array(
+                                        '', 
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        'SUBTOTAL',
+                                        $requisicion->sub_total
+                                    ));
+                            } else {
+                                $sheet->appendRow(array(
+                                        '', 
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        'SUBTOTAL',
+                                        $requisicion->sub_total_validado
+                                    ));
+                            }
+
+                            if($acta->estatus < 3){
+                                $sheet->appendRow(array(
+                                        '', 
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        'IVA',
+                                        $requisicion->iva
+                                    ));
+                            } else {
+                                $sheet->appendRow(array(
+                                        '', 
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        'IVA',
+                                        $requisicion->iva_validado
+                                    ));
+                            }
+
+                            if($acta->estatus < 3){
+                                $sheet->appendRow(array(
+                                        '', 
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        'TOTAL',
+                                        $requisicion->gran_total
+                                    ));
+                            } else {
+                                $sheet->appendRow(array(
+                                        '', 
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        'TOTAL',
+                                        $requisicion->gran_total_validado
+                                    ));
+                            }
+                            $contador_filas += 3;
+
+                            $sheet->setBorder("A1:G$contador_filas", 'thin');
+
+
+                            $sheet->cells("F1:G$contador_filas", function($cells) {
+
+                                $cells->setAlignment('right');
+
+                            });
+
+                            $sheet->cells("A7:A$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("B7:B$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("D7:D$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+
+                            $sheet->setColumnFormat(array(
+                                "F8:G$contador_filas" => '"$"#,##0.00_-'
+                            ));
+/*
+                            $sheet->mergeCells('A1:G1');
+                            $sheet->row(1, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($pedido_proveedor['proveedor'],'UTF-8')));
+
+                            $sheet->mergeCells('A2:G2'); 
+                            $sheet->row(2, array('No. DE OFICIO DE SOLICITUD DEL ÁREA MÉDICA: '.$acta->num_oficio));
+
+                            $sheet->mergeCells('A3:G3'); 
+                            $sheet->row(3, array('ACTA: '.$acta->folio));
+
+                            $sheet->mergeCells('A4:G4'); 
+                            $sheet->row(4, array('LUGAR ENTREGA: '.$pedido_proveedor['lugar_entrega']));
+
+                            $sheet->mergeCells('A5:G5'); 
+                            $sheet->row(5, array('No. DE REQUISICIÓN: '.$pedido_proveedor['no_requisicion']));
+
+                            $sheet->mergeCells('A6:G6'); 
+                           
+                            $sheet->row(6, array('FECHA: '.date('d/m/Y', strtotime($acta->fecha_termino))));
+                            
+                            $sheet->row(7, array(
+                                'No. DE LOTE', 'CLAVE','DESCRIPCIÓN DE LOS INSUMOS','CANTIDAD','UNIDAD DE MEDIDA','PRECIO UNITARIO','PRECIO TOTAL'
+                            ));
+                            $sheet->row(1, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(16);
+                            });
+
+                            $sheet->row(2, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(3, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(4, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(5, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(6, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(7, function($row) {
+                                // call cell manipulation methods
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+
+                            });
+
+                            $contador_filas = 7;
+                            foreach ($pedido_proveedor['insumos'] as $insumo) {
+                              
+                                $sheet->appendRow(array(
+                                    $insumo['lote'], 
+                                    $insumo['clave'],
+                                    $insumo['descripcion'],
+                                    $insumo['pivot']['cantidad_aprovada'],
+                                    $insumo['unidad'],
+                                    $insumo['precio'],
+                                    $insumo['pivot']['total_aprovado']
+                                ));
+                                $contador_filas += 1;
+                            }
+                            $sheet->appendRow(array(
+                                    '', 
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    'SUBTOTAL',
+                                    $pedido_proveedor['sub_total']
+                                ));
+                            $sheet->appendRow(array(
+                                    '', 
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    'IVA',
+                                    $pedido_proveedor['iva']
+                                ));
+                            $sheet->appendRow(array(
+                                    '', 
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    'TOTAL',
+                                    $pedido_proveedor['gran_total']
+                                ));
+
+                            $contador_filas += 3;
+
+                            $sheet->setBorder("A1:G$contador_filas", 'thin');
+
+
+                            $sheet->cells("F1:G$contador_filas", function($cells) {
+
+                                $cells->setAlignment('right');
+
+                            });
+
+                            $sheet->cells("A7:A$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("B7:B$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("D7:D$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+
+                            $sheet->setColumnFormat(array(
+                                "F8:G$contador_filas" => '"$"#,##0.00_-'
+                            ));*/
+
+                           
+                            
+                             
+
+                        });
+            }
+
+            /*
+            foreach ( $pedidos as $no_pedido => $proveedores ){
+
+                foreach($proveedores as $proveedor) { 
+        
+                    foreach ($proveedor as $pedido_proveedor){
+                            //var_dump($pedido_proveedor);
+                            // $pedido_proveedor['proveedor'] nombre del proveedor
+
+                        $tipo_requisicion = "";
+                        if($pedido_proveedor["tipo_requisicion"] == 1){
+                            $tipo_requisicion = "CAUSES";
+                        } else if ( $pedido_proveedor["tipo_requisicion"] == 2) {
+                            $tipo_requisicion = "NO CAUSES";
+                        } else if ( $pedido_proveedor["tipo_requisicion"] == 3) {
+                            $tipo_requisicion = "MATERIAL DE CURACIÓN";
+                        } else {
+                            $tipo_requisicion = "CONTROLADOS";
+                        }
+
+                        $excel->sheet($pedido_proveedor['pedido']." ".$tipo_requisicion, function($sheet) use($pedido_proveedor,$acta) {
+
+                           
+                            $sheet->setAutoSize(true);
+
+                            $sheet->mergeCells('A1:G1');
+                            $sheet->row(1, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($pedido_proveedor['proveedor'],'UTF-8')));
+
+                            $sheet->mergeCells('A2:G2'); 
+                            $sheet->row(2, array('No. DE OFICIO DE SOLICITUD DEL ÁREA MÉDICA: '.$acta->num_oficio));
+
+                            $sheet->mergeCells('A3:G3'); 
+                            $sheet->row(3, array('ACTA: '.$acta->folio));
+
+                            $sheet->mergeCells('A4:G4'); 
+                            $sheet->row(4, array('LUGAR ENTREGA: '.$pedido_proveedor['lugar_entrega']));
+
+                            $sheet->mergeCells('A5:G5'); 
+                            $sheet->row(5, array('No. DE REQUISICIÓN: '.$pedido_proveedor['no_requisicion']));
+
+                            $sheet->mergeCells('A6:G6'); 
+                           
+                            $sheet->row(6, array('FECHA: '.date('d/m/Y', strtotime($acta->fecha_termino))));
+                            
+                            $sheet->row(7, array(
+                                'No. DE LOTE', 'CLAVE','DESCRIPCIÓN DE LOS INSUMOS','CANTIDAD','UNIDAD DE MEDIDA','PRECIO UNITARIO','PRECIO TOTAL'
+                            ));
+                            $sheet->row(1, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(16);
+                            });
+
+                            $sheet->row(2, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(3, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(4, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(5, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(6, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(7, function($row) {
+                                // call cell manipulation methods
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+
+                            });
+
+                            $contador_filas = 7;
+                            foreach ($pedido_proveedor['insumos'] as $insumo) {
+                              
+                                $sheet->appendRow(array(
+                                    $insumo['lote'], 
+                                    $insumo['clave'],
+                                    $insumo['descripcion'],
+                                    $insumo['pivot']['cantidad_aprovada'],
+                                    $insumo['unidad'],
+                                    $insumo['precio'],
+                                    $insumo['pivot']['total_aprovado']
+                                ));
+                                $contador_filas += 1;
+                            }
+                            $sheet->appendRow(array(
+                                    '', 
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    'SUBTOTAL',
+                                    $pedido_proveedor['sub_total']
+                                ));
+                            $sheet->appendRow(array(
+                                    '', 
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    'IVA',
+                                    $pedido_proveedor['iva']
+                                ));
+                            $sheet->appendRow(array(
+                                    '', 
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    'TOTAL',
+                                    $pedido_proveedor['gran_total']
+                                ));
+
+                            $contador_filas += 3;
+
+                            $sheet->setBorder("A1:G$contador_filas", 'thin');
+
+
+                            $sheet->cells("F1:G$contador_filas", function($cells) {
+
+                                $cells->setAlignment('right');
+
+                            });
+
+                            $sheet->cells("A7:A$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("B7:B$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("D7:D$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+
+                            $sheet->setColumnFormat(array(
+                                "F8:G$contador_filas" => '"$"#,##0.00_-'
+                            ));
+
+                           
+                            
+                             
+
+                        });
+
+                        
+                    }
+                    
+                }
+                
+
+                
+                        
+            } */
+        })->export('xls');
     }
 
     function encryptData($value){
