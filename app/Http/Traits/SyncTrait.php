@@ -59,7 +59,10 @@ trait SyncTrait{
                     $nuevo_ingreso->usado               = $ingreso->usado;
                     $nuevo_ingreso->disponible          = $ingreso->disponible;
 
-                    $cantidades_insumos[$nuevo_ingreso->insumo_id] = $nuevo_ingreso->cantidad_recibida;
+                    if(!isset($cantidades_insumos[$nuevo_ingreso->insumo_id])){
+                        $cantidades_insumos[$nuevo_ingreso->insumo_id] = 0;
+                    }
+                    $cantidades_insumos[$nuevo_ingreso->insumo_id] += $nuevo_ingreso->cantidad_recibida;
 
                     $guardar_stock[] = $nuevo_ingreso;
                 }

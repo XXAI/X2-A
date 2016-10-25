@@ -304,6 +304,11 @@ class RequisicionController extends Controller
                     throw new \Exception("No pueden haber mas de seis requisiciones");
                 }
 
+                if(count($requisiciones) == 0){
+                    DB::rollBack();
+                    return Response::json(['error' => 'Se debe capturar al menos un insumo.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
+                }
+
                 DB::table('requisicion_insumo_clues')->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->delete();
                 DB::table('requisicion_insumo_clues')->insert($requisicion_insumos_sync);
 
