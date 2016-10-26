@@ -43,24 +43,27 @@ class RequisicionesUnidadController extends Controller
                                         DB::RAW('(select max(requisiciones.clues)) as clues'),
                                         DB::RAW('(select sum(requisiciones.gran_total)) as gran_total'),
                                         DB::RAW('(select sum(requisiciones.gran_total_validado)) as gran_total_validado'),
-                                        DB::RAW('(select sum(requisiciones.updated_at)) as gran_total_validado'),
                                         DB::RAW('(select max(requisiciones.estatus)) as estatus'),
+                                        DB::RAW('(select estatus from actas where id = acta_id) as estatus_acta'),
                                         DB::RAW('(select max(created_at)) as created_at'));
             $recurso = $recurso->groupby("acta_id", "clues");
 
 
-            if($query){
+            /*if($query){
                 $recurso = $recurso->where(function($condition)use($query){
-                    $condition->where('id','LIKE','%'.$query.'%');
+                    $condition->where('clues','LIKE','%'.$query.'%');
                 });
-            }
+            }*/
 
             if($filtro){
                 if(isset($filtro['estatus'])){
-                    if($filtro['estatus'] == 'validados'){
-                        $recurso = $recurso->where('estatus','3');
+                    if($filtro['estatus'] == 'validado'){
+                        $recurso = $recurso->where(DB::RAW('(select estatus from actas where id = acta_id)'),'3');
                     }else if($filtro['estatus'] == 'pendiente'){
-                        $recurso = $recurso->where('estatus','1');
+                        $recurso = $recurso->whereNull(DB::RAW('(select estatus from actas where id = acta_id)'))
+                                           ->orWhere(DB::RAW('(select estatus from actas where id = acta_id)'), "1");
+                    }else if($filtro['estatus'] == 'pedido'){
+                        $recurso = $recurso->where(DB::RAW('(select estatus from actas where id = acta_id)'),'4');
                     }
                 }
             }
@@ -111,9 +114,9 @@ class RequisicionesUnidadController extends Controller
             $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
             if(isset($inputs['requisiciones'])){
-                if(count($inputs['requisiciones']) > 4){
+                if(count($inputs['requisiciones']) > 6){
                     DB::rollBack();
-                    throw new \Exception("No pueden haber mas de cuatro requesiciones por acta");
+                    throw new \Exception("No pueden haber mas de seis tipos requesiciones");
                 }
                 $max_acta = Requisicion::max("acta_id");
                 $max_acta = $max_acta+1;
@@ -207,128 +210,143 @@ class RequisicionesUnidadController extends Controller
             Storage::delete($filename);
             $json = json_decode($DecryptedData, true);
 
-
             $acta = $json;
+
+            $estatus_acta = $acta['estatus'];
+
             $requisiciones = $acta['requisiciones'];
 
-
             $actaDuplicada = Acta::where("folio", $acta['folio'])->first();
-            if($actaDuplicada && $actaDuplicada->count() > 0)
+
+            if($actaDuplicada && $actaDuplicada->count() > 0 && $estatus_acta = 4)
             {
-                $actaDelete = Acta::with('requisiciones')->find($actaDuplicada->id);
+                return Response::json(['error' => 'No se puede actualizar los datos, por que su solicitud esta en estatus de pedido'], HttpResponse::HTTP_CONFLICT);
+            }else
+            {
 
-                foreach($actaDelete->requisiciones as $index => $value)
+                if($actaDuplicada &&$actaDuplicada->count() > 0)
                 {
-                    $requisicion = Requisicion::find($value->id);
-                    $requisicion->insumos()->sync([]);
-                    $requisicion->delete();
-                }
-                $actaDuplicada->delete();
-            }
+                    $actaDelete = Acta::with('requisiciones')->find($actaDuplicada->id);
 
-            try {
-
-                DB::beginTransaction();
-
-                $usuario = JWTAuth::parseToken()->getPayload();
-                $clues = $usuario->get('clues');
-                $configuracion = Configuracion::where('clues',$clues)->first();
-
-                $actaStore = Acta::create($acta);
-                $requisicion_auxiliar   = array();
-                foreach($requisiciones as $index => $value)
-                {
-                    $bandera = 0;
-                    $insumos_auxiliar   = array();
-                    $subtotal   = 0;
-                    $total      = 0;
-                    $iva        = 0;
-
-                    $subtotal_validado   = 0;
-                    $total_validado      = 0;
-                    $iva_validado        = 0;
-
-                    $subtotal_recibido   = 0;
-                    $total_recibido      = 0;
-                    $iva_recibido        = 0;
-
-                    foreach($requisiciones[$index]['insumos_clues'] as $index2 => $value2)
+                    foreach($actaDelete->requisiciones as $index => $value)
                     {
-                        if($value2['pivot']['clues'] == $clues)
+                        $requisicion = Requisicion::find($value->id);
+                        $requisicion->insumos()->sync([]);
+                        $requisicion->delete();
+                    }
+                    $actaDuplicada->delete();
+                }
+
+
+                try {
+
+                    DB::beginTransaction();
+
+                    $usuario = JWTAuth::parseToken()->getPayload();
+                    $clues = $usuario->get('clues');
+                    $configuracion = Configuracion::where('clues',$clues)->first();
+                    $max_requisicion = Requisicion::max("acta_id");
+                    $max_requisicion++;
+
+                    $actaStore = Acta::create($acta);
+                    $actaStore->id = $max_requisicion;
+                    $actaStore->update();
+                    $requisicion_auxiliar   = array();
+
+                    foreach($requisiciones as $index => $value)
+                    {
+                        $bandera = 0;
+                        $insumos_auxiliar   = array();
+                        $subtotal   = 0;
+                        $total      = 0;
+                        $iva        = 0;
+
+                        $subtotal_validado   = 0;
+                        $total_validado      = 0;
+                        $iva_validado        = 0;
+
+                        //$subtotal_recibido   = 0;
+                        //$total_recibido      = 0;
+                        //$iva_recibido        = 0;
+
+                        foreach($requisiciones[$index]['insumos_clues'] as $index2 => $value2)
                         {
-                            $indice_insumos = count($insumos_auxiliar);
-                            $insumos_auxiliar[$indice_insumos] = $value2;
-                            unset($insumos_auxiliar[$indice_insumos]['pivot']['clues']);
-                            $subtotal   += $insumos_auxiliar[$indice_insumos]['pivot']['total'];
-                            $total      += $insumos_auxiliar[$indice_insumos]['pivot']['total'];
-
-                            $subtotal_validado   += $insumos_auxiliar[$indice_insumos]['pivot']['total_validado'];
-                            $total_validado      += $insumos_auxiliar[$indice_insumos]['pivot']['total_validado'];
-
-                            $subtotal_recibido   += $insumos_auxiliar[$indice_insumos]['pivot']['total_recibido'];
-                            $total_recibido      += $insumos_auxiliar[$indice_insumos]['pivot']['total_recibido'];
-
-                            if($insumos_auxiliar[$indice_insumos]['tipo'] == 2)
+                            if($value2['pivot']['clues'] == $clues)
                             {
-                                $iva            += ($insumos_auxiliar[$indice_insumos]['pivot']['total'] * 0.16);
-                                $iva_validado   += ($insumos_auxiliar[$indice_insumos]['pivot']['total_validado'] * 0.16);
-                                $iva_recibido   += ($insumos_auxiliar[$indice_insumos]['pivot']['total_recibido'] * 0.16);
+                                $indice_insumos = count($insumos_auxiliar);
+                                $insumos_auxiliar[$indice_insumos] = $value2;
+                                unset($insumos_auxiliar[$indice_insumos]['pivot']['clues']);
+                                $subtotal   += $insumos_auxiliar[$indice_insumos]['pivot']['total'];
+                                $total      += $insumos_auxiliar[$indice_insumos]['pivot']['total'];
+
+                                $subtotal_validado   += $insumos_auxiliar[$indice_insumos]['pivot']['total_validado'];
+                                $total_validado      += $insumos_auxiliar[$indice_insumos]['pivot']['total_validado'];
+
+                                //$subtotal_recibido   += $insumos_auxiliar[$indice_insumos]['pivot']['total_recibido'];
+                                //$total_recibido      += $insumos_auxiliar[$indice_insumos]['pivot']['total_recibido'];
+
+                                if($insumos_auxiliar[$indice_insumos]['tipo'] == 2)
+                                {
+                                    $iva            += ($insumos_auxiliar[$indice_insumos]['pivot']['total'] * 0.16);
+                                    $iva_validado   += ($insumos_auxiliar[$indice_insumos]['pivot']['total_validado'] * 0.16);
+                          //          $iva_recibido   += ($insumos_auxiliar[$indice_insumos]['pivot']['total_recibido'] * 0.16);
+                                }
+                                $total += $iva;
+                                $total_validado += $iva_validado;
+                            //    $total_recibido += $iva_recibido;
+                                $bandera = 1;
                             }
-                            $total += $iva;
-                            $total_validado += $iva_validado;
-                            $total_recibido += $iva_recibido;
-                            $bandera = 1;
+                        }
+                        if($bandera == 1)
+                        {
+                            $indice = count($requisicion_auxiliar);
+                            $requisicion_auxiliar[$indice] = $requisiciones[$index];
+                            $requisicion_auxiliar[$indice]['sub_total']     = $subtotal;
+                            $requisicion_auxiliar[$indice]['gran_total']    = $total;
+                            $requisicion_auxiliar[$indice]['iva']           = $iva;
+
+                            $requisicion_auxiliar[$indice]['sub_total_validado']     = $subtotal_validado;
+                            $requisicion_auxiliar[$indice]['gran_total_validado']    = $total_validado;
+                            $requisicion_auxiliar[$indice]['iva_validado']           = $iva_validado;
+
+                            /*$requisicion_auxiliar[$indice]['sub_total_recibido']     = $subtotal_recibido;
+                            $requisicion_auxiliar[$indice]['gran_total_recibido']    = $total_validado;
+                            $requisicion_auxiliar[$indice]['iva_recibido']           = $iva_recibido;*/
+
+                            $requisicion_auxiliar[$indice]['lotes']              = count($insumos_auxiliar);
+
+                            $requisicion_auxiliar[$indice]['clues'] = $usuario->get('clues');
+                            unset($requisicion_auxiliar[$indice]['insumos']);
+                            $requisicion_auxiliar[$indice]['insumos_clues'] = $insumos_auxiliar;
+
+
                         }
                     }
-                    if($bandera == 1)
+
+                    foreach($requisicion_auxiliar as $index => $value)
                     {
-                        $indice = count($requisicion_auxiliar);
-                        $requisicion_auxiliar[$indice] = $requisiciones[$index];
-                        $requisicion_auxiliar[$indice]['sub_total']     = $subtotal;
-                        $requisicion_auxiliar[$indice]['gran_total']    = $total;
-                        $requisicion_auxiliar[$indice]['iva']           = $iva;
+                        $requisicion_auxiliar[$index]['acta_id'] = $actaStore->id;
+                        if($estatus_acta !=1 )
+                            $requisicion_auxiliar[$index]['estatus'] = 2;
 
-                        $requisicion_auxiliar[$indice]['sub_total_validado']     = $subtotal_validado;
-                        $requisicion_auxiliar[$indice]['gran_total_validado']    = $total_validado;
-                        $requisicion_auxiliar[$indice]['iva_validado']           = $iva_validado;
-
-                        $requisicion_auxiliar[$indice]['sub_total_recibido']     = $subtotal_recibido;
-                        $requisicion_auxiliar[$indice]['gran_total_recibido']    = $total_validado;
-                        $requisicion_auxiliar[$indice]['iva_recibido']           = $iva_recibido;
-
-                        $requisicion_auxiliar[$indice]['lotes']              = count($insumos_auxiliar);
-
-                        $requisicion_auxiliar[$indice]['clues'] = $usuario->get('clues');
-                        unset($requisicion_auxiliar[$indice]['insumos']);
-                        $requisicion_auxiliar[$indice]['insumos_clues'] = $insumos_auxiliar;
-
+                        unset($requisicion_auxiliar[$index]['id']);
+                        $requisicion = Requisicion::create($requisicion_auxiliar[$index]);
+                        $insumos = array();
+                        foreach($requisicion_auxiliar[$index]["insumos_clues"] as $index2 => $value2)
+                        {
+                            unset($value2['pivot']['requisicion_id']);
+                            $insumos[] = $value2['pivot'];
+                        }
+                        $requisicion->insumos()->sync($insumos);
                     }
+
+                    DB::commit();
+                    return Response::json([ 'data' => $requisicion ],200);
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
                 }
-
-                foreach($requisicion_auxiliar as $index => $value)
-                {
-                    $requisicion_auxiliar[$index]['acta_id'] = $actaStore->id;
-                    if($requisicion_auxiliar[$index]['estatus'] !=1 )
-                        $requisicion_auxiliar[$index]['estatus'] = 2;
-
-                    unset($requisicion_auxiliar[$index]['id']);
-                    $requisicion = Requisicion::create($requisicion_auxiliar[$index]);
-                    $insumos = array();
-                    foreach($requisicion_auxiliar[$index]["insumos_clues"] as $index2 => $value2)
-                    {
-                        unset($value2['pivot']['requisicion_id']);
-                        $insumos[] = $value2['pivot'];
-                    }
-                    $requisicion->insumos()->sync($insumos);
-                }
-                DB::commit();
-
-
-                return Response::json([ 'data' => $requisiciones ],200);
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
             }
         }
     }
@@ -416,14 +434,6 @@ class RequisicionesUnidadController extends Controller
             'date'          => "date"
         ];
 
-        /*$reglas_configuracion = [
-            'director_unidad'               => 'required',
-            'administrador'                 => 'required',
-            'encargado_almacen'             => 'required',
-            'coordinador_comision_abasto'   => 'required',
-            'lugar_entrega'                 => 'required'
-        ];*/
-
         $reglas_requisicion = [
             'lotes'             =>'required',
             'tipo_requisicion'  =>'required',
@@ -445,8 +455,8 @@ class RequisicionesUnidadController extends Controller
             $requisicion_index = Requisicion::find($id);
 
             if(isset($inputs['requisiciones'])){
-                if(count($inputs['requisiciones']) > 4){
-                    throw new \Exception("No pueden haber mas de cuatro requesiciones por acta");
+                if(count($inputs['requisiciones']) > 6){
+                    throw new \Exception("No pueden haber mas de seis requesiciones por acta");
                 }
 
                 $requisiciones_guardadas = [];

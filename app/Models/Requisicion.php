@@ -8,7 +8,7 @@ use \DB;
 class Requisicion extends Model {
 	protected $table = 'requisiciones';
 	protected $fillable = ['acta_id', 'numero', 'pedido', 'lotes', 'empresa', 'tipo_requisicion', 
-							'dias_surtimiento', 'sub_total', 'gran_total', 'iva','clues', 'estatus'];
+							'dias_surtimiento', 'sub_total', 'gran_total', 'iva','clues', 'estatus', 'sub_total_validado', 'iva_validado', 'gran_total_validado'];
 	//'firma_solicita','cargo_solicita', 'firma_director'
 
 	public function detalles(){
