@@ -189,6 +189,7 @@ class RequisicionController extends Controller
                 $guardar_insumo['clues'] = $input_insumo['clues'];
                 $guardar_insumo['cantidad'] = $input_insumo['cantidad'];
                 $guardar_insumo['total'] = $input_insumo['total'];
+                $guardar_insumo['requisicion_id_unidad'] = $input_insumo['requisicion_id_unidad'];
                 //$guardar_insumo['usuario'] = $input_insumo['usuario'];
 
                 $lista_insumos[] = $guardar_insumo;
@@ -296,6 +297,7 @@ class RequisicionController extends Controller
                     $guardar_insumo['cantidad'] = $insumo->cantidad;
                     $guardar_insumo['total'] = $insumo->total;
                     $guardar_insumo['usuario'] = $insumo->usuario;
+                    $guardar_insumo['requisicion_id_unidad'] = $insumo->requisicion_id_unidad;
 
                     $requisicion_insumos_sync[] = $guardar_insumo;
                 }

@@ -222,12 +222,13 @@ trait SyncTrait{
                     $insumos = [];
                     foreach ($requisicion->insumosClues as $req_insumo) {
                         $insumos[] = [
-                            'insumo_id'         => $req_insumo->id,
-                            'clues'             => $req_insumo->pivot->clues,
-                            'cantidad'          => $req_insumo->pivot->cantidad,
-                            'total'             => $req_insumo->pivot->total,
-                            'cantidad_validada' => $req_insumo->pivot->cantidad,
-                            'total_validado'    => $req_insumo->pivot->total
+                            'insumo_id'             => $req_insumo->id,
+                            'clues'                 => $req_insumo->pivot->clues,
+                            'cantidad'              => $req_insumo->pivot->cantidad,
+                            'total'                 => $req_insumo->pivot->total,
+                            'cantidad_validada'     => $req_insumo->pivot->cantidad,
+                            'total_validado'        => $req_insumo->pivot->total,
+                            'requisicion_id_unidad' => $req_insumo->pivot->requisicion_id_unidad
                         ];
                     }
                     $requisicion_central->insumosClues()->sync($insumos);
