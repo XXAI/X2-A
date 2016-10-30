@@ -218,6 +218,13 @@ class ActaController extends Controller
 
     		$configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
 
+            if($configuracion->lista_base_id){
+                $empresa = $configuracion->empresa_clave;
+                $configuracion->load(['cuadroBasico'=>function($query)use($empresa){
+                                    $query->select('lista_base_insumos_id',$empresa.' AS llave');
+                                }]);
+            }
+
             $acta = Acta::with([
                     'requisiciones'=>function($query){ 
                         $query->orderBy('tipo_requisicion'); 
