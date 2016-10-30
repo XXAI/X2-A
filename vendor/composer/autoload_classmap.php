@@ -54,6 +54,7 @@ return array(
     'CrearTablaSolicitudes' => $baseDir . '/database/migrations/2016_08_30_104336_crear_tabla_solicitudes.php',
     'CrearTablaStockInsumos' => $baseDir . '/database/migrations/2016_09_15_190957_crear_tabla_stock_insumos.php',
     'CrearTablaUsuarios' => $baseDir . '/database/migrations/2016_07_14_001200_crear_tabla_usuarios.php',
+    'CreateColumnRequisicionIdUnidad' => $baseDir . '/database/migrations/2016_10_27_140356_create_column_requisicion_id_unidad.php',
     'DOMPDF' => $vendorDir . '/dompdf/dompdf/include/dompdf.cls.php',
     'DOMPDF_Exception' => $vendorDir . '/dompdf/dompdf/include/dompdf_exception.cls.php',
     'DOMPDF_Image_Exception' => $vendorDir . '/dompdf/dompdf/include/dompdf_image_exception.cls.php',
