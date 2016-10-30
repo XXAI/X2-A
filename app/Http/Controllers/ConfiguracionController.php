@@ -23,7 +23,16 @@ class ConfiguracionController extends Controller
      */
     public function show(Request $request, $id){
         $usuario_token = JWTAuth::parseToken()->getPayload();
+
         $configuracion = Configuracion::where('clues',$usuario_token->get('clues'))->first();
+
+        if($configuracion->lista_base_id){
+            $empresa = $configuracion->empresa_clave;
+            $configuracion->load(['cuadroBasico'=>function($query)use($empresa){
+                                $query->select('lista_base_insumos_id',$empresa.' AS llave');
+                            }]);
+        }
+        
         return Response::json([ 'data' => $configuracion ],200);
     }
 

@@ -2,20 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c2bc7cb0-6932-40cb-9af2-b352ac90787c" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/composer/ClassLoader.php" afterPath="$PROJECT_DIR$/vendor/composer/ClassLoader.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/composer/LICENSE" afterPath="$PROJECT_DIR$/vendor/composer/LICENSE" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Models/Requisicion.php" afterPath="$PROJECT_DIR$/app/Models/Requisicion.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2016_10_27_120752_crear_tabla_lista_base_insumos.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2016_10_27_121114_crear_tabla_lista_base_inusmos_detalle.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2016_10_27_123948_actualizar_tabla_configuracion_agregar_campo_lista.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Models/ListaBaseInsumosDetalle.php" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/control-de-desabasto-unidades-medicas-api.iml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/encodings.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/scopes/scope_settings.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="" />
+      <change type="DELETED" beforePath="C:\wamp\www\control_desabasto_api\control-de-desabasto-unidades-medicas-api\.idea\.name" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Controllers/ActaController.php" afterPath="$PROJECT_DIR$/app/Http/Controllers/ActaController.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Models/Configuracion.php" afterPath="$PROJECT_DIR$/app/Models/Configuracion.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Controllers/ConfiguracionController.php" afterPath="$PROJECT_DIR$/app/Http/Controllers/ConfiguracionController.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Controllers/InsumoController.php" afterPath="$PROJECT_DIR$/app/Http/Controllers/InsumoController.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Controllers/RequisicionController.php" afterPath="$PROJECT_DIR$/app/Http/Controllers/RequisicionController.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Controllers/RequisicionesUnidadController.php" afterPath="$PROJECT_DIR$/app/Http/Controllers/RequisicionesUnidadController.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Traits/SyncTrait.php" afterPath="$PROJECT_DIR$/app/Http/Traits/SyncTrait.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/autoload.php" afterPath="$PROJECT_DIR$/vendor/autoload.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/composer/autoload_classmap.php" afterPath="$PROJECT_DIR$/vendor/composer/autoload_classmap.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/composer/autoload_files.php" afterPath="$PROJECT_DIR$/vendor/composer/autoload_files.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/composer/autoload_namespaces.php" afterPath="$PROJECT_DIR$/vendor/composer/autoload_namespaces.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/composer/autoload_psr4.php" afterPath="$PROJECT_DIR$/vendor/composer/autoload_psr4.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/composer/autoload_real.php" afterPath="$PROJECT_DIR$/vendor/composer/autoload_real.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/composer/autoload_static.php" afterPath="$PROJECT_DIR$/vendor/composer/autoload_static.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vendor/composer/include_paths.php" afterPath="$PROJECT_DIR$/vendor/composer/include_paths.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="control-de-desabasto-unidades-medicas-api.iws" />
@@ -51,7 +56,7 @@
       <file leaf-file-name="Requisicion.php" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/Models/Requisicion.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="24" column="156" selection-start="1186" selection-end="1186" vertical-scroll-proportion="0.4178771" vertical-offset="0" max-vertical-offset="895">
+            <state line="24" column="134" selection-start="1164" selection-end="1164" vertical-scroll-proportion="0.4178771" vertical-offset="0" max-vertical-offset="895">
               <folding />
             </state>
           </provider>
@@ -128,60 +133,6 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="control-de-desabasto-unidades-medicas-api" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="control-de-desabasto-unidades-medicas-api" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="control-de-desabasto-unidades-medicas-api" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="control-de-desabasto-unidades-medicas-api" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Http" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="control-de-desabasto-unidades-medicas-api" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="control-de-desabasto-unidades-medicas-api" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Http" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Controllers" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
     </panes>
@@ -252,6 +203,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Models/Requisicion.php">
       <provider selected="true" editor-type-id="text-editor">
+        <state line="24" column="134" selection-start="1164" selection-end="1164" vertical-scroll-proportion="0.0" vertical-offset="408" max-vertical-offset="510">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Models/Insumo.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="425">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Models/Requisicion.php">
+      <provider selected="true" editor-type-id="text-editor">
         <state line="24" column="156" selection-start="1186" selection-end="1186" vertical-scroll-proportion="0.0" vertical-offset="374" max-vertical-offset="510">
           <folding />
         </state>
@@ -286,7 +251,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Models/Requisicion.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="156" selection-start="1186" selection-end="1186" vertical-scroll-proportion="0.4178771" vertical-offset="0" max-vertical-offset="895">
+        <state line="24" column="134" selection-start="1164" selection-end="1164" vertical-scroll-proportion="0.4178771" vertical-offset="0" max-vertical-offset="895">
           <folding />
         </state>
       </provider>

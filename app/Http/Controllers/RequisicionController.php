@@ -39,8 +39,11 @@ class RequisicionController extends Controller
                 $requisiciones = [];
             }*/
 
-            $clues = Configuracion::select('clues','clues_nombre as nombre','municipio','localidad','jurisdiccion')
+            $clues = Configuracion::select('clues','clues_nombre as nombre','municipio','localidad','jurisdiccion','lista_base_id')
                             //->where('empresa_clave',$empresa)
+                            ->with(['cuadroBasico'=>function($query)use($empresa){
+                                $query->select('lista_base_insumos_id',$empresa.' AS llave');
+                            }])
                             ->whereIn('tipo_clues',[1,2]);
 
             if($configuracion->caravana_region){
@@ -51,7 +54,7 @@ class RequisicionController extends Controller
 
             $clues = $clues->get();
 
-            //Arreglo de solo las clues, para identificar los insumos, meter en un if por tipo de usuario
+            //Arreglo de solo las clues, para identificar los insumos pertenecientes al mismo grupo de clues
             $listado_clues = $clues->lists('clues');
 
             if(!Input::get('catalogos')){
@@ -59,7 +62,7 @@ class RequisicionController extends Controller
                                 ->leftjoin('insumos','insumos.id','=','requisicion_insumo_clues.insumo_id')
                                 ->select('insumos.*','requisicion_insumo_clues.*')
                                 ->whereNull('requisicion_id')
-                                ->whereIn('clues',$listado_clues)
+                                ->whereIn('requisicion_insumo_clues.clues',$listado_clues)
                                 ->where('usuario',$usuario->get('id'))
                                 ->get();
             }else{
