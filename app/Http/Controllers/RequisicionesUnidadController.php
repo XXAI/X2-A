@@ -10,6 +10,7 @@ use App\Http\Requests;
 use App\Models\Acta;
 use App\Models\Requisicion;
 use App\Models\Configuracion;
+use App\Models\ListaBaseInsumosDetalle as ListaBaseInsumosDetalle;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive, Exception;
@@ -180,7 +181,8 @@ class RequisicionesUnidadController extends Controller
         $requisiciones = Requisicion::where("acta_id", $id)->with("insumos")->get();
         $resultado = array("requisiciones" => $requisiciones);
 
-        return Response::json([ 'data' => $resultado, 'configuracion'=>$configuracion ], 200);
+        $lista_insumos = ListaBaseInsumosDetalle::where("lista_base_insumos_id",$configuracion->lista_base_id)->get();
+        return Response::json([ 'data' => $resultado, 'configuracion'=>$configuracion , "lista_insumos_basico"=>$lista_insumos], 200);
     }
 
 
@@ -702,8 +704,11 @@ class RequisicionesUnidadController extends Controller
                     $requisicion_aux->insumos()->sync([]);
                     $requisicion_aux->insumosClues()->sync([]);
                 }
-
-                Requisicion::where('acta_id',$acta)->delete();
+                foreach($requisicion_vigente as $requisicion_aux)
+                {
+                    Requisicion::find($requisicion_aux->id)->delete();
+                }
+                //Requisicion::where('acta_id',$requisicion_vigente[0]->acta_id)->delete();
             }
             return Response::json(['data'=>'Elemento eliminado con exito'],200);
         } catch (Exception $e) {
