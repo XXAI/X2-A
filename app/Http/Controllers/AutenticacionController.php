@@ -46,12 +46,12 @@ class AutenticacionController extends Controller
                 
                 $permisos_unidad = [
                                 '37DC1A627A44E', //Editar Configuracion
-                                '71A3786CCEBD4' //Ver Configuracion
-                                //'8164C929918CE', //Ver solicitudes
-                                //'BD4D855ECDD33', //Agregar solicitudes
-                                //'29DB51365894B', //Editar solicitudes
-                                //'D2FA533BDCC56',  //Exportar solicitudes
-                                //'CE8E156BCF5E8' //Eliminar solicitudes
+                                '71A3786CCEBD4', //Ver Configuracion
+                                '8164C929918CE', //Ver solicitudes
+                                'BD4D855ECDD33', //Agregar solicitudes
+                                '29DB51365894B', //Editar solicitudes
+                                'D2FA533BDCC56',  //Exportar solicitudes
+                                'CE8E156BCF5E8' //Eliminar solicitudes
                             ];
                 $permisos_hospital = [
                                 '37DC1A627A44E', //Editar Configuracion

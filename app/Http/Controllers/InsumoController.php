@@ -38,7 +38,7 @@ class InsumoController extends Controller {
 			$insumos = Insumo::getModel();
 		}
 
-		$insumos = $insumos->select('id','llave','pedido','requisicion','lote','clave','descripcion',
+		$insumos = $insumos->select('id','llave','pedido','requisicion','lote','clave','descripcion', 'llave',
 						'marca','unidad','cantidad','precio','tipo','cause','controlado','surfactante')
 						->where('proveedor',$empresa)
 						->orderBy('tipo')

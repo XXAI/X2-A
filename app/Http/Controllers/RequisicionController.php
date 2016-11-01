@@ -111,6 +111,7 @@ class RequisicionController extends Controller
         $parametros = Input::all();
         //$inputs = $parametros['requisiciones'];
         $inputs = $parametros['insumos'];
+
         $inputs_acta = null;
         $acta = null;
 
@@ -159,7 +160,10 @@ class RequisicionController extends Controller
 
             $lista_insumos = [];
             $insumos_repetidos = [];
+
+
             foreach ($inputs as $input_insumo) {
+
                 $guardar_insumo = [];
 
                 if(!isset($input_insumo['usuario'])){
@@ -193,7 +197,7 @@ class RequisicionController extends Controller
                 $guardar_insumo['cantidad'] = $input_insumo['cantidad'];
                 $guardar_insumo['total'] = $input_insumo['total'];
                 $guardar_insumo['requisicion_id_unidad'] = $input_insumo['requisicion_id_unidad'];
-                //$guardar_insumo['usuario'] = $input_insumo['usuario'];
+
 
                 $lista_insumos[] = $guardar_insumo;
             }
