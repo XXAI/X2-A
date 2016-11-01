@@ -195,6 +195,7 @@ return array(
     'List_Bullet_Image_Frame_Decorator' => $vendorDir . '/dompdf/dompdf/include/list_bullet_image_frame_decorator.cls.php',
     'List_Bullet_Positioner' => $vendorDir . '/dompdf/dompdf/include/list_bullet_positioner.cls.php',
     'List_Bullet_Renderer' => $vendorDir . '/dompdf/dompdf/include/list_bullet_renderer.cls.php',
+    'ListaBaseInsumoSeeder' => $baseDir . '/database/seeds/ListaBaseInsumoSeeder.php',
     'Maatwebsite\\Excel\\Classes\\Cache' => $vendorDir . '/maatwebsite/excel/src/Maatwebsite/Excel/Classes/Cache.php',
     'Maatwebsite\\Excel\\Classes\\FormatIdentifier' => $vendorDir . '/maatwebsite/excel/src/Maatwebsite/Excel/Classes/FormatIdentifier.php',
     'Maatwebsite\\Excel\\Classes\\LaravelExcelWorksheet' => $vendorDir . '/maatwebsite/excel/src/Maatwebsite/Excel/Classes/LaravelExcelWorksheet.php',

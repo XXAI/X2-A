@@ -17,5 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call(InsumosSeeder::class);
         $this->call(ProveedoresSeeder::class);
         $this->call(ConfiguracionAplicacionSeeder::class);
+        $this->call(ListaBaseInsumoSeeder::class);
     }
 }

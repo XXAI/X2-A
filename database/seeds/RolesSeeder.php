@@ -15,42 +15,45 @@ class RolesSeeder extends Seeder
      */
     public function run()
     {
-    	$permisos = Permiso::lists('id');
-        
-    	$admin_rol = new Rol();
-        $admin_rol->id = 'ADMIN';
-        $admin_rol->nombre = 'Administrador';
-        $admin_rol->save();
+        $total = DB::table('roles')->count();
+        if($total == 0){
+        	$permisos = Permiso::lists('id');
+            
+        	$admin_rol = new Rol();
+            $admin_rol->id = 'ADMIN';
+            $admin_rol->nombre = 'Administrador';
+            $admin_rol->save();
 
-        $rol_id = $admin_rol->id;
-        $relations = array();
+            $rol_id = $admin_rol->id;
+            $relations = array();
 
-        foreach ($permisos as $permiso_id) {
-            $relations[] = [
-                'permiso_id' => $permiso_id,
-                'rol_id' => $rol_id
-            ];
+            foreach ($permisos as $permiso_id) {
+                $relations[] = [
+                    'permiso_id' => $permiso_id,
+                    'rol_id' => $rol_id
+                ];
+            }
+
+            DB::table('permiso_rol')->insert($relations);
+
+            $permisos = Permiso::where('grupo','=','Actas')->lists('id');
+            
+            $admin_rol = new Rol();
+            $admin_rol->id = 'CAPTURA';
+            $admin_rol->nombre = 'Captura de actas';
+            $admin_rol->save();
+
+            $rol_id = $admin_rol->id;
+            $relations = array();
+
+            foreach ($permisos as $permiso_id) {
+                $relations[] = [
+                    'permiso_id' => $permiso_id,
+                    'rol_id' => $rol_id
+                ];
+            }
+
+            DB::table('permiso_rol')->insert($relations);
         }
-
-        DB::table('permiso_rol')->insert($relations);
-
-        $permisos = Permiso::where('grupo','=','Actas')->lists('id');
-        
-        $admin_rol = new Rol();
-        $admin_rol->id = 'CAPTURA';
-        $admin_rol->nombre = 'Captura de actas';
-        $admin_rol->save();
-
-        $rol_id = $admin_rol->id;
-        $relations = array();
-
-        foreach ($permisos as $permiso_id) {
-            $relations[] = [
-                'permiso_id' => $permiso_id,
-                'rol_id' => $rol_id
-            ];
-        }
-
-        DB::table('permiso_rol')->insert($relations);
     }
 }

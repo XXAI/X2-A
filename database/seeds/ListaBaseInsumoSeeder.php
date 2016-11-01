@@ -1,9 +1,8 @@
 <?php
 
 use Illuminate\Database\Seeder;
-use \DB as DB;
 
-class InsumosSeeder extends Seeder
+class ListaBaseInsumoSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -12,18 +11,25 @@ class InsumosSeeder extends Seeder
      */
     public function run()
     {
-    	$total = DB::table('insumos')->count();
-        if($total == 0){
-	        $csv = storage_path().'/app/seeds/insumos-data.csv';
+    	$total = DB::table('lista_base_insumos')->count();
+    	if($total == 0){
+    		DB::table('lista_base_insumos')->insert([
+				[
+					'id' => '1',
+					'nombre' => 'caravanas',
+				]
+			]);
+
+	        $csv = storage_path().'/app/seeds/lista-base-insumos-data.csv';
 			$query = sprintf("
 				LOAD DATA local INFILE '%s' 
-				INTO TABLE insumos 
+				INTO TABLE lista_base_insumos_detalle 
 				FIELDS TERMINATED BY ',' 
 				OPTIONALLY ENCLOSED BY '\"' 
 				ESCAPED BY '\"' 
 				LINES TERMINATED BY '\\n' 
 				IGNORE 1 LINES", addslashes($csv));
 			DB::connection()->getpdo()->exec($query);
-		}
+    	}
     }
 }
