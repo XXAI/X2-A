@@ -196,7 +196,10 @@ class RequisicionController extends Controller
                 $guardar_insumo['clues'] = $input_insumo['clues'];
                 $guardar_insumo['cantidad'] = $input_insumo['cantidad'];
                 $guardar_insumo['total'] = $input_insumo['total'];
-                $guardar_insumo['requisicion_id_unidad'] = $input_insumo['requisicion_id_unidad'];
+                if(isset($input_insumo['requisicion_id_unidad']))
+                    $guardar_insumo['requisicion_id_unidad'] = $input_insumo['requisicion_id_unidad'];
+                else
+                    $guardar_insumo['requisicion_id_unidad'] = 0;
 
 
                 $lista_insumos[] = $guardar_insumo;
