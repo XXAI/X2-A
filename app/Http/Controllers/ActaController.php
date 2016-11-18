@@ -214,12 +214,16 @@ class ActaController extends Controller
         try{
     		$usuario = JWTAuth::parseToken()->getPayLoad();
 
-            $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
-
     		$configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
+            $empresa = $configuracion->empresa_clave;
+
+            if($empresa == 'exfarma'){
+                $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura_exfarma');
+            }else{
+                $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+            }
 
             if($configuracion->lista_base_id){
-                $empresa = $configuracion->empresa_clave;
                 $configuracion->load(['cuadroBasico'=>function($query)use($empresa){
                                     $query->select('lista_base_insumos_id',$empresa.' AS llave');
                                 }]);
@@ -1230,7 +1234,11 @@ class ActaController extends Controller
 
             if($inputs['estatus'] == 2 && $acta->estatus != 2){
                 //Cargamos la configuracion de la acplicacion, para ver si esta displonible la captura de actas
-                $habilitar_captura = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+                if($configuracion->empresa_clave == 'exfarma'){
+                    $habilitar_captura = ConfiguracionAplicacion::obtenerValor('habilitar_captura_exfarma');
+                }else{
+                    $habilitar_captura = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+                }
                 
                 if(!$habilitar_captura->valor){
                     DB::rollBack();

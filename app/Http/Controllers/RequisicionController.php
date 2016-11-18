@@ -69,7 +69,11 @@ class RequisicionController extends Controller
                 $insumos = [];
             }
 
-            $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+            if($configuracion->empresa_clave == 'exfarma'){
+                $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura_exfarma');
+            }else{
+                $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+            }
             
             return Response::json(['data'=>$insumos, 'clues'=>$clues, 'configuracion'=>$configuracion, 'captura_habilitada'=>$captura_habilitada->valor],200);
         }catch(Exception $ex){
@@ -213,7 +217,11 @@ class RequisicionController extends Controller
             DB::table('requisicion_insumo_clues')->insert($lista_insumos);
 
             if($inputs_acta){
-                $habilitar_captura = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+                if($configuracion->empresa_clave == 'exfarma'){
+                    $habilitar_captura = ConfiguracionAplicacion::obtenerValor('habilitar_captura_exfarma');
+                }else{
+                    $habilitar_captura = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
+                }
                 
                 if(!$habilitar_captura->valor){
                     DB::rollBack();
