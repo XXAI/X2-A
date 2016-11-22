@@ -17,7 +17,11 @@ class ConfiguracionAplicacionSeeder extends Seeder
     			[
     				'variable'			=> 'habilitar_captura',
     				'valor'				=> '1'
-    			]
+    			],
+                [
+                    'variable'          => 'habilitar_captura_exfarma',
+                    'valor'             => '1'
+                ]
             ]);
         }
     }
