@@ -235,9 +235,17 @@ class ActaController extends Controller
                     },
                     'requisiciones.insumos'=>function($query){
                         $query->orderBy('lote'); 
-                    }
+                    },'requisiciones.insumosClues'
                 ])->find($id);
-            return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion, 'captura_habilitada'=>$captura_habilitada->valor ], 200);
+
+            $clues = [];
+            if($acta->estatus > 2 && $configuracion->tipo_clues == 2){
+                foreach ($acta->requisiciones as $requisicion) {
+                    $clues = array_merge($clues,$requisicion->insumosClues->lists('pivot.clues')->toArray());
+                }
+                $clues = Configuracion::whereIn('clues',$clues)->lists('clues_nombre','clues');
+            }
+            return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion, 'clues'=>$clues, 'captura_habilitada'=>$captura_habilitada->valor ], 200);
         }catch(Exception $ex){
             return Response::json(['error'=>$ex->getMessage()],500);
         }
