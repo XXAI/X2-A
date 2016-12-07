@@ -38,6 +38,7 @@ class ActaController extends Controller
 
             $query = Input::get('query');
             $filtro = Input::get('filtro');
+            $surtido = Input::get('surtido');
 
             $recurso = Acta::where('folio','like',$usuario->get('clues').'/%');
 
@@ -57,6 +58,10 @@ class ActaController extends Controller
                         $recurso = $recurso->where('estatus','2');
                     }
                 }
+            }
+
+            if($surtido){
+                $recurso = $recurso->where('surtido','0');
             }
 
             $totales = $recurso->count();

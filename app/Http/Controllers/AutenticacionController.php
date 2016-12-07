@@ -62,7 +62,11 @@ class AutenticacionController extends Controller
                                 'F4CA88791CD94', //Exportar actas
                                 'FF915DEC2F235', //Eliminar actas
                                 '97728B3AD53DB', //Ver pedidos
-                                '721A42C7F4693' //Recepción de pedidos
+                                '721A42C7F4693', //Recepción de pedidos
+                                'D894AC3542EBB', //Ver Salidas
+                                '648229AF845F8', //Agregar Salida
+                                'DE47ABBBCFAD4', //Editar Salida
+                                '5B8B1A76F1618'  //Eliminar Salida
                             ];
                 $permisos_jurisdiccion = [
                                 '37DC1A627A44E', //Editar Configuracion
@@ -73,7 +77,11 @@ class AutenticacionController extends Controller
                                 '2438B88CD5ECC', //Guardar Requisiciones
                                 'FF915DEC2F235', //Eliminar actas
                                 '97728B3AD53DB', //Ver pedidos
-                                '721A42C7F4693' //Recepción de pedidos
+                                '721A42C7F4693', //Recepción de pedidos
+                                'D894AC3542EBB', //Ver Salidas
+                                '648229AF845F8', //Agregar Salida
+                                'DE47ABBBCFAD4', //Editar Salida
+                                '5B8B1A76F1618'  //Eliminar Salida
                             ];
                             
                 $configuracion = Configuracion::where('clues',$usuario->clues)->first();
