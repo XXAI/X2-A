@@ -58,6 +58,9 @@ return array(
     'CrearTablaStockInsumos' => $baseDir . '/database/migrations/2016_09_15_190957_crear_tabla_stock_insumos.php',
     'CrearTablaUsuarios' => $baseDir . '/database/migrations/2016_07_14_001200_crear_tabla_usuarios.php',
     'CreateColumnRequisicionIdUnidad' => $baseDir . '/database/migrations/2016_10_27_140356_create_column_requisicion_id_unidad.php',
+    'CreateColumnSalidaActa' => $baseDir . '/database/migrations/2016_11_23_110100_create_column_salida_acta.php',
+    'CreateSalidas' => $baseDir . '/database/migrations/2016_11_14_105509_create_salidas.php',
+    'CreateSalidasDetalles' => $baseDir . '/database/migrations/2016_11_14_105519_create_salidas_detalles.php',
     'DOMPDF' => $vendorDir . '/dompdf/dompdf/include/dompdf.cls.php',
     'DOMPDF_Exception' => $vendorDir . '/dompdf/dompdf/include/dompdf_exception.cls.php',
     'DOMPDF_Image_Exception' => $vendorDir . '/dompdf/dompdf/include/dompdf_image_exception.cls.php',
@@ -696,5 +699,7 @@ return array(
     'Text_Frame_Reflower' => $vendorDir . '/dompdf/dompdf/include/text_frame_reflower.cls.php',
     'Text_Renderer' => $vendorDir . '/dompdf/dompdf/include/text_renderer.cls.php',
     'Text_Template' => $vendorDir . '/phpunit/php-text-template/src/Template.php',
+    'TipoSalida' => $baseDir . '/database/migrations/2016_11_15_110322_tipo_salida.php',
+    'TipoSalidaSeeder' => $baseDir . '/database/seeds/TipoSalidaSeeder.php',
     'UsuariosSeeder' => $baseDir . '/database/seeds/UsuariosSeeder.php',
 );

@@ -6,16 +6,16 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
 {
-    public static $files = array (
+    public static $files = array(
         '1d1b89d124cc9cb8219922c9d5569199' => __DIR__ . '/..' . '/hamcrest/hamcrest-php/hamcrest/Hamcrest.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         'e40631d46120a9c38ea139981f8dab26' => __DIR__ . '/..' . '/ircmaxell/password-compat/lib/password.php',
         'edc6464955a37aa4d5fbf39d40fb6ee7' => __DIR__ . '/..' . '/symfony/polyfill-php55/bootstrap.php',
         '3e2471375464aac821502deb0ac64275' => __DIR__ . '/..' . '/symfony/polyfill-php54/bootstrap.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
-        'bd9634f2d41831496de0d3dfe4c94881' => __DIR__ . '/..' . '/symfony/polyfill-php56/bootstrap.php',
         '3919eeb97e98d4648304477f8ef734ba' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/Crypt/Random.php',
         '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
+        'bd9634f2d41831496de0d3dfe4c94881' => __DIR__ . '/..' . '/symfony/polyfill-php56/bootstrap.php',
         '5255c38a0faeba867671b61dfda6d864' => __DIR__ . '/..' . '/paragonie/random_compat/lib/random.php',
         'e7223560d890eab89cda23685e711e2c' => __DIR__ . '/..' . '/psy/psysh/src/Psy/functions.php',
         'f0906e6318348a765ffb6eb24e0d0938' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Foundation/helpers.php',
@@ -65,6 +65,7 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         'P' => 
         array (
             'Psy\\' => 4,
+            'Psr\\Log\\' => 8,
             'PhpParser\\' => 10,
         ),
         'M' => 
@@ -209,6 +210,10 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         array (
             0 => __DIR__ . '/..' . '/psy/psysh/src/Psy',
         ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
         'PhpParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
@@ -277,10 +282,6 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         ),
         'P' => 
         array (
-            'Psr\\Log\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/psr/log',
-            ),
             'Prophecy\\' => 
             array (
                 0 => __DIR__ . '/..' . '/phpspec/prophecy/src',
@@ -430,6 +431,9 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         'CrearTablaStockInsumos' => __DIR__ . '/../..' . '/database/migrations/2016_09_15_190957_crear_tabla_stock_insumos.php',
         'CrearTablaUsuarios' => __DIR__ . '/../..' . '/database/migrations/2016_07_14_001200_crear_tabla_usuarios.php',
         'CreateColumnRequisicionIdUnidad' => __DIR__ . '/../..' . '/database/migrations/2016_10_27_140356_create_column_requisicion_id_unidad.php',
+        'CreateColumnSalidaActa' => __DIR__ . '/../..' . '/database/migrations/2016_11_23_110100_create_column_salida_acta.php',
+        'CreateSalidas' => __DIR__ . '/../..' . '/database/migrations/2016_11_14_105509_create_salidas.php',
+        'CreateSalidasDetalles' => __DIR__ . '/../..' . '/database/migrations/2016_11_14_105519_create_salidas_detalles.php',
         'DOMPDF' => __DIR__ . '/..' . '/dompdf/dompdf/include/dompdf.cls.php',
         'DOMPDF_Exception' => __DIR__ . '/..' . '/dompdf/dompdf/include/dompdf_exception.cls.php',
         'DOMPDF_Image_Exception' => __DIR__ . '/..' . '/dompdf/dompdf/include/dompdf_image_exception.cls.php',
@@ -1068,6 +1072,8 @@ class ComposerStaticInitc2c3710de72ae924edfa34b804b46fba
         'Text_Frame_Reflower' => __DIR__ . '/..' . '/dompdf/dompdf/include/text_frame_reflower.cls.php',
         'Text_Renderer' => __DIR__ . '/..' . '/dompdf/dompdf/include/text_renderer.cls.php',
         'Text_Template' => __DIR__ . '/..' . '/phpunit/php-text-template/src/Template.php',
+        'TipoSalida' => __DIR__ . '/../..' . '/database/migrations/2016_11_15_110322_tipo_salida.php',
+        'TipoSalidaSeeder' => __DIR__ . '/../..' . '/database/seeds/TipoSalidaSeeder.php',
         'UsuariosSeeder' => __DIR__ . '/../..' . '/database/seeds/UsuariosSeeder.php',
     );
 

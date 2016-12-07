@@ -36,6 +36,9 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::resource('solicitudes',              'SolicitudController',              ['only' => ['index', 'show', 'store','update','destroy']]);
     Route::resource('recepcion',                'RecepcionController',              ['only' => ['index', 'show', 'store']]);
 
+    Route::resource('salidas',                  'SalidaController',                 ['only' => ['index', 'show', 'store']]);
+    Route::resource('tipo-salidas',             'TipoSalidaController',             ['only' => ['index']]);
+
     Route::get('acta-pdf/{id}',                         'ActaController@generarActaPDF');
     Route::get('requisiciones-pdf/{id}',                'ActaController@generarRequisicionPDF');
     Route::get('requisicionesunidades-duplicar/{id}',   'RequisicionesUnidadController@duplicar');
