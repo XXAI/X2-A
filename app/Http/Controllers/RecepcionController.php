@@ -213,7 +213,11 @@ class RecepcionController extends Controller
                             $nuevo_ingreso->clues               = $configuracion->clues;
                             $nuevo_ingreso->insumo_id           = $insumo_id;
                             $nuevo_ingreso->lote                = $ingreso['lotes'][$i]['lote'];
-                            $nuevo_ingreso->fecha_caducidad     = $ingreso['lotes'][$i]['fecha_caducidad'];
+                            if(isset($ingreso['lotes'][$i]['fecha_caducidad'])){
+                                $nuevo_ingreso->fecha_caducidad     = $ingreso['lotes'][$i]['fecha_caducidad'];
+                            }else{
+                                $nuevo_ingreso->fecha_caducidad     = null;
+                            }
                             $nuevo_ingreso->cantidad_recibida   = $ingreso['lotes'][$i]['cantidad'];
 
                             $guardar_stock[] = $nuevo_ingreso;
@@ -228,7 +232,11 @@ class RecepcionController extends Controller
                                 $nuevo_ingreso->clues               = $configuracion->clues;
                                 $nuevo_ingreso->insumo_id           = $insumo_id;
                                 $nuevo_ingreso->lote                = $ingreso['lotes'][$i]['lote'];
-                                $nuevo_ingreso->fecha_caducidad     = $ingreso['lotes'][$i]['fecha_caducidad'];
+                                if(isset($ingreso['lotes'][$i]['fecha_caducidad'])){
+                                    $nuevo_ingreso->fecha_caducidad     = $ingreso['lotes'][$i]['fecha_caducidad'];
+                                }else{
+                                    $nuevo_ingreso->fecha_caducidad     = null;
+                                }
                                 $nuevo_ingreso->cantidad_recibida   = $ingreso['lotes'][$i]['cantidad'];
 
                                 $guardar_stock[] = $nuevo_ingreso;
