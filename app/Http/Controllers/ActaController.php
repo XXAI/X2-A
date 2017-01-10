@@ -239,11 +239,21 @@ class ActaController extends Controller
                 ])->find($id);
 
             $clues = [];
-            if($acta->estatus > 2 && $configuracion->tipo_clues == 2){
+            if($acta->estatus >= 2 && $configuracion->tipo_clues == 2){
                 foreach ($acta->requisiciones as $requisicion) {
                     $clues = array_merge($clues,$requisicion->insumosClues->lists('pivot.clues')->toArray());
                 }
                 $clues = Configuracion::whereIn('clues',$clues)->lists('clues_nombre','clues');
+            }else{
+                $unidad_clues = $configuracion->clues;
+                foreach ($acta->requisiciones as $requisicion) {
+                    $requisicion->insumos->load(['inventario' => function($query) use ($unidad_clues){
+                            $query->where('clues',$unidad_clues);
+                        }]);
+                }
+                /*$acta->requisiciones()->insumos()->load(['inventario' => function($query) use ($unidad_clues){
+                            $query->where('clues',$unidad_clues);
+                        }]);*/
             }
             return Response::json([ 'data' => $acta, 'configuracion'=>$configuracion, 'clues'=>$clues, 'captura_habilitada'=>$captura_habilitada->valor ], 200);
         }catch(Exception $ex){
@@ -390,7 +400,7 @@ class ActaController extends Controller
         $data['unidad'] = mb_strtoupper($configuracion->clues_nombre,'UTF-8');
         $data['empresa'] = $configuracion->empresa_nombre;
         $data['empresa_clave'] = $configuracion->empresa_clave;
-/*
+        /*
         $pdf = PDF::loadView('pdf.requisiciones', $data);
         $pdf->output();
         $dom_pdf = $pdf->getDomPDF();
@@ -399,7 +409,8 @@ class ActaController extends Controller
         $h = $canvas->get_height();
         $canvas->page_text(($w/2)-10, ($h-40), "{PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
 
-        return $pdf->stream($data['acta']->folio.'Requisiciones.pdf');*/
+        return $pdf->stream($data['acta']->folio.'Requisiciones.pdf');
+        */
 
         $nombre_archivo = str_replace("/","-",$data['acta']->folio);  
 
@@ -607,142 +618,138 @@ class ActaController extends Controller
                             $sheet->setColumnFormat(array(
                                 "F8:G$contador_filas" => '"$"#,##0.00_-'
                             ));
-/*
-                            $sheet->mergeCells('A1:G1');
-                            $sheet->row(1, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($pedido_proveedor['proveedor'],'UTF-8')));
+                            /*
+                                $sheet->mergeCells('A1:G1');
+                                $sheet->row(1, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($pedido_proveedor['proveedor'],'UTF-8')));
 
-                            $sheet->mergeCells('A2:G2'); 
-                            $sheet->row(2, array('No. DE OFICIO DE SOLICITUD DEL ÁREA MÉDICA: '.$acta->num_oficio));
+                                $sheet->mergeCells('A2:G2'); 
+                                $sheet->row(2, array('No. DE OFICIO DE SOLICITUD DEL ÁREA MÉDICA: '.$acta->num_oficio));
 
-                            $sheet->mergeCells('A3:G3'); 
-                            $sheet->row(3, array('ACTA: '.$acta->folio));
+                                $sheet->mergeCells('A3:G3'); 
+                                $sheet->row(3, array('ACTA: '.$acta->folio));
 
-                            $sheet->mergeCells('A4:G4'); 
-                            $sheet->row(4, array('LUGAR ENTREGA: '.$pedido_proveedor['lugar_entrega']));
+                                $sheet->mergeCells('A4:G4'); 
+                                $sheet->row(4, array('LUGAR ENTREGA: '.$pedido_proveedor['lugar_entrega']));
 
-                            $sheet->mergeCells('A5:G5'); 
-                            $sheet->row(5, array('No. DE REQUISICIÓN: '.$pedido_proveedor['no_requisicion']));
+                                $sheet->mergeCells('A5:G5'); 
+                                $sheet->row(5, array('No. DE REQUISICIÓN: '.$pedido_proveedor['no_requisicion']));
 
-                            $sheet->mergeCells('A6:G6'); 
-                           
-                            $sheet->row(6, array('FECHA: '.date('d/m/Y', strtotime($acta->fecha_termino))));
-                            
-                            $sheet->row(7, array(
-                                'No. DE LOTE', 'CLAVE','DESCRIPCIÓN DE LOS INSUMOS','CANTIDAD','UNIDAD DE MEDIDA','PRECIO UNITARIO','PRECIO TOTAL'
-                            ));
-                            $sheet->row(1, function($row) {
-                                $row->setBackground('#DDDDDD');
-                                $row->setFontWeight('bold');
-                                $row->setFontSize(16);
-                            });
+                                $sheet->mergeCells('A6:G6'); 
+                               
+                                $sheet->row(6, array('FECHA: '.date('d/m/Y', strtotime($acta->fecha_termino))));
+                                
+                                $sheet->row(7, array(
+                                    'No. DE LOTE', 'CLAVE','DESCRIPCIÓN DE LOS INSUMOS','CANTIDAD','UNIDAD DE MEDIDA','PRECIO UNITARIO','PRECIO TOTAL'
+                                ));
+                                $sheet->row(1, function($row) {
+                                    $row->setBackground('#DDDDDD');
+                                    $row->setFontWeight('bold');
+                                    $row->setFontSize(16);
+                                });
 
-                            $sheet->row(2, function($row) {
-                                $row->setBackground('#DDDDDD');
-                                $row->setFontWeight('bold');
-                                $row->setFontSize(14);
-                            });
-                             $sheet->row(3, function($row) {
-                                $row->setBackground('#DDDDDD');
-                                $row->setFontWeight('bold');
-                                $row->setFontSize(14);
-                            });
-                             $sheet->row(4, function($row) {
-                                $row->setBackground('#DDDDDD');
-                                $row->setFontWeight('bold');
-                                $row->setFontSize(14);
-                            });
+                                $sheet->row(2, function($row) {
+                                    $row->setBackground('#DDDDDD');
+                                    $row->setFontWeight('bold');
+                                    $row->setFontSize(14);
+                                });
+                                 $sheet->row(3, function($row) {
+                                    $row->setBackground('#DDDDDD');
+                                    $row->setFontWeight('bold');
+                                    $row->setFontSize(14);
+                                });
+                                 $sheet->row(4, function($row) {
+                                    $row->setBackground('#DDDDDD');
+                                    $row->setFontWeight('bold');
+                                    $row->setFontSize(14);
+                                });
 
-                            $sheet->row(5, function($row) {
-                                $row->setBackground('#DDDDDD');
-                                $row->setFontWeight('bold');
-                                $row->setFontSize(14);
-                            });
+                                $sheet->row(5, function($row) {
+                                    $row->setBackground('#DDDDDD');
+                                    $row->setFontWeight('bold');
+                                    $row->setFontSize(14);
+                                });
 
-                            $sheet->row(6, function($row) {
-                                $row->setBackground('#DDDDDD');
-                                $row->setFontWeight('bold');
-                                $row->setFontSize(14);
-                            });
+                                $sheet->row(6, function($row) {
+                                    $row->setBackground('#DDDDDD');
+                                    $row->setFontWeight('bold');
+                                    $row->setFontSize(14);
+                                });
 
-                            $sheet->row(7, function($row) {
-                                // call cell manipulation methods
-                                $row->setBackground('#DDDDDD');
-                                $row->setFontWeight('bold');
+                                $sheet->row(7, function($row) {
+                                    // call cell manipulation methods
+                                    $row->setBackground('#DDDDDD');
+                                    $row->setFontWeight('bold');
 
-                            });
+                                });
 
-                            $contador_filas = 7;
-                            foreach ($pedido_proveedor['insumos'] as $insumo) {
-                              
+                                $contador_filas = 7;
+                                foreach ($pedido_proveedor['insumos'] as $insumo) {
+                                  
+                                    $sheet->appendRow(array(
+                                        $insumo['lote'], 
+                                        $insumo['clave'],
+                                        $insumo['descripcion'],
+                                        $insumo['pivot']['cantidad_aprovada'],
+                                        $insumo['unidad'],
+                                        $insumo['precio'],
+                                        $insumo['pivot']['total_aprovado']
+                                    ));
+                                    $contador_filas += 1;
+                                }
                                 $sheet->appendRow(array(
-                                    $insumo['lote'], 
-                                    $insumo['clave'],
-                                    $insumo['descripcion'],
-                                    $insumo['pivot']['cantidad_aprovada'],
-                                    $insumo['unidad'],
-                                    $insumo['precio'],
-                                    $insumo['pivot']['total_aprovado']
+                                        '', 
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        'SUBTOTAL',
+                                        $pedido_proveedor['sub_total']
+                                    ));
+                                $sheet->appendRow(array(
+                                        '', 
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        'IVA',
+                                        $pedido_proveedor['iva']
+                                    ));
+                                $sheet->appendRow(array(
+                                        '', 
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        'TOTAL',
+                                        $pedido_proveedor['gran_total']
+                                    ));
+
+                                $contador_filas += 3;
+
+                                $sheet->setBorder("A1:G$contador_filas", 'thin');
+
+
+                                $sheet->cells("F1:G$contador_filas", function($cells) {
+
+                                    $cells->setAlignment('right');
+
+                                });
+
+                                $sheet->cells("A7:A$contador_filas", function($cells) {
+                                    $cells->setAlignment('center');
+                                });
+                                $sheet->cells("B7:B$contador_filas", function($cells) {
+                                    $cells->setAlignment('center');
+                                });
+                                $sheet->cells("D7:D$contador_filas", function($cells) {
+                                    $cells->setAlignment('center');
+                                });
+
+                                $sheet->setColumnFormat(array(
+                                    "F8:G$contador_filas" => '"$"#,##0.00_-'
                                 ));
-                                $contador_filas += 1;
-                            }
-                            $sheet->appendRow(array(
-                                    '', 
-                                    '',
-                                    '',
-                                    '',
-                                    '',
-                                    'SUBTOTAL',
-                                    $pedido_proveedor['sub_total']
-                                ));
-                            $sheet->appendRow(array(
-                                    '', 
-                                    '',
-                                    '',
-                                    '',
-                                    '',
-                                    'IVA',
-                                    $pedido_proveedor['iva']
-                                ));
-                            $sheet->appendRow(array(
-                                    '', 
-                                    '',
-                                    '',
-                                    '',
-                                    '',
-                                    'TOTAL',
-                                    $pedido_proveedor['gran_total']
-                                ));
-
-                            $contador_filas += 3;
-
-                            $sheet->setBorder("A1:G$contador_filas", 'thin');
-
-
-                            $sheet->cells("F1:G$contador_filas", function($cells) {
-
-                                $cells->setAlignment('right');
-
-                            });
-
-                            $sheet->cells("A7:A$contador_filas", function($cells) {
-                                $cells->setAlignment('center');
-                            });
-                            $sheet->cells("B7:B$contador_filas", function($cells) {
-                                $cells->setAlignment('center');
-                            });
-                            $sheet->cells("D7:D$contador_filas", function($cells) {
-                                $cells->setAlignment('center');
-                            });
-
-                            $sheet->setColumnFormat(array(
-                                "F8:G$contador_filas" => '"$"#,##0.00_-'
-                            ));*/
-
-                           
-                            
-                             
-
-                        });
+                            */
+                });
             }
 
             /*
@@ -910,10 +917,6 @@ class ActaController extends Controller
                     }
                     
                 }
-                
-
-                
-                        
             } */
         })->export('xls');
     }
@@ -1253,7 +1256,8 @@ class ActaController extends Controller
                     return Response::json(['error' => 'Esta opción no esta disponible por el momento.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
                 }
                 
-                $max_acta = Acta::where('folio','like',$configuracion->clues.'/%')->max('numero');
+                $anio = date('Y');
+                $max_acta = Acta::where('folio','like',$configuracion->clues.'/%/'.$anio)->max('numero');
                 if(!$max_acta){
                     $max_acta = 0;
                 }

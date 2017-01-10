@@ -38,9 +38,18 @@ class InsumoController extends Controller {
 			$insumos = Insumo::getModel();
 		}
 
+		if(Input::get('clues')){
+			$clues = Input::get('clues');
+		}else{
+			$clues = $configuracion->clues;
+		}
+
 		$insumos = $insumos->select('id','llave','pedido','requisicion','lote','clave','descripcion', 'llave',
 						'marca','unidad','cantidad','precio','tipo','cause','controlado','surfactante')
 						->where('proveedor',$empresa)
+						->with(['inventario' => function($query) use ($clues){
+							$query->where('clues',$clues);
+						}])
 						->orderBy('tipo')
 						->orderBy('precio')
 						->get();

@@ -594,7 +594,8 @@ class SolicitudController extends Controller
             $inputs['coordinador_comision_abasto'] = $configuracion->coordinador_comision_abasto;
 
             if($inputs['estatus'] == 2 && $acta->estatus != 2){
-                $max_acta = Acta::where('folio','like',$configuracion->clues.'/%')->max('numero');
+                $anio = date('Y');
+                $max_acta = Acta::where('folio','like',$configuracion->clues.'/%/'.$anio)->max('numero');
                 if(!$max_acta){
                     $max_acta = 0;
                 }

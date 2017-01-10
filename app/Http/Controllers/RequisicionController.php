@@ -12,6 +12,7 @@ use App\Models\Requisicion;
 use App\Models\Configuracion;
 use App\Models\Insumo;
 use App\Models\Usuario;
+use App\Models\Inventario;
 use App\Models\ConfiguracionAplicacion;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
@@ -38,14 +39,18 @@ class RequisicionController extends Controller
             }else{
                 $requisiciones = [];
             }*/
-
+            $anio = date('Y');
             $clues = Configuracion::select('clues','clues_nombre as nombre','municipio','localidad','jurisdiccion','lista_base_id')
                             //->where('empresa_clave',$empresa)
                             ->with(['cuadroBasico'=>function($query)use($empresa){
                                 $query->select('lista_base_insumos_id',$empresa.' AS llave');
                             }])
                             ->whereIn('tipo_clues',[1,2]);
-
+            /*
+            ,'inventario'=>function($query)use($anio){
+                                $query->groupBy('clues','llave')->where('anio',$anio);
+            }
+            */
             if($configuracion->caravana_region){
                 $clues = $clues->where('caravana_region',$configuracion->caravana_region);
             }else{
@@ -53,6 +58,9 @@ class RequisicionController extends Controller
             }
 
             $clues = $clues->get();
+
+            //$query = DB::getQueryLog();
+            //$lastQuery = end($query);
 
             //Arreglo de solo las clues, para identificar los insumos pertenecientes al mismo grupo de clues
             $listado_clues = $clues->lists('clues');
@@ -69,13 +77,25 @@ class RequisicionController extends Controller
                 $insumos = [];
             }
 
+            $anio = date('Y');
+            $inventario_raw = Inventario::whereIn('clues',$listado_clues)->where('anio',$anio)->get();
+            $inventario = [];
+
+            for($index = 0, $total = count($inventario_raw); $index < $total; $index++) {
+                $inventario_item = $inventario_raw[$index];
+                if(!isset($inventario[$inventario_item->clues])){
+                    $inventario[$inventario_item->clues] = [];
+                }
+                $inventario[$inventario_item->clues][$inventario_item->llave] = $inventario_item;
+            }
+
             if($configuracion->empresa_clave == 'exfarma'){
                 $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura_exfarma');
             }else{
                 $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
             }
             
-            return Response::json(['data'=>$insumos, 'clues'=>$clues, 'configuracion'=>$configuracion, 'captura_habilitada'=>$captura_habilitada->valor],200);
+            return Response::json(['data'=>$insumos, 'clues'=>$clues, 'configuracion'=>$configuracion, 'captura_habilitada'=>$captura_habilitada->valor, 'inventario' => $inventario],200);
         }catch(Exception $ex){
             return Response::json(['error'=>$e->getMessage()],500);
         }
@@ -228,7 +248,8 @@ class RequisicionController extends Controller
                     return Response::json(['error' => 'Esta opción no esta disponible por el momento.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
                 }
 
-                $max_acta = Acta::where('folio','like',$clues.'/%')->max('numero');
+                $anio = date('Y');
+                $max_acta = Acta::where('folio','like',$clues.'/%/'.$anio)->max('numero');
                 if(!$max_acta){
                     $max_acta = 0;
                 }
@@ -439,8 +460,7 @@ class RequisicionController extends Controller
         return trim($decrypttext);
     }
 
-    public function importar(Request $request)
-    {
+    public function importar(Request $request){
 
         if(Input::hasFile('zipfile')){
             $path_provisional = "/app/imports/unidades/";

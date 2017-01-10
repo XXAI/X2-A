@@ -12,9 +12,11 @@ class ModificarTablaActasAgregarCampoFechaPedido extends Migration
      */
     public function up()
     {
-        Schema::table('actas', function (Blueprint $table) {
-            $table->date('fecha_pedido')->after('fecha_validacion')->nullable();
-        });
+        if(!Schema::hasColumn('actas', 'fecha_pedido')) {
+            Schema::table('actas', function (Blueprint $table) {
+                $table->date('fecha_pedido')->after('fecha_validacion')->nullable();
+            });
+        }
     }
 
     /**
