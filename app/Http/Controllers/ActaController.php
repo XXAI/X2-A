@@ -921,6 +921,227 @@ class ActaController extends Controller
         })->export('xls');
     }
 
+    public function generarExcelDesglosado($id) {
+        $meses = ['01'=>'ENERO','02'=>'FEBRERO','03'=>'MARZO','04'=>'ABRIL','05'=>'MAYO','06'=>'JUNIO','07'=>'JULIO','08'=>'AGOSTO','09'=>'SEPTIEMBRE','10'=>'OCTUBRE','11'=>'NOVIEMBRE','12'=>'DICIEMBRE'];
+        $data = [];
+        $data['acta'] = Acta::find($id);
+
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
+
+        if($data['acta']->estatus > 2){
+            $data['acta']->load([
+                'requisiciones'=>function($query){
+                    $query->where('gran_total_validado','>',0);
+                },'requisiciones.insumosClues'=>function($query){
+                    $query->wherePivot('total_validado','>',0)
+                        ->orderBy('lote')->orderBy('clues');
+                }
+            ]);
+        }else{
+            $data['acta']->load(['requisiciones.insumosClues'=>function($query){
+                $query->orderBy('clues')->orderBy('lote');
+            }]);
+        }
+
+        $clues = [];
+        foreach ($data['acta']->requisiciones as $requisicion) {
+            $clues = array_merge($clues,$requisicion->insumosClues->lists('pivot.clues')->toArray());
+        }
+        $data['clues'] = Configuracion::whereIn('clues',$clues)->lists('clues_nombre','clues');
+
+        $fecha = explode('-',$data['acta']->fecha);
+        $fecha[1] = $meses[$fecha[1]];
+        $data['acta']->fecha = $fecha;
+
+        $data['unidad'] = mb_strtoupper($configuracion->clues_nombre,'UTF-8');
+        $data['empresa'] = $configuracion->empresa_nombre;
+        $data['empresa_clave'] = $configuracion->empresa_clave;
+
+        $nombre_archivo = str_replace("/","-",$data['acta']->folio);  
+
+        Excel::create($nombre_archivo, function($excel) use($data) {
+            $unidad = $data['unidad'];
+            $acta = $data['acta'];
+            $clues = $data['clues'];
+            $requisiciones = $acta->requisiciones;
+
+            foreach($requisiciones as $index => $requisicion) {
+                $tipo  = '';
+                switch($requisicion->tipo_requisicion) {
+                    case 1: $tipo = "MEDICAMENTOS CAUSES"; break;
+                    case 2: $tipo = "MEDICAMENTOS NO CAUSES"; break;
+                    case 3: $tipo = "MATERIAL DE CURACION"; break;
+                    case 4: $tipo = "MEDICAMENTOS CONTROLADOS"; break;
+                    case 5: $tipo = "FACTOR SURFACTANTE (CAUSES)"; break;
+                    case 6: $tipo = "FACTOR SURFACTANTE (NO CAUSES)"; break;
+                    
+                }
+                
+                $excel->sheet($tipo, function($sheet) use($requisicion,$acta,$unidad,$clues) {
+                            $sin_validar = '';
+                            if($acta->estatus < 3 ) {$sin_validar = " (SIN VALIDAR)";}
+                            $sheet->setAutoSize(true);
+
+                            $sheet->mergeCells('A1:I1');
+                            $sheet->row(1, array('ACTA: '.$acta->folio.$sin_validar));
+                            //$sheet->row(1, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($pedido_proveedor['proveedor'],'UTF-8')));
+
+                            $sheet->mergeCells('A2:I2'); 
+                            $sheet->row(2, array('UNIDAD: '.$unidad));
+                            //$sheet->row(2, array('REQUISICIÓN NO.: '.$requisicion->numero));
+
+                            $sheet->mergeCells('A3:I3'); 
+                            $sheet->row(3, array('PEDIDO: '.$requisicion->pedido));
+
+                            $sheet->mergeCells('A4:I4'); 
+                            $sheet->row(4, array('No. DE REQUISICIÓN: '.$requisicion->numero));
+                            
+
+                            $sheet->mergeCells('A5:I5'); 
+                            $sheet->row(5, array('FECHA: '.$acta->fecha[2]." DE ".$acta->fecha[1]." DEL ".$acta->fecha[0]));
+
+                            $sheet->mergeCells('A6:I6');
+                            $sheet->row(6, array(''));
+
+                            $sheet->row(7, array(
+                                'CLUES','NOMBRE','No. DE LOTE', 'CLAVE','DESCRIPCIÓN DE LOS INSUMOS','CANTIDAD','UNIDAD DE MEDIDA','PRECIO UNITARIO','PRECIO TOTAL'
+                            ));
+                            $sheet->row(1, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(16);
+                            });
+
+                            $sheet->row(2, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(3, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(4, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(5, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(6, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(7, function($row) {
+                                // call cell manipulation methods
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+
+                            });
+
+                            $contador_filas = 7;
+
+                            if($acta->estatus < 3){
+                                $cantidad = 'cantidad';
+                                $total = 'total';
+                            }else{
+                                $cantidad = 'cantidad_validada';
+                                $total = 'total_validado';
+                            }
+
+                            foreach($requisicion->insumosClues as $indice => $insumo){
+                                $sheet->appendRow(array(
+                                    $insumo['pivot']['clues'],
+                                    $clues[$insumo['pivot']['clues']],
+                                    $insumo['lote'], 
+                                    $insumo['clave'],
+                                    $insumo['descripcion'],
+                                    $insumo['pivot'][$cantidad],
+                                    $insumo['unidad'],
+                                    $insumo['precio'],
+                                    $insumo['pivot'][$total]
+                                ));
+
+                                $contador_filas += 1;
+                            }
+                            
+                            $sheet->appendRow(array(
+                                '', 
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                'SUBTOTAL',
+                                '=SUM(I8:I'.$contador_filas.')'
+                            ));
+
+                            if($requisicion->tipo_requisicion == 3){
+                                $iva = '=I'.($contador_filas+1).'*16/100';
+                            }else{
+                                $iva = '0.0';
+                            }
+
+                            $sheet->appendRow(array(
+                                '', 
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                'IVA',
+                                $iva
+                            ));
+
+                            $sheet->appendRow(array(
+                                '', 
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                'TOTAL',
+                                '=SUM(I'.($contador_filas+1).':I'.($contador_filas+2).')'
+                            ));
+
+                            $contador_filas += 3;
+
+                            $sheet->setBorder("A1:I$contador_filas", 'thin');
+
+                            $sheet->cells("H1:I$contador_filas", function($cells) {
+                                $cells->setAlignment('right');
+                            });
+
+                            $sheet->cells("C7:C$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("D7:D$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("F7:F$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+
+                            $sheet->setColumnFormat(array(
+                                "H8:I$contador_filas" => '"$"#,##0.00_-'
+                            ));
+                });
+            }
+        })->export('xls');
+    }
+
     function encryptData($value){
        $key = "1C6B37CFCDF98AB8FA29E47E4B8EF1F3";
        $text = $value;

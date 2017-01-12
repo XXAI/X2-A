@@ -48,6 +48,8 @@ Route::group(['middleware' => 'jwt'], function () {
 
     //Excel
     Route::get('acta-excel/{id}',                       'ActaController@generarExcel');
+    Route::get('acta-excel-desglose/{id}',              'ActaController@generarExcelDesglosado');
+    Route::get('requisiciones-excel',                   'RequisicionController@generarExcel');
 
     Route::get('sincronizar-entrada/{id}',           'RecepcionController@sincronizar');
     Route::get('ver-entrada/{id}',                   'RecepcionController@showEntrada');
