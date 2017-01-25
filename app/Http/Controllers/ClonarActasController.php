@@ -51,6 +51,7 @@ class ClonarActasController extends Controller{
             DB::table('requisicion_insumo_clues')->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->delete();
 
             $lista_insumos = [];
+            $sin_repetir = [];
             foreach ($acta->requisiciones as $requisicion) {
                 foreach ($requisicion->insumosClues as $req_insumo) {
 
@@ -61,6 +62,16 @@ class ClonarActasController extends Controller{
                     if($acta->estatus > 2){
                         $req_insumo->pivot->cantidad = $req_insumo->pivot->cantidad_validada;
                         $req_insumo->pivot->total = $req_insumo->pivot->total_validado;
+                    }
+
+                    if(!isset($sin_repetir[$req_insumo->pivot->clues])){
+                        $sin_repetir[$req_insumo->pivot->clues] = [];
+                    }
+
+                    if(!isset($sin_repetir[$req_insumo->pivot->clues][$req_insumo->id])){
+                        $sin_repetir[$req_insumo->pivot->clues][$req_insumo->id] = true;
+                    }else{
+                        continue;
                     }
 
                     $lista_insumos[] = [
