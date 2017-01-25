@@ -47,6 +47,7 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('exportar-csv-unidad/{id}',              'RequisicionesUnidadController@generarJSON');
 
     Route::put('clonar-acta/{id}',                      'ClonarActasController@clonar');
+    Route::put('clonar-acta-jurisdiccion/{id}',         'ClonarActasController@clonarJurisdiccion');
 
     //Excel
     Route::get('acta-excel/{id}',                       'ActaController@generarExcel');

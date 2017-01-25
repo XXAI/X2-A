@@ -15,6 +15,75 @@ use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive, DateTime, Exc
 
 class ClonarActasController extends Controller{
     
+    public function clonarJurisdiccion(Request $request, $id){
+        try{
+            $usuario = JWTAuth::parseToken()->getPayload();
+            $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
+
+            if($configuracion->tipo_clues != 2){
+                return Response::json(['error' => 'La herramienta para clonar no se encuentra disponible en este momento','error_type'=>'data_validation'], 500);
+            }
+
+            $acta = Acta::with('requisiciones.insumosClues')->find($id);
+
+            if(!$acta){
+                return Response::json(['error' => 'Acta a clonar no encontrada','error_type'=>'data_validation'], 500);
+            }
+
+            DB::beginTransaction();
+
+            //Eliminar datos capturados
+            $clues = Configuracion::select('clues')->whereIn('tipo_clues',[1,2]);
+            /*
+            ,'inventario'=>function($query)use($anio){
+                                $query->groupBy('clues','llave')->where('anio',$anio);
+            }
+            */
+            if($configuracion->caravana_region){
+                $clues = $clues->where('caravana_region',$configuracion->caravana_region);
+            }else{
+                $clues = $clues->where('jurisdiccion',$configuracion->jurisdiccion)->whereNull('caravana_region');
+            }
+
+            $clues = $clues->get();
+            $listado_clues = $clues->lists('clues');
+
+            DB::table('requisicion_insumo_clues')->whereNull('requisicion_id')->whereIn('clues',$listado_clues)->delete();
+
+            $lista_insumos = [];
+            foreach ($acta->requisiciones as $requisicion) {
+                foreach ($requisicion->insumosClues as $req_insumo) {
+
+                    if($acta->estatus > 2 && $req_insumo->pivot->cantidad_validada <= 0){
+                        continue;
+                    }
+
+                    if($acta->estatus > 2){
+                        $req_insumo->pivot->cantidad = $req_insumo->pivot->cantidad_validada;
+                        $req_insumo->pivot->total = $req_insumo->pivot->total_validado;
+                    }
+
+                    $lista_insumos[] = [
+                        'insumo_id'         => $req_insumo->id,
+                        'clues'             => $req_insumo->pivot->clues,
+                        'cantidad'          => $req_insumo->pivot->cantidad,
+                        'total'             => $req_insumo->pivot->total,
+                        'usuario'           => $usuario->get('id')
+                    ];
+                }
+            }
+
+            DB::table('requisicion_insumo_clues')->insert($lista_insumos);
+
+            DB::commit();
+
+            return Response::json([ 'data' => count($lista_insumos)], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return Response::json(['error' => $e->getMessage(), 'line' => $e->getLine()], HttpResponse::HTTP_CONFLICT);
+        }
+    }
+
     public function clonar(Request $request, $id){
         try{
             $usuario = JWTAuth::parseToken()->getPayload();
