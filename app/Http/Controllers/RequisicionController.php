@@ -12,10 +12,12 @@ use App\Models\Requisicion;
 use App\Models\Configuracion;
 use App\Models\Insumo;
 use App\Models\Usuario;
+use App\Models\Inventario;
 use App\Models\ConfiguracionAplicacion;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive;
+use \Excel;
 
 class RequisicionController extends Controller
 {
@@ -38,14 +40,18 @@ class RequisicionController extends Controller
             }else{
                 $requisiciones = [];
             }*/
-
+            $anio = date('Y');
             $clues = Configuracion::select('clues','clues_nombre as nombre','municipio','localidad','jurisdiccion','lista_base_id')
                             //->where('empresa_clave',$empresa)
                             ->with(['cuadroBasico'=>function($query)use($empresa){
                                 $query->select('lista_base_insumos_id',$empresa.' AS llave');
                             }])
                             ->whereIn('tipo_clues',[1,2]);
-
+            /*
+            ,'inventario'=>function($query)use($anio){
+                                $query->groupBy('clues','llave')->where('anio',$anio);
+            }
+            */
             if($configuracion->caravana_region){
                 $clues = $clues->where('caravana_region',$configuracion->caravana_region);
             }else{
@@ -53,6 +59,9 @@ class RequisicionController extends Controller
             }
 
             $clues = $clues->get();
+
+            //$query = DB::getQueryLog();
+            //$lastQuery = end($query);
 
             //Arreglo de solo las clues, para identificar los insumos pertenecientes al mismo grupo de clues
             $listado_clues = $clues->lists('clues');
@@ -69,13 +78,25 @@ class RequisicionController extends Controller
                 $insumos = [];
             }
 
+            $anio = date('Y');
+            $inventario_raw = Inventario::whereIn('clues',$listado_clues)->where('anio',$anio)->get();
+            $inventario = [];
+
+            for($index = 0, $total = count($inventario_raw); $index < $total; $index++) {
+                $inventario_item = $inventario_raw[$index];
+                if(!isset($inventario[$inventario_item->clues])){
+                    $inventario[$inventario_item->clues] = [];
+                }
+                $inventario[$inventario_item->clues][$inventario_item->llave] = $inventario_item;
+            }
+
             if($configuracion->empresa_clave == 'exfarma'){
                 $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura_exfarma');
             }else{
                 $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
             }
             
-            return Response::json(['data'=>$insumos, 'clues'=>$clues, 'configuracion'=>$configuracion, 'captura_habilitada'=>$captura_habilitada->valor],200);
+            return Response::json(['data'=>$insumos, 'clues'=>$clues, 'configuracion'=>$configuracion, 'captura_habilitada'=>$captura_habilitada->valor, 'inventario' => $inventario],200);
         }catch(Exception $ex){
             return Response::json(['error'=>$e->getMessage()],500);
         }
@@ -228,7 +249,8 @@ class RequisicionController extends Controller
                     return Response::json(['error' => 'Esta opción no esta disponible por el momento.', 'error_type'=>'data_validation'], HttpResponse::HTTP_CONFLICT);
                 }
 
-                $max_acta = Acta::where('folio','like',$clues.'/%')->max('numero');
+                $anio = date('Y');
+                $max_acta = Acta::where('folio','like',$clues.'/%/'.$anio)->max('numero');
                 if(!$max_acta){
                     $max_acta = 0;
                 }
@@ -439,8 +461,7 @@ class RequisicionController extends Controller
         return trim($decrypttext);
     }
 
-    public function importar(Request $request)
-    {
+    public function importar(Request $request){
 
         if(Input::hasFile('zipfile')){
             $path_provisional = "/app/imports/unidades/";
@@ -468,5 +489,272 @@ class RequisicionController extends Controller
             Storage::delete($filename);
             return Response::json([ 'data' => $json  ],200);
         }
+    }
+
+    public function generarExcel() {
+        $meses = ['01'=>'ENERO','02'=>'FEBRERO','03'=>'MARZO','04'=>'ABRIL','05'=>'MAYO','06'=>'JUNIO','07'=>'JULIO','08'=>'AGOSTO','09'=>'SEPTIEMBRE','10'=>'OCTUBRE','11'=>'NOVIEMBRE','12'=>'DICIEMBRE'];
+        $data = [];
+
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
+        $empresa = $configuracion->empresa_clave;
+
+        $clues = Configuracion::select('clues','clues_nombre as nombre','municipio','localidad','jurisdiccion','lista_base_id')
+                        //->where('empresa_clave',$empresa)
+                        ->with(['cuadroBasico'=>function($query)use($empresa){
+                            $query->select('lista_base_insumos_id',$empresa.' AS llave');
+                        }])
+                        ->whereIn('tipo_clues',[1,2]);
+        
+        if($configuracion->caravana_region){
+            $clues = $clues->where('caravana_region',$configuracion->caravana_region);
+        }else{
+            $clues = $clues->where('jurisdiccion',$configuracion->jurisdiccion)->whereNull('caravana_region');
+        }
+
+        $clues = $clues->get();
+
+        //$query = DB::getQueryLog();
+        //$lastQuery = end($query);
+
+        //Arreglo de solo las clues, para identificar los insumos pertenecientes al mismo grupo de clues
+        $listado_clues = $clues->lists('clues');
+        $insumos = DB::table('requisicion_insumo_clues')
+                        ->leftjoin('insumos','insumos.id','=','requisicion_insumo_clues.insumo_id')
+                        ->select('insumos.*','requisicion_insumo_clues.*')
+                        ->whereNull('requisicion_id')
+                        ->whereIn('requisicion_insumo_clues.clues',$listado_clues)
+                        ->orderBy('insumos.lote','ASC')
+                        ->get();
+
+        $data['requisiciones'] = [];
+        $clues_capturadas = [];
+        for ($index = 0, $total = count($insumos) ; $index < $total ; $index++) { 
+            $insumo = $insumos[$index];
+            
+            $tipo_requisicion = 0;
+
+            if($insumo->tipo == 1 && $insumo->cause == 1 && $insumo->surfactante == 1){
+                $tipo_requisicion = 5;
+            }else if($insumo->tipo == 1 && $insumo->cause == 0 && $insumo->surfactante == 1){
+                $tipo_requisicion = 6;
+            }else if($insumo->tipo == 1 && $insumo->cause == 1 && $insumo->controlado == 0){
+                $tipo_requisicion = 1;
+            }else if($insumo->tipo == 1 && $insumo->cause == 0){
+                $tipo_requisicion = 2;
+            }else if($insumo->tipo == 2 && $insumo->cause == 0){
+                $tipo_requisicion = 3;
+            }else if($insumo->tipo == 1 && $insumo->cause == 1 && $insumo->controlado == 1){
+                $tipo_requisicion = 4;
+            }
+
+            if(!isset($data['requisiciones'][$tipo_requisicion])){
+                $data['requisiciones'][$tipo_requisicion] = [
+                    'pedido' => $insumo->pedido,
+                    'insumos_por_clues' => []
+                ];
+            }
+
+            if(!isset($data['requisiciones'][$tipo_requisicion]['insumos_por_clues'][$insumo->clues])){
+                $data['requisiciones'][$tipo_requisicion]['insumos_por_clues'][$insumo->clues] = [];
+            }
+            $data['requisiciones'][$tipo_requisicion]['insumos_por_clues'][$insumo->clues][] = $insumo;
+
+            if(!isset($clues_capturadas[$insumo->clues])){
+                $clues_capturadas[$insumo->clues] = true;
+            }
+        }
+
+        $data['datos_clues'] = [];
+        for ($index = 0, $total = count($clues) ; $index < $total ; $index++) {
+            $datos_clues = $clues[$index];
+            if(isset($clues_capturadas[$datos_clues->clues])){
+                $data['datos_clues'][$datos_clues->clues] = $datos_clues;
+            }
+        }
+
+        $data['unidad'] = mb_strtoupper($configuracion->clues_nombre,'UTF-8');
+        $data['empresa'] = $configuracion->empresa_nombre;
+        $data['empresa_clave'] = $configuracion->empresa_clave;
+
+        $fecha = explode('-',date('Y-m-d'));
+        $fecha[1] = $meses[$fecha[1]];
+        $data['fecha'] = $fecha;
+        
+        $nombre_archivo = 'Requisiciones-'.$configuracion->clues;
+
+        //return Response::json(['data' => $data], 200);
+
+        Excel::create($nombre_archivo, function($excel) use($data) {
+            $requisiciones = $data['requisiciones'];
+
+            foreach($requisiciones as $tipo_requisicion => $requisicion) {
+                $tipo  = '';
+                switch($tipo_requisicion) {
+                    case 1: $tipo = "MEDICAMENTOS CAUSES"; break;
+                    case 2: $tipo = "MEDICAMENTOS NO CAUSES"; break;
+                    case 3: $tipo = "MATERIAL DE CURACION"; break;
+                    case 4: $tipo = "MEDICAMENTOS CONTROLADOS"; break;
+                    case 5: $tipo = "FACTOR SURFACTANTE (CAUSES)"; break;
+                    case 6: $tipo = "FACTOR SURFACTANTE (NO CAUSES)"; break;
+                    
+                }
+                
+                $excel->sheet($tipo, function($sheet) use($requisicion,$tipo_requisicion,$data) {
+                            $sheet->setAutoSize(true);
+
+                            $sheet->mergeCells('A1:I1');
+                            $sheet->row(1, array('UNIDAD: '.$data['unidad']));
+                            //$sheet->row(1, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($pedido_proveedor['proveedor'],'UTF-8')));
+
+                            $sheet->mergeCells('A2:I2'); 
+                            $sheet->row(2, array('PEDIDO: '.$requisicion['pedido']));
+                            //$sheet->row(2, array('REQUISICIÓN NO.: '.$requisicion->numero));
+
+                            $sheet->mergeCells('A3:I3'); 
+                            $sheet->row(3, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($data['empresa'],'UTF-8')));
+
+                            $sheet->mergeCells('A4:I4'); 
+                            $sheet->row(4, array('FECHA: '.$data['fecha'][2]." DE ".$data['fecha'][1]." DEL ".$data['fecha'][0]));
+                            
+
+                            $sheet->mergeCells('A5:I5'); 
+                            $sheet->row(5, array(''));
+
+                            $sheet->mergeCells('A6:I6');
+                            $sheet->row(6, array(''));
+
+                            $sheet->row(7, array(
+                                'CLUES','NOMBRE','No. DE LOTE', 'CLAVE','DESCRIPCIÓN DE LOS INSUMOS','CANTIDAD','UNIDAD DE MEDIDA','PRECIO UNITARIO','PRECIO TOTAL'
+                            ));
+                            $sheet->row(1, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(16);
+                            });
+
+                            $sheet->row(2, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(3, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+                             $sheet->row(4, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(5, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(6, function($row) {
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+                                $row->setFontSize(14);
+                            });
+
+                            $sheet->row(7, function($row) {
+                                // call cell manipulation methods
+                                $row->setBackground('#DDDDDD');
+                                $row->setFontWeight('bold');
+
+                            });
+
+                            $contador_filas = 7;
+                            //for ($index = 0, $total = count($requisicion['insumos_por_clues']) ; $index < $total ; $index++) { 
+                            foreach($requisicion['insumos_por_clues'] as $clues => $insumos){
+                                for ($index = 0, $total = count($insumos) ; $index < $total ; $index++) { 
+                                    $insumo = $insumos[$index];
+                                    $sheet->appendRow(array(
+                                        $data['datos_clues'][$clues]->clues,
+                                        $data['datos_clues'][$clues]->nombre,
+                                        $insumo->lote, 
+                                        $insumo->clave,
+                                        $insumo->descripcion,
+                                        $insumo->cantidad,
+                                        $insumo->unidad,
+                                        $insumo->precio,
+                                        $insumo->total
+                                    ));
+
+                                    $contador_filas += 1;
+                                }
+                            }
+
+                            $sheet->appendRow(array(
+                                '', 
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                'SUBTOTAL',
+                                '=SUM(I8:I'.$contador_filas.')'
+                            ));
+                            
+
+                            if($tipo_requisicion == 3){
+                                $iva = '=I'.($contador_filas+1).'*16/100';
+                            }else{
+                                $iva = '0.0';
+                            }
+
+                            $sheet->appendRow(array(
+                                '', 
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                'IVA',
+                                $iva
+                            ));
+
+                            $sheet->appendRow(array(
+                                '', 
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                'TOTAL',
+                                '=SUM(I'.($contador_filas+1).':I'.($contador_filas+2).')'
+                            ));
+
+                            $contador_filas += 3;
+
+                            $sheet->setBorder("A1:I$contador_filas", 'thin');
+
+                            $sheet->cells("H1:I$contador_filas", function($cells) {
+                                $cells->setAlignment('right');
+                            });
+
+                            $sheet->cells("C7:C$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("D7:D$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+                            $sheet->cells("F7:F$contador_filas", function($cells) {
+                                $cells->setAlignment('center');
+                            });
+
+                            $sheet->setColumnFormat(array(
+                                "H8:I$contador_filas" => '"$"#,##0.00_-'
+                            ));
+                });
+            }
+        })->export('xls');
     }
 }

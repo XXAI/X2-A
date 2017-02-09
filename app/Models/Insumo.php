@@ -17,4 +17,7 @@ class Insumo extends Model {
 				'marca','unidad','precio','tipo','cause')
 					->where('proveedor',$empresa);
 	}*/
+	public function inventario(){
+		return $this->hasOne('App\Models\Inventario','llave','llave')->orderBy('anio','DESC');
+	}
 }
