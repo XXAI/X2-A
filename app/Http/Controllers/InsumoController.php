@@ -45,7 +45,7 @@ class InsumoController extends Controller {
 		}
 
 		$insumos = $insumos->select('id','llave','pedido','requisicion','lote','clave','descripcion', 'llave',
-						'marca','unidad','cantidad','precio','tipo','cause','controlado','surfactante')
+						'marca','unidad','cantidad','precio','tipo','cause','controlado','surfactante','sustancia_id','presentacion_id','unidad_medida_id','familia_id','es_unidosis','tipo_sustancia', 'cantidad_unidad', 'cantidad_presentacion')
 						->where('proveedor',$empresa)
 						->with(['inventario' => function($query) use ($clues){
 							$query->where('clues',$clues);

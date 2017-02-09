@@ -36,7 +36,13 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::resource('solicitudes',              'SolicitudController',              ['only' => ['index', 'show', 'store','update','destroy']]);
     Route::resource('recepcion',                'RecepcionController',              ['only' => ['index', 'show', 'store']]);
 
-    Route::resource('salidas',                  'SalidaController',                 ['only' => ['index', 'show', 'store']]);
+    Route::resource('salidas',                  'SalidaController',                 ['only' => ['index', 'show', 'store', 'update']]);
+
+    Route::resource('salidas-actas',            'SalidaActaController',             ['only' => ['index', 'show', 'store']]);
+
+    Route::resource('recetas',                  'RecetaController',                 ['only' => ['index', 'show', 'store', 'update']]);
+    Route::resource('personal',                 'PersonalController',               ['only' => ['index']]);
+
     Route::resource('tipo-salidas',             'TipoSalidaController',             ['only' => ['index']]);
 
     Route::get('acta-pdf/{id}',                         'ActaController@generarActaPDF');
@@ -48,6 +54,7 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::post('importar-zip-unidad',                  'RequisicionesUnidadController@importar');
     Route::get('sincronizar-validacion/{id}',           'ActaController@sincronizar');
     Route::get('exportar-csv-unidad/{id}',              'RequisicionesUnidadController@generarJSON');
+    Route::get('salidas-actas-inventario/{id}',         'SalidaActaController@obtenerInventario');
 
     Route::put('clonar-acta/{id}',                      'ClonarActasController@clonar');
     Route::put('clonar-acta-jurisdiccion/{id}',         'ClonarActasController@clonarJurisdiccion');
