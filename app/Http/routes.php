@@ -59,6 +59,9 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::put('clonar-acta/{id}',                      'ClonarActasController@clonar');
     Route::put('clonar-acta-jurisdiccion/{id}',         'ClonarActasController@clonarJurisdiccion');
 
+    Route::put('clonar-acta/{id}',                      'ClonarActasController@clonar');
+    Route::put('clonar-acta-jurisdiccion/{id}',         'ClonarActasController@clonarJurisdiccion');
+
     //Excel
     Route::get('acta-excel/{id}',                       'ActaController@generarExcel');
     Route::get('acta-excel-desglose/{id}',              'ActaController@generarExcelDesglosado');
