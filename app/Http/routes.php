@@ -36,6 +36,8 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::resource('solicitudes',              'SolicitudController',              ['only' => ['index', 'show', 'store','update','destroy']]);
     Route::resource('recepcion',                'RecepcionController',              ['only' => ['index', 'show', 'store']]);
 
+     Route::resource('inventario',            'InventarioController',            ['only' => ['index', 'show', 'store','update','destroy']]);
+
     Route::get('acta-pdf/{id}',                         'ActaController@generarActaPDF');
     Route::get('requisiciones-pdf/{id}',                'ActaController@generarRequisicionPDF');
     Route::get('requisicionesunidades-duplicar/{id}',   'RequisicionesUnidadController@duplicar');
@@ -45,6 +47,7 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::post('importar-zip-unidad',                  'RequisicionesUnidadController@importar');
     Route::get('sincronizar-validacion/{id}',           'ActaController@sincronizar');
     Route::get('exportar-csv-unidad/{id}',              'RequisicionesUnidadController@generarJSON');
+    Route::post('importar-excel',                         'InventarioController@importar');
 
     //Excel
     Route::get('acta-excel/{id}',                       'ActaController@generarExcel');
