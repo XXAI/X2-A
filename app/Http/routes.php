@@ -38,6 +38,19 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::resource('recepcion-sin-acta',       'EntradaLibreController',           ['only' => ['index', 'show', 'store','update','destroy']]);
     Route::get('recepcion-sin-acta-catalogos',  'EntradaLibreController@catalogos');
 
+
+    Route::resource('salidas',                  'SalidaController',                 ['only' => ['index', 'show', 'store', 'update']]);
+
+    Route::resource('salidas-actas',            'SalidaActaController',             ['only' => ['index', 'show', 'store']]);
+
+    Route::resource('recetas',                  'RecetaController',                 ['only' => ['index', 'show', 'store', 'update']]);
+    Route::resource('personal',                 'PersonalController',               ['only' => ['index']]);
+
+    Route::resource('tipo-salidas',             'TipoSalidaController',             ['only' => ['index']]);
+
+     Route::resource('inventario',            'InventarioController',            ['only' => ['index', 'show', 'store','update','destroy']]);
+
+
     Route::get('acta-pdf/{id}',                         'ActaController@generarActaPDF');
     Route::get('requisiciones-pdf/{id}',                'ActaController@generarRequisicionPDF');
     Route::get('requisicionesunidades-duplicar/{id}',   'RequisicionesUnidadController@duplicar');
@@ -48,8 +61,15 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::get('sincronizar-validacion/{id}',           'ActaController@sincronizar');
     Route::get('exportar-csv-unidad/{id}',              'RequisicionesUnidadController@generarJSON');
 
+    Route::get('salidas-actas-inventario/{id}',         'SalidaActaController@obtenerInventario');
+
     Route::put('clonar-acta/{id}',                      'ClonarActasController@clonar');
     Route::put('clonar-acta-jurisdiccion/{id}',         'ClonarActasController@clonarJurisdiccion');
+
+   
+
+    Route::post('importar-excel',                         'InventarioController@importar');
+
 
     //Excel
     Route::get('acta-excel/{id}',                       'ActaController@generarExcel');
