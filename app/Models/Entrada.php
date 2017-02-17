@@ -15,4 +15,8 @@ class Entrada extends Model {
 	public function acta(){
 		return $this->hasOne('App\Models\Acta','id','acta_id');
 	}
+
+	public function proveedor(){
+		return $this->hasOne('App\Models\Proveedor','id','proveedor_id');
+	}
 }
