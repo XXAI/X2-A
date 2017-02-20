@@ -66,16 +66,13 @@ Route::group(['middleware' => 'jwt'], function () {
     Route::put('clonar-acta/{id}',                      'ClonarActasController@clonar');
     Route::put('clonar-acta-jurisdiccion/{id}',         'ClonarActasController@clonarJurisdiccion');
 
-   
-
-    Route::post('importar-excel',                         'InventarioController@importar');
-
-
+    Route::post('importar-excel',                       'InventarioController@importar');
     //Excel
     Route::get('acta-excel/{id}',                       'ActaController@generarExcel');
     Route::get('acta-excel-desglose/{id}',              'ActaController@generarExcelDesglosado');
     Route::get('requisiciones-excel',                   'RequisicionController@generarExcel');
     Route::get('entrada-acta-excel/{id}',               'RecepcionController@generarExcel');
+    Route::get('inventario-excel',                      'InventarioController@generarExcel');
 
     Route::get('sincronizar-entrada/{id}',           'RecepcionController@sincronizar');
     Route::get('ver-entrada/{id}',                   'RecepcionController@showEntrada');

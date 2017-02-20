@@ -14,6 +14,7 @@ use App\Models\Insumo;
 use App\Models\Usuario;
 use App\Models\ConfiguracionAplicacion;
 use App\Models\Inventario;
+use App\Models\HistorialInventario;
 use JWTAuth;
 use Illuminate\Support\Facades\Input;
 use \Validator,\Hash, \Response, \DB, \PDF, \Storage, \ZipArchive;
@@ -30,65 +31,15 @@ class InventarioController extends Controller
      */
     public function index(Request $request){
         try{
+            
             $usuario = JWTAuth::parseToken()->getPayload();
-
-            $inputs=Input::all();
-            if(isset($inputs['listado'])){              //// listar los elementos de la tabla "inventario"
-            $anio=$inputs['anio'];
-            $clues=$usuario->get('clues');
-            $inventario=Inventario::where('clues',$usuario->get('clues'))->where('anio',$anio)->get();
+            
+            $inventario = Inventario::join("insumos", "insumos.clave", "=", "inventario.llave")
+                                    ->where("clues", $usuario->get('clues'))
+                                    ->groupBy("insumos.clave")
+                                    ->get();
+            
             return Response::json(['data'=>$inventario],200);
-
-            }
-            
-            //DB::enableQueryLog();
-         
-            $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
-            $empresa = $configuracion->empresa_clave;
-
-            /*if(!Input::get('catalogos')){
-                $requisiciones = Requisicion::whereNull('acta_id')->where('clues',$usuario->get('clues'))->with('insumosClues')->get();
-            }else{
-                $requisiciones = [];
-            }*/
-
-            $clues = Configuracion::select('clues','clues_nombre as nombre','municipio','localidad','jurisdiccion','lista_base_id')
-                            //->where('empresa_clave',$empresa)
-                            ->with(['cuadroBasico'=>function($query)use($empresa){
-                                $query->select('lista_base_insumos_id',$empresa.' AS llave');
-                            }])
-                            ->whereIn('tipo_clues',[1,2]);
-
-            if($configuracion->caravana_region){
-                $clues = $clues->where('caravana_region',$configuracion->caravana_region);
-            }else{
-                $clues = $clues->where('jurisdiccion',$configuracion->jurisdiccion)->whereNull('caravana_region');
-            }
-
-            $clues = $clues->get();
-
-            //Arreglo de solo las clues, para identificar los insumos pertenecientes al mismo grupo de clues
-            $listado_clues = $clues->lists('clues');
-
-            if(!Input::get('catalogos')){
-                $insumos = DB::table('requisicion_insumo_clues')
-                                ->leftjoin('insumos','insumos.id','=','requisicion_insumo_clues.insumo_id')
-                                ->select('insumos.*','requisicion_insumo_clues.*')
-                                ->whereNull('requisicion_id')
-                                ->whereIn('requisicion_insumo_clues.clues',$listado_clues)
-                                ->where('usuario',$usuario->get('id'))
-                                ->get();
-            }else{
-                $insumos = [];
-            }
-
-            if($configuracion->empresa_clave == 'exfarma'){
-                $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura_exfarma');
-            }else{
-                $captura_habilitada = ConfiguracionAplicacion::obtenerValor('habilitar_captura');
-            }
-            
-            return Response::json(['data'=>$insumos, 'clues'=>$clues, 'configuracion'=>$configuracion, 'captura_habilitada'=>$captura_habilitada->valor],200);
         }catch(Exception $ex){
             return Response::json(['error'=>$e->getMessage()],500);
         }
@@ -482,15 +433,26 @@ class InventarioController extends Controller
                                 ->where('clues',$usuario->get('clues'))
                                 //->whereNotNull($mes)
                                 ->delete(); 
-                            foreach ($xls[0] as $key=> $v) {
+                            foreach ($xls as $key=> $v) {
+                                  
                                 $contadorBueno++;
-                                  $meses=['1','2','3','4','5','6','7','8','9','10','11','12'];
-
-                                $inventario=new Inventario();
-                                $inventario->anio=$anio;
-                                $inventario->clues=$usuario->get('clues');
-                                $inventario->llave=$v->clave;
-                                $inventario->$meses[0]=$v->enero;
+                                $meses=['1','2','3','4','5','6','7','8','9','10','11','12'];
+                                
+                                /*$arreglo_inventario = array();
+                                $arreglo_inventario['anio']     = $anio;
+                                $arreglo_inventario['mes']      = $mes;
+                                $arreglo_inventario['clues']    = $usuario->get('clues');
+                                $arreglo_inventario['llave']    = $v->clave;
+                                $arreglo_inventario['valor']    = $v->enero;*/
+                                
+                                //$inventario = Inventario::create($arreglo_inventario);
+                                $inventario         = new Inventario();
+                                $inventario->anio   = $anio;
+                                $inventario->mes    = $mes;
+                                $inventario->clues  = $usuario->get('clues');
+                                $inventario->llave  = $v->clave;
+                                $inventario->valor  = $v->enero;
+                                /*$inventario->$meses[0]=$v->enero;
                                 $inventario->$meses[1]=$v->febrero;
                                 $inventario->$meses[2]=$v->marzo;
                                 $inventario->$meses[3]=$v->abril;
@@ -501,10 +463,17 @@ class InventarioController extends Controller
                                 $inventario->$meses[8]=$v->septiembre;
                                 $inventario->$meses[9]=$v->octubre;
                                 $inventario->$meses[10]=$v->noviembre;
-                                $inventario->$meses[11]=$v->diciembre;
+                                $inventario->$meses[11]=$v->diciembre;*/
                                 $inventario->save();
                                 
-
+                                $historial_inventario           = new HistorialInventario();
+                                $historial_inventario->anio     = $anio;
+                                $historial_inventario->mes      = $mes;
+                                $historial_inventario->clues    = $usuario->get('clues');
+                                $historial_inventario->llave    = $v->clave;
+                                $historial_inventario->valor    = $v->enero;
+                                $historial_inventario->save();
+                                
                             }                            
                         }
                     
@@ -518,8 +487,197 @@ class InventarioController extends Controller
             return Response::json(['error'=>$e->getMessage()],500);
              }
            
-            return Response::json([ 'data' => 'sipasa'  ],200);
+            return Response::json([ 'data' => $xls  ],200);
         }
          return Response::json([ 'data' => $json  ],200);
+    }
+    
+    public function generarExcel() {
+        $meses = ['01'=>'ENERO','02'=>'FEBRERO','03'=>'MARZO','04'=>'ABRIL','05'=>'MAYO','06'=>'JUNIO','07'=>'JULIO','08'=>'AGOSTO','09'=>'SEPTIEMBRE','10'=>'OCTUBRE','11'=>'NOVIEMBRE','12'=>'DICIEMBRE'];
+        $data = [];
+
+        $usuario = JWTAuth::parseToken()->getPayload();
+        $configuracion = Configuracion::where('clues',$usuario->get('clues'))->first();
+        $empresa = $configuracion->empresa_clave;
+
+        /*$clues = Configuracion::select('clues','clues_nombre as nombre','municipio','localidad','jurisdiccion','lista_base_id')
+                        //->where('empresa_clave',$empresa)
+                        ->with(['cuadroBasico'=>function($query)use($empresa){
+                            $query->select('lista_base_insumos_id',$empresa.' AS llave');
+                        }])
+                        ->whereIn('tipo_clues',[1,2])->get();*/
+        //return Response::json([ 'data' => $configuracion  ],200);
+        
+        $inputs = Input::all();
+        $anio   = $inputs['anio'];
+        
+        $json = HistorialInventario:://join("insumos", "insumos.clave","=", "historial_inventario.llave")
+                                    where("clues", $usuario->get('clues'))
+                                    ->where("anio", $anio)
+                                    //->groupBy("insumos.clave")
+                                    ->select("mes",
+                                             "llave",
+                                             DB::RAW("(select descripcion from insumos where insumos.clave=historial_inventario.llave limit 1) as nombre_insumo"),
+                                             "valor",
+                                             "created_at"
+                                            )    
+                                    ->orderBy("historial_inventario.llave", "asc")    
+                                    ->orderBy("mes", "asc")    
+                                    ->orderBy("created_at", "asc")    
+                                    ->get();
+        
+        
+        
+        $arreglo_datos = array();
+        foreach($json as $key => $valor) {
+            if(isset($arreglo_datos[$valor->mes]))
+            {
+                $arreglo_datos[$valor->mes]['insumos'][] = $valor;
+            }else{
+                 $arreglo_datos[$valor->mes] = array();
+                 $arreglo_datos[$valor->mes]['claves'] = array();
+                 $arreglo_datos[$valor->mes]['lista_claves'] = array();
+                 $arreglo_datos[$valor->mes]['fechas'] = array();
+                 $arreglo_datos[$valor->mes]['insumos'][] = $valor;
+             }
+             
+            if(!in_array($valor->llave, $arreglo_datos[$valor->mes]['lista_claves']))
+             {
+                $indice = count($arreglo_datos[$valor->mes]['lista_claves']);
+                $arreglo_datos[$valor->mes]['lista_claves'][] = $valor->llave;
+                 
+                $arreglo_datos[$valor->mes]['lista_claves_nombre'][$indice]['clave'] = $valor->llave;
+                $arreglo_datos[$valor->mes]['lista_claves_nombre'][$indice]['nombre'] = $valor->nombre_insumo;
+             }
+            
+             if(!in_array($valor->llave, $arreglo_datos[$valor->mes]['claves']))
+             {
+                $arreglo_datos[$valor->mes]['claves'][$valor->llave][] = $valor->valor;
+             }else
+             {
+                 
+                $arreglo_datos[$valor->mes]['claves'][$valor->llave][] = $valor->valor;
+             }
+             
+             if(!in_array(explode(",",$valor->created_at)[0], $arreglo_datos[$valor->mes]['fechas']))
+             {    
+                $arreglo_datos[$valor->mes]['fechas'][] = explode(",",$valor->created_at)[0]; 
+             }
+         }
+        
+       
+        //return Response::json([ 'data' => $arreglo_datos  ],200);
+        
+        //EMPIEZA
+        Excel::create("Reporte", function($excel) use($arreglo_datos, $configuracion) {
+            
+            $meses = array(
+            "0"=>"ENERO",
+            "1"=>"FEBRERO",
+            "2"=>"MARZO",
+            "3"=>"ABRIL",
+            "4"=>"MAYO",
+            "5"=>"JUNIO",
+            "6"=>"JULIO",
+            "7"=>"AGOSTO",
+            "8"=>"SEPTIEMBRE",
+            "9"=>"OCTUBRE",
+            "10"=>"NOVIEMBRE",
+            "11"=>"DICIEMBRE"    
+            );
+            foreach($arreglo_datos as $key => $value) {
+                
+                $mes  = '';
+                switch($key) {
+                    case 1: $mes = "ENERO"; break;
+                    case 2: $mes = "FEBRERO"; break;
+                    case 3: $mes = "MARZO"; break;
+                    case 4: $mes = "ABRIL"; break;
+                    case 5: $mes = "MAYO"; break;
+                    case 6: $mes = "JUNIO"; break;
+                    case 7: $mes = "JULIO"; break;
+                    case 8: $mes = "AGOSTO"; break;
+                    case 9: $mes = "SEPTIEMBRE"; break;
+                    case 10: $mes = "OCTUBRE"; break;
+                    case 11: $mes = "NOVIEMBRE"; break;
+                    case 12: $mes = "DICIEMBRE"; break;
+                    
+                }
+                $excel->sheet($mes, function($sheet) use($value, $meses, $configuracion) {
+                    $sheet->setAutoSize(true);
+
+                    $sheet->mergeCells('A1:B1');
+                    $sheet->row(1, array('UNIDAD: ('.$configuracion['clues'].") ".$configuracion['clues_nombre']));
+
+                    $sheet->mergeCells('A2:B2'); 
+                    $sheet->row(2, array('FECHA: '.date("d")." DE ".$meses[(date("n")-1)]." DEL ".date("Y")));
+
+                    $sheet->mergeCells('A3:B3'); 
+                    $sheet->row(3, array(''));
+
+                    $sheet->mergeCells('A4:B4');
+                    $sheet->row(4, array(''));
+                    
+                    $arreglo_titulo = $value['fechas'];
+                    array_unshift($arreglo_titulo, "CLAVE", "DESCRIPCION");
+                    
+                    $sheet->row(5, $arreglo_titulo);
+                    
+                    $sheet->row(1, function($row) {
+                        $row->setBackground('#DDDDDD');
+                        $row->setFontWeight('bold');
+                        $row->setFontSize(16);
+                    });
+
+                    $sheet->row(2, function($row) {
+                        $row->setBackground('#DDDDDD');
+                        $row->setFontWeight('bold');
+                        $row->setFontSize(14);
+                    });
+                     $sheet->row(3, function($row) {
+                        $row->setBackground('#DDDDDD');
+                        $row->setFontWeight('bold');
+                        $row->setFontSize(14);
+                    });
+                     $sheet->row(4, function($row) {
+                        $row->setBackground('#DDDDDD');
+                        $row->setFontWeight('bold');
+                        $row->setFontSize(14);
+                    });
+
+                    $sheet->row(5, function($row) {
+                        $row->setBackground('#DDDDDD');
+                        $row->setFontWeight('bold');
+                        $row->setFontSize(14);
+                    });
+
+                
+                    $contador_filas = 6;
+                    
+                    //Empieza el llenado
+                    
+                    foreach($value['lista_claves'] as $key_insumos => $value_insumos) {
+                        $arreglo_tabla = array();
+                        $arreglo_tabla[] = $value_insumos;
+                        $arreglo_tabla[] = $value['lista_claves_nombre'][$key_insumos]['nombre'];
+                        
+                        foreach($value['claves'][$value_insumos] as $key_tabla => $value_tabla) {
+                            $arreglo_tabla[] = $value_tabla;
+                        }
+                        
+                        $sheet->row($contador_filas, $arreglo_tabla);
+                        $contador_filas++;
+                    }
+                    //
+
+                
+            
+                });
+
+                
+            }
+        })->export('xls');
+        
+    
     }
 }
