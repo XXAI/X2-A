@@ -494,29 +494,29 @@ class RecepcionController extends Controller
                         if($acta->estatus < 3 ) {$sin_validar = " (SIN VALIDAR)";}
                         $sheet->setAutoSize(true);
 
-                        $sheet->mergeCells('A1:J1');
+                        $sheet->mergeCells('A1:L1');
                         $sheet->row(1, array('ACTA: '.$acta->folio.$sin_validar));
                         //$sheet->row(1, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($pedido_proveedor['proveedor'],'UTF-8')));
 
-                        $sheet->mergeCells('A2:J2'); 
+                        $sheet->mergeCells('A2:L2'); 
                         $sheet->row(2, array('UNIDAD: '.$unidad));
                         //$sheet->row(2, array('REQUISICIÓN NO.: '.$requisicion->numero));
 
-                        $sheet->mergeCells('A3:J3'); 
+                        $sheet->mergeCells('A3:L3'); 
                         $sheet->row(3, array('PEDIDO: '.$requisicion->pedido));
 
-                        $sheet->mergeCells('A4:J4'); 
+                        $sheet->mergeCells('A4:L4'); 
                         $sheet->row(4, array('No. DE REQUISICIÓN: '.$requisicion->numero));
                         
 
-                        $sheet->mergeCells('A5:J5'); 
+                        $sheet->mergeCells('A5:L5'); 
                         $sheet->row(5, array('FECHA: '.$acta->fecha[2]." DE ".$acta->fecha[1]." DEL ".$acta->fecha[0]));
 
-                        $sheet->mergeCells('A6:J6');
+                        $sheet->mergeCells('A6:L6');
                         $sheet->row(6, array(''));
 
                         $sheet->row(7, array(
-                            'No. DE LOTE', 'CLAVE','DESCRIPCIÓN DE LOS INSUMOS','PRECIO UNITARIO','CANTIDAD PEDIDA', 'CANTIDAD RECIBIDA','%','TOTAL PEDIDO', 'TOTAL RECIBIDO', '%'
+                            'No. DE LOTE', 'CLAVE','DESCRIPCIÓN DE LOS INSUMOS','PRECIO UNITARIO','CANTIDAD PEDIDA', 'CANTIDAD RECIBIDA', 'CANTIDAD RESTANTE','%','TOTAL PEDIDO', 'TOTAL RECIBIDO','TOTAL RESTANTE', '%'
                         ));
                         $sheet->row(1, function($row) {
                             $row->setBackground('#DDDDDD');
@@ -570,10 +570,12 @@ class RecepcionController extends Controller
                                 $insumo['precio'],
                                 $insumo['pivot']['cantidad_validada'],
                                 $insumo['pivot']['cantidad_recibida'],
+                                "=E$contador_filas-F$contador_filas",
                                 "=F$contador_filas/E$contador_filas",
                                 $insumo['pivot']['total_validado'],
                                 $insumo['pivot']['total_recibido'],
-                                "=I$contador_filas/H$contador_filas"
+                                "=I$contador_filas-J$contador_filas",
+                                "=J$contador_filas/I$contador_filas"
                             ));
                         }
                         
@@ -585,18 +587,22 @@ class RecepcionController extends Controller
                                 '',
                                 '',
                                 '',
-                                '=SUM(H8:H'.($contador_filas).')',
+                                '',
                                 '=SUM(I8:I'.($contador_filas).')',
+                                '=SUM(J8:J'.($contador_filas).')',
+                                '=SUM(K8:K'.($contador_filas).')',
                                 ''
                             ));
                     
 
                         if($requisicion->tipo_requisicion == 3){
-                            $iva_pedido = '=H'.($contador_filas+1).'*16/100';
-                            $iva_recibido = '=I'.($contador_filas+1).'*16/100';
+                            $iva_pedido = '=I'.($contador_filas+1).'*16/100';
+                            $iva_recibido = '=J'.($contador_filas+1).'*16/100';
+                            $iva_restante = '=K'.($contador_filas+1).'*16/100';
                         }else{
                             $iva_pedido = 0;
                             $iva_recibido = 0;
+                            $iva_restante = 0;
                         }
                         $sheet->appendRow(array(
                                 '', 
@@ -606,8 +612,10 @@ class RecepcionController extends Controller
                                 '',
                                 '',
                                 '',
+                                '',
                                 $iva_pedido,
                                 $iva_recibido,
+                                $iva_restante,
                                 ''
                             ));
                     
@@ -620,18 +628,20 @@ class RecepcionController extends Controller
                                 'TOTAL',
                                 '=SUM(E8:E'.($contador_filas).')',
                                 '=SUM(F8:F'.($contador_filas).')',
+                                '=SUM(G8:G'.($contador_filas).')',
                                 '=F'.($contador_filas+3).'/E'.($contador_filas+3),
-                                '=SUM(H'.($contador_filas+1).':H'.($contador_filas+2).')',
                                 '=SUM(I'.($contador_filas+1).':I'.($contador_filas+2).')',
-                                '=I'.($contador_filas+3).'/H'.($contador_filas+3),
+                                '=SUM(J'.($contador_filas+1).':J'.($contador_filas+2).')',
+                                '=SUM(K'.($contador_filas+1).':K'.($contador_filas+2).')',
+                                '=J'.($contador_filas+3).'/I'.($contador_filas+3),
                             ));
                         
                         $contador_filas += 3;
 
-                        $sheet->setBorder("A1:J$contador_filas", 'thin');
+                        $sheet->setBorder("A1:L$contador_filas", 'thin');
 
 
-                        $sheet->cells("F1:G$contador_filas", function($cells) {
+                        $sheet->cells("F1:H$contador_filas", function($cells) {
                             $cells->setAlignment('right');
                         });
 
@@ -641,22 +651,24 @@ class RecepcionController extends Controller
                         $sheet->cells("B7:B$contador_filas", function($cells) {
                             $cells->setAlignment('center');
                         });
-                        $sheet->cells("E7:F$contador_filas", function($cells) {
+                        $sheet->cells("E7:G$contador_filas", function($cells) {
                             $cells->setAlignment('center');
                         });
 
                         $phpColor = new \PHPExcel_Style_Color();
                         $phpColor->setRGB('DDDDDD'); 
-                        $sheet->getStyle("G8:G$contador_filas")->getFont()->setColor( $phpColor );
-                        $sheet->getStyle("J8:J$contador_filas")->getFont()->setColor( $phpColor );
+                        $sheet->getStyle("H8:H$contador_filas")->getFont()->setColor( $phpColor );
+                        $sheet->getStyle("L8:L$contador_filas")->getFont()->setColor( $phpColor );
 
                         $sheet->setColumnFormat(array(
                             "D8:D$contador_filas" => '"$"#,##0.00_-',
-                            "E8:F$contador_filas" => '#,##0_-',
-                            "G8:G$contador_filas" => '[Green]0.00%;[Red]-0.00%;0.00%',
-                            "H8:I$contador_filas" => '"$"#,##0.00_-',
-                            "J8:J$contador_filas" => '[Green]0.00%;[Red]-0.00%;0.00%'
+                            "E8:G$contador_filas" => '#,##0_-',
+                            "H8:H$contador_filas" => '[Green]0.00%;[Red]-0.00%;0.00%',
+                            "I8:K$contador_filas" => '"$"#,##0.00_-',
+                            "L8:L$contador_filas" => '[Green]0.00%;[Red]-0.00%;0.00%'
                         ));
+
+                        $sheet->freezePane('A8');
                 });
             }
         })->export('xls');
