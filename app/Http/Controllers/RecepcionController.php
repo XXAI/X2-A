@@ -458,17 +458,6 @@ class RecepcionController extends Controller
         $data['unidad'] = mb_strtoupper($configuracion->clues_nombre,'UTF-8');
         $data['empresa'] = $configuracion->empresa_nombre;
         $data['empresa_clave'] = $configuracion->empresa_clave;
-        /*
-        $pdf = PDF::loadView('pdf.requisiciones', $data);
-        $pdf->output();
-        $dom_pdf = $pdf->getDomPDF();
-        $canvas = $dom_pdf->get_canvas();
-        $w = $canvas->get_width();
-        $h = $canvas->get_height();
-        $canvas->page_text(($w/2)-10, ($h-40), "{PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
-
-        return $pdf->stream($data['acta']->folio.'Requisiciones.pdf');
-        */
 
         $nombre_archivo = 'Avance Recepcion ' . str_replace("/","-",$data['acta']->folio);  
 
@@ -476,6 +465,8 @@ class RecepcionController extends Controller
             $unidad = $data['unidad'];
             $acta = $data['acta'];
             $requisiciones = $acta->requisiciones;
+
+            $acumulado_requisicion = []; //por tipo de requisicion = [claves_pedidas,claves_recibidas,cantidad_pedida,cantidad_recibida,total_pedido,total_recibido]
 
             foreach($requisiciones as $index => $requisicion) {
                 $tipo  = '';
@@ -486,7 +477,27 @@ class RecepcionController extends Controller
                     case 4: $tipo = "MEDICAMENTOS CONTROLADOS"; break;
                     case 5: $tipo = "FACTOR SURFACTANTE (CAUSES)"; break;
                     case 6: $tipo = "FACTOR SURFACTANTE (NO CAUSES)"; break;
-                    
+                }
+
+                $acumulado_requisicion[$requisicion->tipo_requisicion] = [
+                    'claves_pedidas' => 0,
+                    'claves_recibidas' => 0,
+                    'cantidad_pedida' => 0,
+                    'cantidad_recibida' => 0,
+                    'total_pedido' => 0,
+                    'total_recibido' => 0
+                ];
+
+                foreach($requisicion->insumos as $indice => $insumo){
+                    $acumulado_requisicion[$requisicion->tipo_requisicion]['claves_pedidas'] += 1;
+                    $acumulado_requisicion[$requisicion->tipo_requisicion]['cantidad_pedida'] += $insumo['pivot']['cantidad_validada'];
+                    $acumulado_requisicion[$requisicion->tipo_requisicion]['total_pedido'] += $insumo['pivot']['total_validado'];
+
+                    if($insumo['pivot']['cantidad_recibida']){
+                        $acumulado_requisicion[$requisicion->tipo_requisicion]['claves_recibidas'] += 1;
+                        $acumulado_requisicion[$requisicion->tipo_requisicion]['cantidad_recibida'] += $insumo['pivot']['cantidad_recibida'];
+                        $acumulado_requisicion[$requisicion->tipo_requisicion]['total_recibido'] += $insumo['pivot']['total_recibido'];
+                    }
                 }
                 
                 $excel->sheet($tipo, function($sheet) use($requisicion,$acta,$unidad) {
@@ -618,9 +629,6 @@ class RecepcionController extends Controller
                                 $iva_restante,
                                 ''
                             ));
-                    
-
-                    
                         $sheet->appendRow(array(
                                 '', 
                                 '',
@@ -671,6 +679,127 @@ class RecepcionController extends Controller
                         $sheet->freezePane('A8');
                 });
             }
+
+            $excel->sheet('RESUMEN POR REQUISICION', function($sheet) use($requisiciones,$acta,$unidad,$acumulado_requisicion){
+                $sheet->setAutoSize(true);
+
+                $sheet->mergeCells('A1:N1');
+                $sheet->row(1, array('ACTA: '.$acta->folio));
+                //$sheet->row(1, array('PROVEEDOR DESIGNADO: '.mb_strtoupper($pedido_proveedor['proveedor'],'UTF-8')));
+
+                $sheet->mergeCells('A2:N2'); 
+                $sheet->row(2, array('UNIDAD: '.$unidad));
+                //$sheet->row(2, array('REQUISICIÓN NO.: '.$requisicion->numero));
+
+                $sheet->mergeCells('A3:N3'); 
+                $sheet->row(3, array('FECHA: '.$acta->fecha[2]." DE ".$acta->fecha[1]." DEL ".$acta->fecha[0]));
+
+                $sheet->mergeCells('A4:N4');
+                $sheet->row(4, array(''));
+
+                $sheet->row(5, array(
+                        '', 'REQUISICION','CLAVES PEDIDAS', 'CLAVES RECIBIDAS', 'CLAVES RESTANTES','%','CANTIDAD PEDIDA', 'CANTIDAD RECIBIDA', 'CANTIDAD RESTANTE','%','TOTAL PEDIDO', 'TOTAL RECIBIDO','TOTAL RESTANTE', '%'
+                    ));
+
+                $sheet->row(1, function($row) {
+                    $row->setBackground('#DDDDDD');
+                    $row->setFontWeight('bold');
+                    $row->setFontSize(16);
+                });
+                $sheet->row(2, function($row) {
+                    $row->setBackground('#DDDDDD');
+                    $row->setFontWeight('bold');
+                    $row->setFontSize(14);
+                });
+                 $sheet->row(3, function($row) {
+                    $row->setBackground('#DDDDDD');
+                    $row->setFontWeight('bold');
+                    $row->setFontSize(14);
+                });
+                 $sheet->row(4, function($row) {
+                    $row->setBackground('#DDDDDD');
+                    $row->setFontWeight('bold');
+                    $row->setFontSize(14);
+                });
+                $sheet->row(5, function($row) {
+                    // call cell manipulation methods
+                    $row->setBackground('#DDDDDD');
+                    $row->setFontWeight('bold');
+
+                });
+
+                $contador_filas = 5;
+                foreach($requisiciones as $index => $requisicion) {
+                    $contador_filas++;
+
+                    $tipo  = '';
+                    switch($requisicion->tipo_requisicion) {
+                        case 1: $tipo = "MEDICAMENTOS CAUSES"; break;
+                        case 2: $tipo = "MEDICAMENTOS NO CAUSES"; break;
+                        case 3: $tipo = "MATERIAL DE CURACION"; break;
+                        case 4: $tipo = "MEDICAMENTOS CONTROLADOS"; break;
+                        case 5: $tipo = "FACTOR SURFACTANTE (CAUSES)"; break;
+                        case 6: $tipo = "FACTOR SURFACTANTE (NO CAUSES)"; break;
+                    }
+
+                    $sheet->appendRow(array(
+                        '', 
+                        $tipo,
+                        $acumulado_requisicion[$requisicion->tipo_requisicion]['claves_pedidas'],
+                        $acumulado_requisicion[$requisicion->tipo_requisicion]['claves_recibidas'],
+                        "=C$contador_filas-D$contador_filas",
+                        "=D$contador_filas/C$contador_filas",
+                        $acumulado_requisicion[$requisicion->tipo_requisicion]['cantidad_pedida'],
+                        $acumulado_requisicion[$requisicion->tipo_requisicion]['cantidad_recibida'],
+                        "=G$contador_filas-H$contador_filas",
+                        "=H$contador_filas/G$contador_filas",
+                        $acumulado_requisicion[$requisicion->tipo_requisicion]['total_pedido'],
+                        $acumulado_requisicion[$requisicion->tipo_requisicion]['total_recibido'],
+                        "=K$contador_filas-L$contador_filas",
+                        "=L$contador_filas/K$contador_filas"
+                    ));
+                }
+
+                $sheet->appendRow(array(
+                    '',
+                    'TOTAL',
+                    "=SUM(C6:C$contador_filas)",
+                    "=SUM(D6:D$contador_filas)",
+                    "=SUM(E6:E$contador_filas)",
+                    "=D".($contador_filas+1)."/C".($contador_filas+1),
+                    "=SUM(G6:G$contador_filas)",
+                    "=SUM(H6:H$contador_filas)",
+                    "=SUM(I6:I$contador_filas)",
+                    "=H".($contador_filas+1)."/G".($contador_filas+1),
+                    "=SUM(K6:K$contador_filas)",
+                    "=SUM(L6:L$contador_filas)",
+                    "=SUM(M6:M$contador_filas)",
+                    "=L".($contador_filas+1)."/K".($contador_filas+1)
+                ));
+                $contador_filas++;
+
+                $sheet->setBorder("A1:N$contador_filas", 'thin');
+
+                $sheet->cells("B5:B$contador_filas", function($cells) {
+                    $cells->setAlignment('left');
+                });
+
+                $phpColor = new \PHPExcel_Style_Color();
+                $phpColor->setRGB('DDDDDD'); 
+                $sheet->getStyle("F6:F$contador_filas")->getFont()->setColor( $phpColor );
+                $sheet->getStyle("J6:J$contador_filas")->getFont()->setColor( $phpColor );
+                $sheet->getStyle("N6:N$contador_filas")->getFont()->setColor( $phpColor );
+
+                $sheet->setColumnFormat(array(
+                    "C6:E$contador_filas" => '#,##0_-',
+                    "F6:F$contador_filas" => '[Green]0.00%;[Red]-0.00%;0.00%',
+                    "G6:I$contador_filas" => '#,##0_-',
+                    "J6:J$contador_filas" => '[Green]0.00%;[Red]-0.00%;0.00%',
+                    "K6:M$contador_filas" => '"$"#,##0.00_-',
+                    "N6:N$contador_filas" => '[Green]0.00%;[Red]-0.00%;0.00%'
+                ));
+            });
+
         })->export('xls');
     }
 
