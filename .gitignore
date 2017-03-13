@@ -4,4 +4,4 @@ Homestead.yaml
 Homestead.json
 /.idea
 .env
-
+/public/.htaccess
